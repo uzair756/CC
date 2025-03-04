@@ -9,13 +9,13 @@ export const NominationForm = ({ route }) => {
   const [nominationData, setNominationData] = useState(null);
   const [lastUpdated, setLastUpdated] = useState(null);
 
-  const playerLimit = sport === 'Football' ? 16 : sport === 'Futsal' ? 10 : sport === 'Volleyball' ? 12 : sport === 'Basketball' ? 10  : sport === 'Table Tennis (M)' ? 3 : sport === 'Table Tennis (F)' ? 3 : sport === 'Snooker' ? 3 : sport === 'Tug of War (M)' ? 10 : sport === 'Tug of War (F)' ? 10 : sport === 'Tennis' ? 3 : sport === 'Cricket' ? 15 : sport === 'Badminton (M)' ? 3 : sport === 'Badminton (F)' ? 3 : 0;
+  const playerLimit = sport === 'Football' ? 16 : sport === 'Futsal' ? 10 : sport === 'Volleyball' ? 12 : sport === 'Basketball' ? 10 : sport === 'Table Tennis (M)' ? 3 : sport === 'Table Tennis (F)' ? 3 : sport === 'Snooker' ? 3 : sport === 'Tug of War (M)' ? 10 : sport === 'Tug of War (F)' ? 10 : sport === 'Tennis' ? 3 : sport === 'Cricket' ? 15 : sport === 'Badminton (M)' ? 3 : sport === 'Badminton (F)' ? 3 : 0;
 
   useEffect(() => {
     const fetchNominationData = async () => {
       const token = await AsyncStorage.getItem('token');
       try {
-        const response = await fetch(`http://192.168.43.78:3002/getNominationForm/${sport}`, {
+        const response = await fetch(`http://192.168.1.21:3002/getNominationForm/${sport}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -25,12 +25,12 @@ export const NominationForm = ({ route }) => {
         const data = await response.json();
         if (data.success && data.data) {
           setNominationData(data.data);
-          const nominations = data.data.nominations || new Array(playerLimit).fill({ name: '', cnic: '', section: '' });
+          const nominations = data.data.nominations || new Array(playerLimit).fill({ regNo: '', name: '', cnic: '', section: '' });
           setNominations(nominations);
           setIsSubmitted(true);
           setLastUpdated(`Last updated by ${data.data.lastUpdatedBy} at ${data.data.lastUpdatedAt}`);
         } else {
-          setNominations(new Array(playerLimit).fill({ name: '', cnic: '', section: '' }));
+          setNominations(new Array(playerLimit).fill({ regNo: '', name: '', cnic: '', section: '' }));
         }
       } catch (error) {
         console.error('Error fetching nomination data:', error);
@@ -47,9 +47,7 @@ export const NominationForm = ({ route }) => {
     }
 
     const token = await AsyncStorage.getItem('token');
-    // const currentDateTime = new Date().toLocaleString();
     const currentDateTime = new Date().toISOString();
-
 
     const dataToSubmit = {
       nominations,
@@ -64,8 +62,7 @@ export const NominationForm = ({ route }) => {
     try {
       let response;
       if (nominationData && nominationData._id) {
-        // If nomination form already exists, update it
-        response = await fetch(`http://192.168.43.78:3002/updateNominationForm/${sport}`, {
+        response = await fetch(`http://192.168.1.21:3002/updateNominationForm/${sport}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -74,8 +71,7 @@ export const NominationForm = ({ route }) => {
           body: JSON.stringify({ ...dataToSubmit, id: nominationData._id }),
         });
       } else {
-        // If nomination form does not exist, submit it
-        response = await fetch(`http://192.168.43.78:3002/submitNominationForm/${sport}`, {
+        response = await fetch(`http://192.168.1.21:3002/submitNominationForm/${sport}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -87,11 +83,7 @@ export const NominationForm = ({ route }) => {
 
       const data = await response.json();
       if (data.success) {
-        if (nominationData && nominationData._id) {
-          Alert.alert('Success', 'Nomination updated successfully');
-        } else {
-          Alert.alert('Success', 'Nomination submitted successfully');
-        }
+        Alert.alert('Success', nominationData && nominationData._id ? 'Nomination updated successfully' : 'Nomination submitted successfully');
         setIsSubmitted(true);
         setLastUpdated(`Last updated by ${repName} at ${currentDateTime}`);
       } else {
@@ -113,26 +105,32 @@ export const NominationForm = ({ route }) => {
   };
 
   const isFormComplete = () => {
-    const isFilled = nominations.some(player => player.name && player.cnic && player.section);
-    return isFilled;
+    return nominations.some(player => player.regNo && player.name && player.cnic && player.section);
   };
 
   const renderPlayerFields = () => {
     const fields = [];
     for (let i = 0; i < playerLimit; i++) {
       const playerLabel = i === 0 ? "Captain" : `Player ${i + 1}`;
-      const isRowFilled = nominations[i]?.name && nominations[i]?.cnic && nominations[i]?.section;
 
       fields.push(
         <View key={i} style={styles.row}>
           <Text style={styles.playerLabel}>{playerLabel}</Text>
           <TextInput
             style={styles.input}
+            placeholder="Reg No"
+            placeholderTextColor={'black'}
+            value={nominations[i]?.regNo || ''}
+            onChangeText={(text) => handleInputChange(i, 'regNo', text)}
+            editable={i === 0 || Boolean(nominations[i - 1]?.name)}
+          />
+          <TextInput
+            style={styles.input}
             placeholder={`${playerLabel} Name`}
             placeholderTextColor={'black'}
             value={nominations[i]?.name || ''}
             onChangeText={(text) => handleInputChange(i, 'name', text)}
-            editable={i === 0 || Boolean(nominations[i-1]?.name)}
+            editable={i === 0 || Boolean(nominations[i - 1]?.regNo)}
           />
           <TextInput
             style={styles.input}
@@ -140,7 +138,7 @@ export const NominationForm = ({ route }) => {
             placeholderTextColor={'black'}
             value={nominations[i]?.cnic || ''}
             onChangeText={(text) => handleInputChange(i, 'cnic', text)}
-            editable={i === 0 || Boolean(nominations[i-1]?.name)}
+            editable={i === 0 || Boolean(nominations[i - 1]?.name)}
           />
           <TextInput
             style={styles.input}
@@ -148,7 +146,7 @@ export const NominationForm = ({ route }) => {
             placeholderTextColor={'black'}
             value={nominations[i]?.section || ''}
             onChangeText={(text) => handleInputChange(i, 'section', text)}
-            editable={i === 0 || Boolean(nominations[i-1]?.name)}
+            editable={i === 0 || Boolean(nominations[i - 1]?.name)}
           />
         </View>
       );
@@ -159,21 +157,13 @@ export const NominationForm = ({ route }) => {
   return (
     <ScrollView style={styles.container}>
       <Text style={styles.title}>{sport} Nomination Form</Text>
-
-
       {renderPlayerFields()}
-
-      
-      {lastUpdated && (
-        <Text style={styles.lastUpdated}>{lastUpdated}</Text>
-      )}
-
+      {lastUpdated && <Text style={styles.lastUpdated}>{lastUpdated}</Text>}
       <Button
         title={isSubmitted ? 'Update' : 'Submit'}
         onPress={handleSubmit}
         disabled={!isFormComplete()}
       />
-
     </ScrollView>
   );
 };
@@ -204,14 +194,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     marginRight: 5,
     paddingLeft: 8,
-  },
-  userInfo: {
-    marginBottom: 20,
-  },
-  userDetail: {
-    fontSize: 16,
-    marginBottom: 5,
-    fontWeight: 'bold',
   },
   lastUpdated: {
     marginTop: 20,

@@ -67,7 +67,7 @@ export const PoolsCreateSchedulingPage = () => {
       const token = await AsyncStorage.getItem("token");
       const previousYear = new Date().getFullYear() - 1; // Get the previous year
   
-      const response = await fetch(`http://192.168.43.78:3002/store-rankings`, {
+      const response = await fetch(`http://192.168.1.21:3002/store-rankings`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -95,7 +95,7 @@ export const PoolsCreateSchedulingPage = () => {
   
     try {
       const token = await AsyncStorage.getItem("token");
-      const response = await fetch(`http://192.168.43.78:3002/get-pools-and-schedules/${sport}`, {
+      const response = await fetch(`http://192.168.1.21:3002/get-pools-and-schedules/${sport}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -124,7 +124,7 @@ export const PoolsCreateSchedulingPage = () => {
   
   //   try {
   //     const token = await AsyncStorage.getItem("token");
-  //     const response = await fetch(`http://192.168.43.78:3002/get-pools-and-schedules/${sport}`, {
+  //     const response = await fetch(`http://192.168.1.21:3002/get-pools-and-schedules/${sport}`, {
   //       method: "GET",
   //       headers: {
   //         "Content-Type": "application/json",
@@ -149,7 +149,7 @@ export const PoolsCreateSchedulingPage = () => {
   // const handleCreatePools = async () => {
   //   try {
   //     const token = await AsyncStorage.getItem("token");
-  //     const response = await fetch(`http://192.168.43.78:3002/create-pools`, {
+  //     const response = await fetch(`http://192.168.1.21:3002/create-pools`, {
   //       method: "POST",
   //       headers: {
   //         "Content-Type": "application/json",
@@ -189,7 +189,7 @@ export const PoolsCreateSchedulingPage = () => {
 const handleCreatePools = async () => {
   try {
     const token = await AsyncStorage.getItem("token");
-    const response = await fetch(`http://192.168.43.78:3002/create-pools`, {
+    const response = await fetch(`http://192.168.1.21:3002/create-pools`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

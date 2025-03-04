@@ -16,7 +16,7 @@ export const RefLandingPage = ({ navigation }) => {
     const fetchProfileAndMatches = async () => {
       try {
         const token = await AsyncStorage.getItem('token');
-        const response = await fetch('http://192.168.43.78:3002/reflandingpage', {
+        const response = await fetch('http://192.168.1.21:3002/reflandingpage', {
           method: 'GET',
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -38,7 +38,7 @@ export const RefLandingPage = ({ navigation }) => {
   const fetchMatches = async (sportCategory) => {
     try {
       const token = await AsyncStorage.getItem('token');
-      const response = await fetch(`http://192.168.43.78:3002/refmatches`, {
+      const response = await fetch(`http://192.168.1.21:3002/refmatches`, {
         method: 'GET',
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -60,56 +60,55 @@ export const RefLandingPage = ({ navigation }) => {
     navigation.navigate('IndexPage');
   };
 
-  const handleScoreUpdatePage = () => {
-    if (user) {
-      navigation.navigate('RefScoreUpdatePage');
-    }
-  };
-
   const handleMatchPress = (match) => {
-    if (user.sportscategory === 'Football') {
-      navigation.navigate('FootballScoreUpdatePage', { match });
-    } 
-    else if (user.sportscategory === 'Cricket') {
-      navigation.navigate('CricketScoreUpdatePage', { match });
-    }
-    else if (user.sportscategory === 'Volleyball') {
-      navigation.navigate('VollleyballScoreUpdatePage', { match });
-    }
-    else if (user.sportscategory === 'Basketball') {
-      navigation.navigate('BasketballScoreUpdatePage', { match });
-    }
-    else if (user.sportscategory === 'Tennis') {
-      navigation.navigate('TennisScoreUpdatePage', { match });
-    }
-    else if (user.sportscategory === 'Futsal') {
-      navigation.navigate('FutsalScoreUpdatePage', { match });
-    }
-    else if (user.sportscategory === 'Table Tennis (M)') {
-      navigation.navigate('TableTennisMScoreUpdatePage', { match });
-    }
-    else if (user.sportscategory === 'Table Tennis (F)') {
-      navigation.navigate('TableTennisFScoreUpdatePage', { match });
-    }
-    else if (user.sportscategory === 'Snooker') {
-      navigation.navigate('SnookerScoreUpdatePage', { match });
-    }
-    else if (user.sportscategory === 'Tug of War (M)') {
-      navigation.navigate('TugofWarMScoreUpdatePage', { match });
-    }
-    else if (user.sportscategory === 'Tug of War (F)') {
-      navigation.navigate('TugofWarFScoreUpdatePage', { match });
-    }
-    else if (user.sportscategory === 'Badminton (M)') {
-      navigation.navigate('BadmintonMScoreUpdatePage', { match });
-    }
-    else if (user.sportscategory === 'Badminton (F)') {
-      navigation.navigate('BadmintonFScoreUpdatePage', { match });
-    }
-    else {
-      Alert.alert('Error', 'No score update page found for this sport.');
-    }
+    navigation.navigate('RefSelectedPlayerPage', { match });
+    
   };
+  
+  // const handleMatchPress = (match) => {
+  //   if (user.sportscategory === 'Football') {
+  //     navigation.navigate('FootballScoreUpdatePage', { match });
+  //   } 
+  //   else if (user.sportscategory === 'Cricket') {
+  //     navigation.navigate('CricketScoreUpdatePage', { match });
+  //   }
+  //   else if (user.sportscategory === 'Volleyball') {
+  //     navigation.navigate('VollleyballScoreUpdatePage', { match });
+  //   }
+  //   else if (user.sportscategory === 'Basketball') {
+  //     navigation.navigate('BasketballScoreUpdatePage', { match });
+  //   }
+  //   else if (user.sportscategory === 'Tennis') {
+  //     navigation.navigate('TennisScoreUpdatePage', { match });
+  //   }
+  //   else if (user.sportscategory === 'Futsal') {
+  //     navigation.navigate('FutsalScoreUpdatePage', { match });
+  //   }
+  //   else if (user.sportscategory === 'Table Tennis (M)') {
+  //     navigation.navigate('TableTennisMScoreUpdatePage', { match });
+  //   }
+  //   else if (user.sportscategory === 'Table Tennis (F)') {
+  //     navigation.navigate('TableTennisFScoreUpdatePage', { match });
+  //   }
+  //   else if (user.sportscategory === 'Snooker') {
+  //     navigation.navigate('SnookerScoreUpdatePage', { match });
+  //   }
+  //   else if (user.sportscategory === 'Tug of War (M)') {
+  //     navigation.navigate('TugofWarMScoreUpdatePage', { match });
+  //   }
+  //   else if (user.sportscategory === 'Tug of War (F)') {
+  //     navigation.navigate('TugofWarFScoreUpdatePage', { match });
+  //   }
+  //   else if (user.sportscategory === 'Badminton (M)') {
+  //     navigation.navigate('BadmintonMScoreUpdatePage', { match });
+  //   }
+  //   else if (user.sportscategory === 'Badminton (F)') {
+  //     navigation.navigate('BadmintonFScoreUpdatePage', { match });
+  //   }
+  //   else {
+  //     Alert.alert('Error', 'No score update page found for this sport.');
+  //   }
+  // };
 
   const handleCreateMatch = async () => {
     if (!team1 || !team2 || !pool || !year) {
@@ -124,7 +123,7 @@ export const RefLandingPage = ({ navigation }) => {
         return;
       }
 
-      const response = await fetch('http://192.168.43.78:3002/createSemiFinalMatch', {
+      const response = await fetch('http://192.168.1.21:3002/createSemiFinalMatch', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -160,9 +159,9 @@ export const RefLandingPage = ({ navigation }) => {
         <Text style={styles.buttonText}>Create Semi & Final Matches</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.button} onPress={handleScoreUpdatePage}>
+      {/* <TouchableOpacity style={styles.button} onPress={handleScoreUpdatePage}>
         <Text style={styles.buttonText}>Update Scores Page</Text>
-      </TouchableOpacity>
+      </TouchableOpacity> */}
 
       <Text style={styles.matchHeader}>Upcoming & Live Matches</Text>
       <FlatList

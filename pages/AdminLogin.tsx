@@ -40,7 +40,7 @@ export const AdminLogin = ({ navigation }) => {
 
       
       // Use the fetched IP in the request URL
-      const response = await fetch(`http://192.168.43.78:3002/dsalogin`, {
+      const response = await fetch(`http://192.168.1.21:3002/dsalogin`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),

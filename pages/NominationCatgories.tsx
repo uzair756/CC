@@ -20,7 +20,7 @@ export const NominationCategories = ({ navigation, route }) => {
       const fetchSubmittedForms = async () => {
         const token = await AsyncStorage.getItem('token');
         try {
-          const response = await fetch('http://192.168.43.78:3002/getSubmittedForms', {
+          const response = await fetch('http://192.168.1.21:3002/getSubmittedForms', {
             headers: {
               Authorization: `Bearer ${token}`,
             },
@@ -59,7 +59,7 @@ const handleDownloadPDF = async (sport) => {
 
   try {
     // Fetch the PDF
-    const response = await fetch(`http://192.168.43.78:3002/downloadPDF/${sport}`, {
+    const response = await fetch(`http://192.168.1.21:3002/downloadPDF/${sport}`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },

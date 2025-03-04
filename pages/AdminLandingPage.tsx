@@ -38,7 +38,7 @@ export const AdminLandingPage = ({ navigation }) => {
     const fetchProfile = async () => {
       try {
         const token = await AsyncStorage.getItem('token');
-        const response = await fetch('http://192.168.43.78:3002/dsalandingpage', {
+        const response = await fetch('http://192.168.1.21:3002/dsalandingpage', {
           method: 'GET',
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -67,7 +67,7 @@ export const AdminLandingPage = ({ navigation }) => {
 
   const handleAddCoach = async () => {
     try {
-      const response = await fetch('http://192.168.43.78:3002/dsasportscoachuser', {
+      const response = await fetch('http://192.168.1.21:3002/dsasportscoachuser', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -103,7 +103,7 @@ export const AdminLandingPage = ({ navigation }) => {
         return;
       }
 
-      const response = await fetch('http://192.168.43.78:3002/adminpost', {
+      const response = await fetch('http://192.168.1.21:3002/adminpost', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -152,7 +152,7 @@ export const AdminLandingPage = ({ navigation }) => {
         return;
       }
 
-      const response = await fetch(`http://192.168.43.78:3002/adminpost/${selectedPost._id}`, {
+      const response = await fetch(`http://192.168.1.21:3002/adminpost/${selectedPost._id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -198,7 +198,7 @@ export const AdminLandingPage = ({ navigation }) => {
         return;
       }
 
-      const response = await fetch('http://192.168.43.78:3002/changepasswordadmin', {
+      const response = await fetch('http://192.168.1.21:3002/changepasswordadmin', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -472,6 +472,7 @@ const styles = StyleSheet.create({
   buttonContainer: {
     marginTop: 20,
     marginBottom: 20,
+
   },
   subTitle: {
     fontSize: 20,

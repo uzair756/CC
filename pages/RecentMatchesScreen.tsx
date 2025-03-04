@@ -26,7 +26,7 @@ export const RecentMatchesScreen = () => {
   // useEffect(() => {
   //   const fetchUpcomingMatches = async () => {
   //     try {
-  //       const response = await fetch('http://192.168.43.78:3002/recentmatches'); // Adjust URL accordingly
+  //       const response = await fetch('http://192.168.1.21:3002/recentmatches'); // Adjust URL accordingly
   //       const data = await response.json();
   //       if (data.success) {
   //         setMatches(data.matches);
@@ -46,7 +46,7 @@ export const RecentMatchesScreen = () => {
       const fetchUpcomingMatches = async () => {
         setLoading(true);
         try {
-          const response = await fetch(`http://192.168.43.78:3002/recentmatches?sportCategory=${selectedSport}`);
+          const response = await fetch(`http://192.168.1.21:3002/recentmatches?sportCategory=${selectedSport}`);
           const data = await response.json();
     
           if (data.success) {

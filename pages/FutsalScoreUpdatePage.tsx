@@ -81,7 +81,7 @@ export const FutsalScoreUpdatePage = ({ navigation }) => {
     const fetchMatches = async (sportCategory) => {
       try {
         const token = await AsyncStorage.getItem('token');
-        const response = await fetch('http://192.168.43.78:3002/refmatches', {
+        const response = await fetch('http://192.168.1.21:3002/refmatches', {
           method: 'GET',
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -111,7 +111,7 @@ export const FutsalScoreUpdatePage = ({ navigation }) => {
     try {
         const token = await AsyncStorage.getItem('token');
 
-        const response = await fetch('http://192.168.43.78:3002/startmatchfootball', {
+        const response = await fetch('http://192.168.1.21:3002/startmatchfootball', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -144,7 +144,7 @@ export const FutsalScoreUpdatePage = ({ navigation }) => {
 const handleStop = async (matchId) => {
   try {
       const token = await AsyncStorage.getItem('token');
-      const response = await fetch('http://192.168.43.78:3002/stopmatchfootball', {
+      const response = await fetch('http://192.168.1.21:3002/stopmatchfootball', {
           method: 'POST',
           headers: {
               'Content-Type': 'application/json',
@@ -181,7 +181,7 @@ const handleStop = async (matchId) => {
   const handleAddScoreT1 = async (matchId) => {
     try {
         const token = await AsyncStorage.getItem('token');
-        const response = await fetch('http://192.168.43.78:3002/updateScorefootball', {
+        const response = await fetch('http://192.168.1.21:3002/updateScorefootball', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -211,7 +211,7 @@ const handleStop = async (matchId) => {
 const handleAddScoreT2 = async (matchId) => {
     try {
         const token = await AsyncStorage.getItem('token');
-        const response = await fetch('http://192.168.43.78:3002/updateScorefootball', {
+        const response = await fetch('http://192.168.1.21:3002/updateScorefootball', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
