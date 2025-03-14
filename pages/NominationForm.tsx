@@ -25,12 +25,12 @@ export const NominationForm = ({ route }) => {
         const data = await response.json();
         if (data.success && data.data) {
           setNominationData(data.data);
-          const nominations = data.data.nominations || new Array(playerLimit).fill({ regNo: '', name: '', cnic: '', section: '' });
+          const nominations = data.data.nominations || new Array(playerLimit).fill({ shirtNo: '', regNo: '', name: '', cnic: '', section: '' });
           setNominations(nominations);
           setIsSubmitted(true);
           setLastUpdated(`Last updated by ${data.data.lastUpdatedBy} at ${data.data.lastUpdatedAt}`);
         } else {
-          setNominations(new Array(playerLimit).fill({ regNo: '', name: '', cnic: '', section: '' }));
+          setNominations(new Array(playerLimit).fill({ shirtNo: '', regNo: '', name: '', cnic: '', section: '' }));
         }
       } catch (error) {
         console.error('Error fetching nomination data:', error);
@@ -105,7 +105,7 @@ export const NominationForm = ({ route }) => {
   };
 
   const isFormComplete = () => {
-    return nominations.some(player => player.regNo && player.name && player.cnic && player.section);
+    return nominations.some(player => player.shirtNo && player.regNo && player.name && player.cnic && player.section);
   };
 
   const renderPlayerFields = () => {
@@ -116,6 +116,13 @@ export const NominationForm = ({ route }) => {
       fields.push(
         <View key={i} style={styles.row}>
           <Text style={styles.playerLabel}>{playerLabel}</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Shirt No"
+            placeholderTextColor={'black'}
+            value={nominations[i]?.shirtNo || ''}
+            onChangeText={(text) => handleInputChange(i, 'shirtNo', text)}
+          />
           <TextInput
             style={styles.input}
             placeholder="Reg No"
@@ -202,4 +209,3 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 });
-

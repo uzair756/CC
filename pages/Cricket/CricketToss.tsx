@@ -11,7 +11,7 @@ export const CricketToss = ({ route, navigation }) => {
     // Redirect user if toss is already done
     useEffect(() => {
         if (match.tosswin) {
-            navigation.replace("CricketScoreUpdate", { match });
+            navigation.replace("CricketStartingPlayers", { match });
         }
     }, []);
 
@@ -53,7 +53,7 @@ export const CricketToss = ({ route, navigation }) => {
             const data = await response.json();
             if (data.success) {
                 Alert.alert("Success", "Toss updated successfully!");
-                navigation.replace("CricketScoreUpdate", { match });
+                navigation.replace("CricketStartingPlayers", { match });
             } else {
                 Alert.alert("Error", data.message || "Failed to update toss.");
             }

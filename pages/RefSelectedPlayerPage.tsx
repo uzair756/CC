@@ -14,6 +14,8 @@ export const RefSelectedPlayerPage = ({ route, navigation }) => {
   const playerLimit =
     match.sport === 'Football' ? 11 :
     match.sport === 'Cricket' ? 11 :
+    match.sport === 'Futsal' ? 5 :
+    match.sport === 'Basketball' ? 5 :
     13; // Default for other sports
 
     useEffect(() => {
@@ -48,9 +50,15 @@ export const RefSelectedPlayerPage = ({ route, navigation }) => {
               if (match.sport === 'Football') {
                 navigation.replace('FootballScoreUpdatePage', { match });
               } else if (match.sport === 'Cricket') {
-                // navigation.replace('CricketScoreUpdatePage', { match });
                  navigation.replace('CricketToss', { match });
-              } else {
+              }
+              else if (match.sport === 'Futsal') {
+                navigation.replace('FutsalScoreUpdatePage', { match });
+             }
+             else if (match.sport === 'Basketball') {
+              navigation.replace('BasketballScoreUpdatePage', { match });
+             }
+              else {
                 navigation.replace('OtherSportScoreUpdatePage', { match });
               }
             }
@@ -119,8 +127,14 @@ export const RefSelectedPlayerPage = ({ route, navigation }) => {
         if (match.sport === 'Football') {
           navigation.replace('FootballScoreUpdatePage', { match });
         } else if (match.sport === 'Cricket') {
-          navigation.replace('CricketScoreUpdatePage', { match });
-        } else {
+          navigation.replace('CricketToss', { match });
+        } else if (match.sport === 'Futsal') {
+          navigation.replace('FutsalScoreUpdatePage', { match });
+        }
+        else if (match.sport === 'Basketball') {
+          navigation.replace('BasketballScoreUpdatePage', { match });
+        }
+         else {
           navigation.replace('OtherSportScoreUpdatePage', { match });
         }
       } else {

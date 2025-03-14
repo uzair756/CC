@@ -33,9 +33,9 @@ import { PastYearPoolsAndSchedules } from './pages/PastYearPoolsAndSchedules';
 import { RefSelectedPlayerPage } from './pages/RefSelectedPlayerPage';
 import { FootballScoreUpdatePage } from './pages/Football/FootballScoreUpdate';
 import { VolleyballScoreUpdatePage } from './pages/VolleyballScoreUpdate';
-import { BasketballScoreUpdatePage } from './pages/BasketballScoreUpdate';
+import { BasketballScoreUpdatePage } from './pages/Basketball/BasketballScoreUpdatePage';
 import { TennisScoreUpdatePage } from './pages/TennisScoreUpdate';
-import { FutsalScoreUpdatePage } from './pages/FutsalScoreUpdatePage';
+import { FutsalScoreUpdatePage } from './pages/Futsal/FutsalScoreUpdatePage';
 import { TableTennisMScoreUpdatePage } from './pages/TableTennisMScoreUpdate';
 import { TableTennisFScoreUpdatePage } from './pages/TableTennisFScoreUpdate';
 import { SnookerScoreUpdatePage } from './pages/SnookerScoreUpdatePage';
@@ -46,6 +46,10 @@ import { BadmintonFScoreUpdatePage } from './pages/BadmintonFScoreUpdate';
 import FootballPenalties from './pages/Football/FootballPenalties';
 import { CricketScoreUpdate } from './pages/Cricket/CricketScoreUpdate';
 import { CricketToss } from './pages/Cricket/CricketToss';
+import { CricketStartingPlayers } from './pages/Cricket/CricketStartingPlayers';
+import { CricketStartingPlayers2ndInnings } from './pages/Cricket/CricketStartingPlayers2ndInnings';
+import { CricketScoreUpdateSecondInning } from './pages/Cricket/CricketScoreUpdateSecondInning';
+import { FutsalPenalties } from './pages/Futsal/FutsalPenalties';
 const Stack = createNativeStackNavigator();
 
 const MyStack = () => {
@@ -89,7 +93,6 @@ const MyStack = () => {
           <Stack.Screen name="FootballScoreUpdatePage" component={FootballScoreUpdatePage} options={{ headerShown: false }} />
           <Stack.Screen name="CricketScoreUpdate" component={CricketScoreUpdate} options={{ headerShown: false }} />
           <Stack.Screen name="VolleyballScoreUpdatePage" component={VolleyballScoreUpdatePage} options={{ headerShown: false }} />
-          <Stack.Screen name="BasketballScoreUpdatePage" component={BasketballScoreUpdatePage} options={{ headerShown: false }} />
           <Stack.Screen name="TennisScoreUpdatePage" component={TennisScoreUpdatePage} options={{ headerShown: false }} />
           <Stack.Screen name="FutsalScoreUpdatePage" component={FutsalScoreUpdatePage} options={{ headerShown: false }} />
           <Stack.Screen name="TableTennisMScoreUpdatePage" component={TableTennisMScoreUpdatePage} options={{ headerShown: false }} />
@@ -101,6 +104,11 @@ const MyStack = () => {
           <Stack.Screen name="BadmintonFScoreUpdatePage" component={BadmintonFScoreUpdatePage} options={{ headerShown: false }} />
           <Stack.Screen name="FootballPenalties" component={FootballPenalties} options={{ headerShown: false }} />
           <Stack.Screen name="CricketToss" component={CricketToss} options={{ headerShown: false }} />
+          <Stack.Screen name="CricketStartingPlayers" component={CricketStartingPlayers} options={{ headerShown: false }} />
+          <Stack.Screen name="CricketStartingPlayers2ndInnings" component={CricketStartingPlayers2ndInnings} options={{ headerShown: false }} />
+          <Stack.Screen name="CricketScoreUpdateSecondInning" component={CricketScoreUpdateSecondInning} options={{ headerShown: false }} />
+          <Stack.Screen name="FutsalPenalties" component={FutsalPenalties} options={{ headerShown: false }} />
+          <Stack.Screen name="BasketballScoreUpdatePage" component={BasketballScoreUpdatePage} options={{ headerShown: false }} />
         </Stack.Navigator>
       </NavigationContainer>
     </>

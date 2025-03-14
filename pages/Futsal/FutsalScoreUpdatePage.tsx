@@ -5,7 +5,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { Picker } from '@react-native-picker/picker';
 
 
-export const FootballScoreUpdatePage = ({ route,navigation }) => {
+export const FutsalScoreUpdatePage = ({ route,navigation }) => {
   const { match } = route.params || {};
   const [matchDetails, setMatchDetails] = useState(null);
   const [playingTeam1, setPlayingTeam1] = useState([]);
@@ -144,7 +144,7 @@ export const FootballScoreUpdatePage = ({ route,navigation }) => {
         return;
       }
 
-      const response = await fetch('http://192.168.1.21:3002/swapPlayers', {
+      const response = await fetch('http://192.168.1.21:3002/swapPlayersfutsal', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({
@@ -181,7 +181,7 @@ export const FootballScoreUpdatePage = ({ route,navigation }) => {
         return;
       }
   
-      const response = await fetch('http://192.168.1.21:3002/startmatchfootball', {
+      const response = await fetch('http://192.168.1.21:3002/startmatchfutsal', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ matchId }),
@@ -210,7 +210,7 @@ export const FootballScoreUpdatePage = ({ route,navigation }) => {
         return;
       }
   
-      const response = await fetch('http://192.168.1.21:3002/stopmatchfootball', {
+      const response = await fetch('http://192.168.1.21:3002/stopmatchfutsal', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ matchId }),
@@ -228,7 +228,7 @@ export const FootballScoreUpdatePage = ({ route,navigation }) => {
             {
               text: 'OK',
               onPress: () => {
-                navigation.navigate('FootballPenalties', { match });
+                navigation.navigate('FutsalPenalties', { match });
               },
             },
           ]);
@@ -265,7 +265,7 @@ export const FootballScoreUpdatePage = ({ route,navigation }) => {
         return;
       }
   
-      const response = await fetch('http://192.168.1.21:3002/updateGoalFootball', {
+      const response = await fetch('http://192.168.1.21:3002/updateGoalfutsal', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -299,7 +299,7 @@ export const FootballScoreUpdatePage = ({ route,navigation }) => {
           return;
         }
 
-        const response = await fetch('http://192.168.1.21:3002/updateHalffootball', {
+        const response = await fetch('http://192.168.1.21:3002/updateHalffutsal', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
           body: JSON.stringify({ matchId: matchDetails._id, half: 2 }),
@@ -526,4 +526,3 @@ shadowOffset: { width: 0, height: 2 },
   },
 });
 
-export default FootballScoreUpdatePage;

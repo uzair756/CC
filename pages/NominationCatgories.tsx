@@ -1,5 +1,5 @@
 import React, { useState, useEffect , useCallback} from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, ScrollView } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import RNFS from 'react-native-fs';  // For downloading files in a non-Expo environment
 import { useFocusEffect } from '@react-navigation/native';
@@ -97,6 +97,7 @@ const handleDownloadPDF = async (sport) => {
   }
 
   return (
+    <ScrollView>
     <View style={styles.container}>
       <Text style={styles.title}>Nomination Form Categories</Text>
       {sports.map((sport) => (
@@ -121,6 +122,7 @@ const handleDownloadPDF = async (sport) => {
         </View>
       ))}
     </View>
+    </ScrollView>
   );
 };
 

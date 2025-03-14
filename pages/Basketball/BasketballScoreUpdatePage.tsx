@@ -5,7 +5,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { Picker } from '@react-native-picker/picker';
 
 
-export const FootballScoreUpdatePage = ({ route,navigation }) => {
+export const BasketballScoreUpdatePage = ({ route,navigation }) => {
   const { match } = route.params || {};
   const [matchDetails, setMatchDetails] = useState(null);
   const [playingTeam1, setPlayingTeam1] = useState([]);
@@ -42,7 +42,7 @@ export const FootballScoreUpdatePage = ({ route,navigation }) => {
     if (isTimerRunning) {
       interval = setInterval(() => {
         setTiming(prevTiming => {
-          let newSeconds = prevTiming.seconds + 1;
+          let newSeconds = prevTiming.seconds + 1; 
           let newMinutes = prevTiming.minutes;
           if (newSeconds >= 60) {
             newSeconds = 0;
@@ -82,17 +82,17 @@ export const FootballScoreUpdatePage = ({ route,navigation }) => {
 
           data.match.nominationsT1.forEach(player => {
             if (player.playingStatus === 'Playing') {
-              playingT1.push({ _id: player._id,shirtNo: player.shirtNo,regNo: player.regNo,name: player.name,cnic: player.cnic, goals: player.goalsscored || 0 });
+              playingT1.push({ _id: player._id,shirtNo: player.shirtNo,regNo: player.regNo,name: player.name,cnic: player.cnic, pointsByQuarter: player.pointsByQuarter || [0, 0, 0, 0] });
             } else {
-              reservedT1.push({_id: player._id,shirtNo: player.shirtNo,regNo: player.regNo,name: player.name ,cnic: player.cnic, goals: player.goalsscored || 0 });
+              reservedT1.push({_id: player._id,shirtNo: player.shirtNo,regNo: player.regNo,name: player.name ,cnic: player.cnic, pointsByQuarter: player.pointsByQuarter || [0, 0, 0, 0] });
             }
           });
 
           data.match.nominationsT2.forEach(player => {
             if (player.playingStatus === 'Playing') {
-              playingT2.push({ _id: player._id, shirtNo: player.shirtNo , regNo: player.regNo,name: player.name,cnic: player.cnic, goals: player.goalsscored || 0 });
+              playingT2.push({ _id: player._id, shirtNo: player.shirtNo , regNo: player.regNo,name: player.name,cnic: player.cnic, pointsByQuarter: player.pointsByQuarter || [0, 0, 0, 0] });
             } else {
-              reservedT2.push({ _id: player._id,shirtNo: player.shirtNo, regNo: player.regNo,name: player.name, cnic: player.cnic, goals: player.goalsscored || 0 });
+              reservedT2.push({ _id: player._id,shirtNo: player.shirtNo, regNo: player.regNo,name: player.name, cnic: player.cnic, pointsByQuarter: player.pointsByQuarter || [0, 0, 0, 0] });
             }
           });
 
@@ -144,7 +144,7 @@ export const FootballScoreUpdatePage = ({ route,navigation }) => {
         return;
       }
 
-      const response = await fetch('http://192.168.1.21:3002/swapPlayers', {
+      const response = await fetch('http://192.168.1.21:3002/swapPlayersbasketball', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({
@@ -181,7 +181,7 @@ export const FootballScoreUpdatePage = ({ route,navigation }) => {
         return;
       }
   
-      const response = await fetch('http://192.168.1.21:3002/startmatchfootball', {
+      const response = await fetch('http://192.168.1.21:3002/startmatchbasketball', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ matchId }),
@@ -210,7 +210,7 @@ export const FootballScoreUpdatePage = ({ route,navigation }) => {
         return;
       }
   
-      const response = await fetch('http://192.168.1.21:3002/stopmatchfootball', {
+      const response = await fetch('http://192.168.1.21:3002/stopmatchbasketball', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ matchId }),
@@ -224,14 +224,7 @@ export const FootballScoreUpdatePage = ({ route,navigation }) => {
         
         // Check if the match ended in a draw
         if (matchDetails.scoreT1 === matchDetails.scoreT2) {
-          Alert.alert('Match Draw', 'Redirecting to penalty shootout.', [
-            {
-              text: 'OK',
-              onPress: () => {
-                navigation.navigate('FootballPenalties', { match });
-              },
-            },
-          ]);
+          Alert.alert('Match Drawn');
         } else {
           Alert.alert('Success', 'Match stopped successfully', [
             {
@@ -252,7 +245,7 @@ export const FootballScoreUpdatePage = ({ route,navigation }) => {
   };
 
 
-  const handleGoalIncrement = async (playerId, team) => {
+  const handlePointIncrement = async (playerId, team, value) => {
     if (!isTimerRunning) {
       Alert.alert('Match Not Started', 'You can only update goals while the match is live.');
       return;
@@ -265,7 +258,7 @@ export const FootballScoreUpdatePage = ({ route,navigation }) => {
         return;
       }
   
-      const response = await fetch('http://192.168.1.21:3002/updateGoalFootball', {
+      const response = await fetch('http://192.168.1.21:3002/updateGoalbasketball', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -275,6 +268,7 @@ export const FootballScoreUpdatePage = ({ route,navigation }) => {
           matchId: matchDetails._id,
           playerId,
           team,
+          value,
         }),
       });
   
@@ -290,36 +284,42 @@ export const FootballScoreUpdatePage = ({ route,navigation }) => {
     }
   };
 
-  const handleEndHalf1 = async () => {
-    if (matchDetails.half === 1) {
-      try {
-        const token = await AsyncStorage.getItem('token');
-        if (!token) {
-          Alert.alert('Error', 'Authentication token missing. Please log in.');
-          return;
-        }
-
-        const response = await fetch('http://192.168.1.21:3002/updateHalffootball', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-          body: JSON.stringify({ matchId: matchDetails._id, half: 2 }),
-        });
-
-        const data = await response.json();
-        if (data.success) {
-          setTiming({ minutes: 0, seconds: 0 });
-          Alert.alert('Success', 'Half 1 ended successfully!');
-
-          setReloadKey(prevKey => prevKey + 1); // Refresh match details
-        } else {
-          Alert.alert('Error', data.message || 'Failed to end half 1.');
-        }
-      } catch (error) {
-        console.error('Error ending half 1:', error);
-        Alert.alert('Error', 'An error occurred while ending half 1.');
+  const handleEndQuarter = async (currentQuarter) => {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      if (!token) {
+        Alert.alert('Error', 'Authentication token missing. Please log in.');
+        return;
       }
+  
+      const nextQuarter = currentQuarter + 1;
+  
+      if (nextQuarter > 5) {
+        Alert.alert('Match Over', 'All quarters have been completed.');
+        return;
+      }
+  
+      const response = await fetch('http://192.168.1.21:3002/updateHalfbasketball', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ matchId: matchDetails._id, quarter: nextQuarter }),
+      });
+  
+      const data = await response.json();
+      if (data.success) {
+        setTiming({ minutes: 0, seconds: 0 });
+        setReloadKey(prevKey => prevKey + 1); // Refresh match details
+        Alert.alert('Success', `Quarter ${currentQuarter} ended! Winner: ${data.match.quarterWinners[currentQuarter - 1]}`);
+      } else {
+        Alert.alert('Error', data.message || `Failed to end Quarter ${currentQuarter}.`);
+      }
+    } catch (error) {
+      console.error(`Error ending Quarter ${currentQuarter}:`, error);
+      Alert.alert('Error', 'An error occurred while ending the quarter.');
     }
   };
+  
+  
   
   
 
@@ -335,15 +335,22 @@ export const FootballScoreUpdatePage = ({ route,navigation }) => {
 </Text>
 
 <Text style={styles.status}>
-        {matchDetails && matchDetails.half === 0
+        {matchDetails && matchDetails.quarter === 0
           ? 'Match Not Started'
-          : matchDetails.half === 1
-          ? '1st Half'
-          : matchDetails.half === 2
-          ? '2nd Half'
+          : matchDetails.quarter === 1
+          ? '1st Quarter'
+          : matchDetails.quarter === 2
+          ? '2nd Quarter'
+          : matchDetails.quarter === 3
+          ? '3rd Quarter'
+          : matchDetails.quarter === 4
+          ? '4th Quarter'
           : ''}
       </Text>
-      <Text style={styles.header}>{matchDetails.team1}       {matchDetails.scoreT1} -  {matchDetails.scoreT2}      {matchDetails.team2}</Text>
+      <Text style={styles.header}>
+  {matchDetails.team1}   {matchDetails.scoreT1?.[matchDetails.quarter - 1] || 0}     -      {matchDetails.scoreT2?.[matchDetails.quarter - 1] || 0}     {matchDetails.team2}
+</Text>
+
       <Text style={styles.pool}>Pool: {matchDetails.pool}</Text>
       <Text style={styles.status}>
       {matchDetails.result && matchDetails.result !== "TBD" ? `${matchDetails.result} won`: "Result not announced yet"}
@@ -355,11 +362,12 @@ export const FootballScoreUpdatePage = ({ route,navigation }) => {
            <TouchableOpacity style={styles.actionButton} onPress={() => handleStart(matchDetails._id)}  disabled={isTimerRunning}>
           <Text style={styles.actionButtonText}>Start</Text>
         </TouchableOpacity>
-        {matchDetails?.half === 1 && (
-          <TouchableOpacity style={styles.actionButton} onPress={handleEndHalf1}>
-            <Text style={styles.actionButtonText}>End Half 1</Text>
-          </TouchableOpacity>
-        )}
+        {matchDetails?.quarter > 0 && matchDetails?.quarter <= 4 && (
+  <TouchableOpacity style={styles.actionButton} onPress={() => handleEndQuarter(matchDetails.quarter)}>
+    <Text style={styles.actionButtonText}>End Quarter {matchDetails.quarter}</Text>
+  </TouchableOpacity>
+)}
+
         <TouchableOpacity style={styles.actionButton} onPress={() => handleStop(matchDetails._id)}  disabled={!isTimerRunning}>
           <Text style={styles.actionButtonText}>Stop</Text>
         </TouchableOpacity>
@@ -371,13 +379,23 @@ export const FootballScoreUpdatePage = ({ route,navigation }) => {
   {playingTeam1.map((player, index) => (
     <View key={index} style={styles.playerRow}>
       <Text style={styles.playerName}>{player.shirtNo} 👕  {player.name}</Text>
-      <Text style={styles.goalsText}>Goals: {player.goals}</Text>
-      <TouchableOpacity 
-        style={styles.updateButton} 
-        onPress={() => handleGoalIncrement(player._id, 'team1')}
-      >
-        <Text style={styles.buttonText}>+</Text>
-      </TouchableOpacity>
+      <Text style={styles.goalsText}>
+  Points: {player.pointsByQuarter?.[matchDetails.quarter - 1] || 0}
+</Text>
+
+      <View style={styles.buttonRow}>
+          <View style={styles.scoreButtonsContainer}>
+              {[1, 2, 3].map((value) => (
+                  <TouchableOpacity 
+                      key={value} 
+                      style={styles.scoreButton} 
+                      onPress={() => handlePointIncrement(player._id,'team1', value)} // Pass value
+                  >
+                      <Text style={styles.scoreButtonText}>+{value}</Text>
+                  </TouchableOpacity>
+              ))}
+          </View>
+      </View>
     </View>
   ))}
 </View>
@@ -397,14 +415,32 @@ export const FootballScoreUpdatePage = ({ route,navigation }) => {
   {playingTeam2.map((player, index) => (
     <View key={index} style={styles.playerRow}>
       <Text style={styles.playerName}>{player.shirtNo} 👕 {player.name}</Text>
-      <Text style={styles.goalsText}>Goals: {player.goals}</Text>
-      <TouchableOpacity 
+      <Text style={styles.goalsText}>
+  Points: {player.pointsByQuarter?.[matchDetails.quarter - 1] || 0}
+</Text>
+
+      <View style={styles.buttonRow}>
+          <View style={styles.scoreButtonsContainer}>
+              {[1, 2, 3].map((value) => (
+                  <TouchableOpacity 
+                      key={value} 
+                      style={styles.scoreButton} 
+                      onPress={() => handlePointIncrement(player._id,'team2', value)} // Pass value
+                  >
+                      <Text style={styles.scoreButtonText}>+{value}</Text>
+                  </TouchableOpacity>
+              ))}
+          </View>
+      </View>
+      {/* <TouchableOpacity 
         style={styles.updateButton} 
         onPress={() => handleGoalIncrement(player._id, 'team2')}
       >
         <Text style={styles.buttonText}>+</Text>
-      </TouchableOpacity>
+      </TouchableOpacity> */}
     </View>
+    
+    
   ))}
 </View>
 
@@ -524,6 +560,27 @@ shadowOffset: { width: 0, height: 2 },
     paddingHorizontal: 20,
     borderRadius: 5,
   },
+  buttonRow: {
+    marginTop: 10,
+  },
+  scoreButtonsContainer: {
+    flexDirection: "row",
+    justifyContent: "space-evenly",
+    alignItems: "center",
+    width: "60%",
+  },
+  scoreButton: {
+    backgroundColor: "#007AFF",
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 5,
+    marginHorizontal: 2,
+    elevation: 3,
+  },
+  scoreButtonText: {
+    color: "#fff",
+    fontSize: 11,
+    fontWeight: "bold",
+  },
 });
 
-export default FootballScoreUpdatePage;
