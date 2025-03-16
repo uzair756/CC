@@ -32,17 +32,14 @@ import { RefLandingPage } from './pages/RefLandingPage';
 import { PastYearPoolsAndSchedules } from './pages/PastYearPoolsAndSchedules';
 import { RefSelectedPlayerPage } from './pages/RefSelectedPlayerPage';
 import { FootballScoreUpdatePage } from './pages/Football/FootballScoreUpdate';
-import { VolleyballScoreUpdatePage } from './pages/VolleyballScoreUpdate';
+import { VolleyballScoreUpdatePage } from './pages/Volleyball/VolleyballScoreUpdatePage';
 import { BasketballScoreUpdatePage } from './pages/Basketball/BasketballScoreUpdatePage';
-import { TennisScoreUpdatePage } from './pages/TennisScoreUpdate';
+import { TennisScoreUpdatePage } from './pages/Tennis/TennisScoreUpdatePage';
 import { FutsalScoreUpdatePage } from './pages/Futsal/FutsalScoreUpdatePage';
-import { TableTennisMScoreUpdatePage } from './pages/TableTennisMScoreUpdate';
-import { TableTennisFScoreUpdatePage } from './pages/TableTennisFScoreUpdate';
-import { SnookerScoreUpdatePage } from './pages/SnookerScoreUpdatePage';
-import { TugofWarMScoreUpdatePage } from './pages/TugofWarMScoreUpdate';
-import { TugofWarFScoreUpdatePage } from './pages/TugofWarFScoreUpdate';
-import { BadmintonMScoreUpdatePage } from './pages/BadmintonMScoreUpdate';
-import { BadmintonFScoreUpdatePage } from './pages/BadmintonFScoreUpdate';
+import { TableTennisScoreUpdatePage } from './pages/TableTennis/TableTennisScoreUpdatePage';
+import { SnookerScoreUpdatePage } from './pages/Snooker/SnookerScoreUpdatePage';
+import { TugofWarScoreUpdatePage } from './pages/TugofWar/TugofWarScoreUpdatePage';
+import { BadmintonScoreUpdatePage } from './pages/Badminton/BadmintonScoreUpdatePage';
 import FootballPenalties from './pages/Football/FootballPenalties';
 import { CricketScoreUpdate } from './pages/Cricket/CricketScoreUpdate';
 import { CricketToss } from './pages/Cricket/CricketToss';
@@ -95,13 +92,10 @@ const MyStack = () => {
           <Stack.Screen name="VolleyballScoreUpdatePage" component={VolleyballScoreUpdatePage} options={{ headerShown: false }} />
           <Stack.Screen name="TennisScoreUpdatePage" component={TennisScoreUpdatePage} options={{ headerShown: false }} />
           <Stack.Screen name="FutsalScoreUpdatePage" component={FutsalScoreUpdatePage} options={{ headerShown: false }} />
-          <Stack.Screen name="TableTennisMScoreUpdatePage" component={TableTennisMScoreUpdatePage} options={{ headerShown: false }} />
-          <Stack.Screen name="TableTennisFScoreUpdatePage" component={TableTennisFScoreUpdatePage} options={{ headerShown: false }} />
+          <Stack.Screen name="TableTennisScoreUpdatePage" component={TableTennisScoreUpdatePage} options={{ headerShown: false }} />
           <Stack.Screen name="SnookerScoreUpdatePage" component={SnookerScoreUpdatePage} options={{ headerShown: false }} />
-          <Stack.Screen name="TugofWarMScoreUpdatePage" component={TugofWarMScoreUpdatePage} options={{ headerShown: false }} />
-          <Stack.Screen name="TugofWarFScoreUpdatePage" component={TugofWarFScoreUpdatePage} options={{ headerShown: false }} />
-          <Stack.Screen name="BadmintonMScoreUpdatePage" component={BadmintonMScoreUpdatePage} options={{ headerShown: false }} />
-          <Stack.Screen name="BadmintonFScoreUpdatePage" component={BadmintonFScoreUpdatePage} options={{ headerShown: false }} />
+          <Stack.Screen name="TugofWarScoreUpdatePage" component={TugofWarScoreUpdatePage} options={{ headerShown: false }} />
+          <Stack.Screen name="BadmintonScoreUpdatePage" component={BadmintonScoreUpdatePage} options={{ headerShown: false }} />
           <Stack.Screen name="FootballPenalties" component={FootballPenalties} options={{ headerShown: false }} />
           <Stack.Screen name="CricketToss" component={CricketToss} options={{ headerShown: false }} />
           <Stack.Screen name="CricketStartingPlayers" component={CricketStartingPlayers} options={{ headerShown: false }} />

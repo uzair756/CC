@@ -16,6 +16,15 @@ export const RefSelectedPlayerPage = ({ route, navigation }) => {
     match.sport === 'Cricket' ? 11 :
     match.sport === 'Futsal' ? 5 :
     match.sport === 'Basketball' ? 5 :
+    match.sport === 'Volleyball' ? 6 :
+    match.sport === 'Tennis' ? 1 :
+    match.sport === 'Table Tennis (M)' ? 1 :
+    match.sport === 'Table Tennis (F)' ? 1 :
+    match.sport === 'Badminton (M)' ? 1 :
+    match.sport === 'Badminton (F)' ? 1 :
+    match.sport === 'Tug of War (M)' ? 8 :
+    match.sport === 'Tug of War (F)' ? 8 :
+    match.sport === 'Snooker' ? 1 :
     13; // Default for other sports
 
     useEffect(() => {
@@ -58,9 +67,37 @@ export const RefSelectedPlayerPage = ({ route, navigation }) => {
              else if (match.sport === 'Basketball') {
               navigation.replace('BasketballScoreUpdatePage', { match });
              }
+             else if (match.sport === 'Volleyball') {
+              navigation.replace('VolleyballScoreUpdatePage', { match });
+             }
+             else if (match.sport === 'Tennis') {
+              navigation.replace('TennisScoreUpdatePage', { match });
+             }
+             else if (match.sport === 'Table Tennis (M)') {
+              navigation.replace('TableTennisScoreUpdatePage', { match });
+            }
+             else if (match.sport === 'Table Tennis (F)') {
+              navigation.replace('TableTennisScoreUpdatePage', { match });
+            }
+            else if (match.sport === 'Badminton (M)') {
+              navigation.replace('BadmintonScoreUpdatePage', { match });
+            }
+            else if (match.sport === 'Badminton (F)') {
+              navigation.replace('BadmintonScoreUpdatePage', { match });
+            }
+            else if (match.sport === 'Tug of War (M)') {
+              navigation.replace('TugofWarScoreUpdatePage', { match });
+            }
+            else if (match.sport === 'Tug of War (F)') {
+              navigation.replace('TugofWarScoreUpdatePage', { match });
+            }
+            else if (match.sport === 'Snooker') {
+              navigation.replace('SnookerScoreUpdatePage', { match });
+            }
               else {
                 navigation.replace('OtherSportScoreUpdatePage', { match });
               }
+              
             }
           } else {
             Alert.alert('Error', data.message || 'Failed to fetch match details.');
@@ -133,6 +170,33 @@ export const RefSelectedPlayerPage = ({ route, navigation }) => {
         }
         else if (match.sport === 'Basketball') {
           navigation.replace('BasketballScoreUpdatePage', { match });
+        }
+        else if (match.sport === 'Volleyball') {
+          navigation.replace('VolleyballScoreUpdatePage', { match });
+        }
+        else if (match.sport === 'Tennis') {
+          navigation.replace('TennisScoreUpdatePage', { match });
+        }
+        else if (match.sport === 'Table Tennis (M)') {
+          navigation.replace('TableTennisScoreUpdatePage', { match });
+        }
+        else if (match.sport === 'Table Tennis (F)') {
+          navigation.replace('TableTennisScoreUpdatePage', { match });
+        }
+        else if (match.sport === 'Badminton (M)') {
+          navigation.replace('BadmintonScoreUpdatePage', { match });
+        }
+        else if (match.sport === 'Badminton (F)') {
+          navigation.replace('BadmintonScoreUpdatePage', { match });
+        }
+        else if (match.sport === 'Tug of War (M)') {
+          navigation.replace('TugofWarScoreUpdatePage', { match });
+        }
+        else if (match.sport === 'Tug of War (F)') {
+          navigation.replace('TugofWarScoreUpdatePage', { match });
+        }
+        else if (match.sport === 'Snooker') {
+          navigation.replace('SnookerScoreUpdatePage', { match });
         }
          else {
           navigation.replace('OtherSportScoreUpdatePage', { match });

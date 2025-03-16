@@ -5,7 +5,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { Picker } from '@react-native-picker/picker';
 
 
-export const BasketballScoreUpdatePage = ({ route,navigation }) => {
+export const TennisScoreUpdatePage = ({ route,navigation }) => {
   const { match } = route.params || {};
   const [matchDetails, setMatchDetails] = useState(null);
   const [playingTeam1, setPlayingTeam1] = useState([]);
@@ -144,7 +144,7 @@ export const BasketballScoreUpdatePage = ({ route,navigation }) => {
         return;
       }
 
-      const response = await fetch('http://192.168.1.21:3002/swapPlayersbasketball', {
+      const response = await fetch('http://192.168.1.21:3002/swapPlayerstennis', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({
@@ -181,7 +181,7 @@ export const BasketballScoreUpdatePage = ({ route,navigation }) => {
         return;
       }
   
-      const response = await fetch('http://192.168.1.21:3002/startmatchbasketball', {
+      const response = await fetch('http://192.168.1.21:3002/startmatchtennis', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ matchId }),
@@ -210,7 +210,7 @@ export const BasketballScoreUpdatePage = ({ route,navigation }) => {
         return;
       }
   
-      const response = await fetch('http://192.168.1.21:3002/stopmatchbasketball', {
+      const response = await fetch('http://192.168.1.21:3002/stopmatchtennis', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ matchId }),
@@ -245,7 +245,7 @@ export const BasketballScoreUpdatePage = ({ route,navigation }) => {
   };
 
 
-  const handlePointIncrement = async (playerId, team, value) => {
+  const handlePointIncrement = async (playerId, team) => {
     if (!isTimerRunning) {
       Alert.alert('Match Not Started', 'You can only update goals while the match is live.');
       return;
@@ -258,7 +258,7 @@ export const BasketballScoreUpdatePage = ({ route,navigation }) => {
         return;
       }
   
-      const response = await fetch('http://192.168.1.21:3002/updateGoalbasketball', {
+      const response = await fetch('http://192.168.1.21:3002/updateGoaltennis', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -268,7 +268,6 @@ export const BasketballScoreUpdatePage = ({ route,navigation }) => {
           matchId: matchDetails._id,
           playerId,
           team,
-          value,
         }),
       });
   
@@ -292,14 +291,14 @@ export const BasketballScoreUpdatePage = ({ route,navigation }) => {
             return;
         }
 
-        if (currentQuarter >= 5) {
+        if (currentQuarter >= 4) {
             Alert.alert('Match Over', 'All quarters have been completed.');
             return;
         }
 
         const nextQuarter = currentQuarter + 1;
 
-        const response = await fetch('http://192.168.1.21:3002/updateHalfbasketball', {
+        const response = await fetch('http://192.168.1.21:3002/updateHalftennis', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
             body: JSON.stringify({ matchId: matchDetails._id, quarter: nextQuarter }),
@@ -318,7 +317,7 @@ export const BasketballScoreUpdatePage = ({ route,navigation }) => {
         Alert.alert('Error', 'An error occurred while ending the quarter.');
     }
 };
-const handleEnd4thQuarter = async () => {
+const handleEnd3rdQuarter = async () => {
   try {
       const token = await AsyncStorage.getItem('token');
       if (!token) {
@@ -327,27 +326,27 @@ const handleEnd4thQuarter = async () => {
       }
 
       // Ensure matchDetails exists and quarter is valid
-      if (!matchDetails || matchDetails.quarter !== 4) {
-          Alert.alert('Error', 'Quarter 4 is not active.');
+      if (!matchDetails || matchDetails.quarter !== 3) {
+          Alert.alert('Error', 'Quarter 3 is not active.');
           return;
       }
 
-      const response = await fetch('http://192.168.1.21:3002/updateHalf4thbasketball', {
+      const response = await fetch('http://192.168.1.21:3002/updateHalf3rdtennis', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-          body: JSON.stringify({ matchId: matchDetails._id, quarter: 4 }) // Ensure quarter 4 is correctly passed
+          body: JSON.stringify({ matchId: matchDetails._id, quarter: 3 }) // Ensure quarter 4 is correctly passed
       });
 
       const data = await response.json();
       if (data.success) {
           setTiming({ minutes: 0, seconds: 0 });
           setReloadKey(prevKey => prevKey + 1); // Refresh match details
-          Alert.alert('Success', `Quarter 4 ended! Winner: ${data.match.quarterWinners[3]}`);
+          Alert.alert('Success', `Quarter 3 ended! Winner: ${data.match.quarterWinners[2]}`);
       } else {
           Alert.alert('Error', data.message || 'Failed to end Quarter 4.');
       }
   } catch (error) {
-      console.error("Error ending Quarter 4:", error);
+      console.error("Error ending Quarter 3:", error);
       Alert.alert('Error', 'An error occurred while ending the quarter.');
   }
 };
@@ -396,13 +395,13 @@ const handleEnd4thQuarter = async () => {
            <TouchableOpacity style={styles.actionButton} onPress={() => handleStart(matchDetails._id)}  disabled={isTimerRunning}>
           <Text style={styles.actionButtonText}>Start</Text>
         </TouchableOpacity>
-        {matchDetails?.quarter > 0 && matchDetails?.quarter <= 3 && (
+        {matchDetails?.quarter > 0 && matchDetails?.quarter <= 2 && (
   <TouchableOpacity style={styles.actionButton} onPress={() => handleEndQuarter(matchDetails.quarter)}>
     <Text style={styles.actionButtonText}>End Quarter {matchDetails.quarter}</Text>
   </TouchableOpacity>
 )}
-{matchDetails?.quarter == 4 && (
-  <TouchableOpacity style={styles.actionButton} onPress={() => handleEnd4thQuarter(matchDetails.quarter)}>
+{matchDetails?.quarter == 3 && (
+  <TouchableOpacity style={styles.actionButton} onPress={() => handleEnd3rdQuarter(matchDetails.quarter)}>
     <Text style={styles.actionButtonText}>End Quarter {matchDetails.quarter}</Text>
   </TouchableOpacity>
 )}
@@ -419,34 +418,19 @@ const handleEnd4thQuarter = async () => {
         <View style={styles.teamCard}>
   <Text style={styles.teamHeader}>{matchDetails.team1} (Playing)</Text>
   {playingTeam1.map((player, index) => (
-  <View key={index} style={styles.playerContainer}>
-    {/* Player Name & Points */}
-    <View style={styles.playerRow}>
-      <Text style={styles.playerName}>
-        {player.shirtNo} 👕 {player.name}
-      </Text>
-      <Text style={styles.goalsText}>
-        Points: {player.pointsByQuarter?.[matchDetails.quarter - 1] || 0}
-      </Text>
-    </View>
+    <View key={index} style={styles.playerRow}>
+      <Text style={styles.playerName}>{player.shirtNo} 👕  {player.name}</Text>
+      <Text style={styles.goalsText}>Points: {player.pointsByQuarter?.[matchDetails.quarter - 1] || 0}
+</Text>
 
-    {/* Buttons placed on the next line */}
-    <View style={styles.buttonRow}>
-      <View style={styles.scoreButtonsContainer}>
-        {[1, 2, 3].map((value) => (
-          <TouchableOpacity
-            key={value}
-            style={styles.scoreButton}
-            onPress={() => handlePointIncrement(player._id, 'team1', value)}
-          >
-            <Text style={styles.scoreButtonText}>+{value}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+<TouchableOpacity 
+        style={styles.updateButton} 
+        onPress={() => handlePointIncrement(player._id, 'team1')}
+      >
+        <Text style={styles.buttonText}>+</Text>
+      </TouchableOpacity>
     </View>
-  </View>
-))}
-
+  ))}
 </View>
 
       <View style={styles.teamCard}>
@@ -462,34 +446,20 @@ const handleEnd4thQuarter = async () => {
       <View style={styles.teamCard}>
   <Text style={styles.teamHeader}>{matchDetails.team2} (Playing)</Text>
   {playingTeam2.map((player, index) => (
-  <View key={index} style={styles.playerContainer}>
-    {/* Player Name & Points */}
-    <View style={styles.playerRow}>
-      <Text style={styles.playerName}>
-        {player.shirtNo} 👕 {player.name}
-      </Text>
+    <View key={index} style={styles.playerRow}>
+      <Text style={styles.playerName}>{player.shirtNo} 👕 {player.name}</Text>
       <Text style={styles.goalsText}>
-        Points: {player.pointsByQuarter?.[matchDetails.quarter - 1] || 0}
-      </Text>
+  Points: {player.pointsByQuarter?.[matchDetails.quarter - 1] || 0}</Text>
+      <TouchableOpacity 
+        style={styles.updateButton} 
+        onPress={() => handlePointIncrement(player._id, 'team2')}
+      >
+        <Text style={styles.buttonText}>+</Text>
+      </TouchableOpacity>
     </View>
-
-    {/* Buttons placed on the next line */}
-    <View style={styles.buttonRow}>
-      <View style={styles.scoreButtonsContainer}>
-        {[1, 2, 3].map((value) => (
-          <TouchableOpacity
-            key={value}
-            style={styles.scoreButton}
-            onPress={() => handlePointIncrement(player._id, 'team2', value)}
-          >
-            <Text style={styles.scoreButtonText}>+{value}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-    </View>
-  </View>
-))}
-
+    
+    
+  ))}
 </View>
 
       <View style={styles.teamCard}>
@@ -571,9 +541,9 @@ const styles = StyleSheet.create({
   status: { fontSize: 18, fontWeight: 'bold', color: '#007AFF', textAlign: 'center', marginBottom: 20 },
   teamCard: { backgroundColor: '#fff', padding: 15, borderRadius: 10, marginBottom: 15, shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 4, elevation: 3 },
   teamHeader: { fontSize: 22, fontWeight: 'bold', marginBottom: 10, color: '#222', textAlign: 'center' },
-  // playerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 8 },
-  // playerName: { fontSize: 18, color: '#333', flex: 2 },
-  // goalsText: { fontSize: 12, color: '#555', flex: 1, textAlign: 'right', marginRight:10},
+  playerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 8 },
+  playerName: { fontSize: 18, color: '#333', flex: 2 },
+  goalsText: { fontSize: 12, color: '#555', flex: 1, textAlign: 'right', marginRight:10},
   updateButton: { backgroundColor: '#007AFF', paddingVertical: 5, paddingHorizontal: 12, borderRadius: 5 },
   buttonText: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
   noData: { fontSize: 16, fontStyle: 'italic', color: 'gray', textAlign: 'center' },
@@ -608,74 +578,26 @@ shadowOffset: { width: 0, height: 2 },
     paddingHorizontal: 20,
     borderRadius: 5,
   },
-  // buttonRow: {
-  //   marginTop: 10,
-  // },
-  // scoreButtonsContainer: {
-  //   flexDirection: "row",
-  //   justifyContent: "space-evenly",
-  //   alignItems: "center",
-  //   width: "60%",
-  // },
-  // scoreButton: {
-  //   backgroundColor: "#007AFF",
-  //   paddingVertical: 8,
-  //   paddingHorizontal: 12,
-  //   borderRadius: 5,
-  //   marginHorizontal: 2,
-  //   elevation: 3,
-  // },
-  // scoreButtonText: {
-  //   color: "#fff",
-  //   fontSize: 11,
-  //   fontWeight: "bold",
-  // },
-  playerContainer: {
-    marginBottom: 15, // Space between players
-    paddingBottom: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: "#ddd", // Adds separation line
-  },
-  playerRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingVertical: 8,
-  },
-  playerName: {
-    fontSize: 18,
-    color: "#333",
-    flex: 2,
-  },
-  goalsText: {
-    fontSize: 12,
-    color: "#555",
-    flex: 1,
-    textAlign: "right",
-    marginRight: 10,
-  },
   buttonRow: {
-    marginTop: 5, // Ensures buttons appear below player name
-    alignItems: "center",
-    width: "100%",
+    marginTop: 10,
   },
   scoreButtonsContainer: {
     flexDirection: "row",
-    justifyContent: "center", // Centers buttons
+    justifyContent: "space-evenly",
     alignItems: "center",
-    width: "100%",
+    width: "60%",
   },
   scoreButton: {
     backgroundColor: "#007AFF",
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 5,
-    marginHorizontal: 5,
+    marginHorizontal: 2,
     elevation: 3,
   },
   scoreButtonText: {
     color: "#fff",
-    fontSize: 14,
+    fontSize: 11,
     fontWeight: "bold",
   },
 });

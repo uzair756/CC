@@ -5,7 +5,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { Picker } from '@react-native-picker/picker';
 
 
-export const BasketballScoreUpdatePage = ({ route,navigation }) => {
+export const SnookerScoreUpdatePage = ({ route,navigation }) => {
   const { match } = route.params || {};
   const [matchDetails, setMatchDetails] = useState(null);
   const [playingTeam1, setPlayingTeam1] = useState([]);
@@ -144,7 +144,7 @@ export const BasketballScoreUpdatePage = ({ route,navigation }) => {
         return;
       }
 
-      const response = await fetch('http://192.168.1.21:3002/swapPlayersbasketball', {
+      const response = await fetch('http://192.168.1.21:3002/swapPlayerssnooker', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({
@@ -181,7 +181,7 @@ export const BasketballScoreUpdatePage = ({ route,navigation }) => {
         return;
       }
   
-      const response = await fetch('http://192.168.1.21:3002/startmatchbasketball', {
+      const response = await fetch('http://192.168.1.21:3002/startmatchsnooker', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ matchId }),
@@ -210,7 +210,7 @@ export const BasketballScoreUpdatePage = ({ route,navigation }) => {
         return;
       }
   
-      const response = await fetch('http://192.168.1.21:3002/stopmatchbasketball', {
+      const response = await fetch('http://192.168.1.21:3002/stopmatchsnooker', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ matchId }),
@@ -258,7 +258,7 @@ export const BasketballScoreUpdatePage = ({ route,navigation }) => {
         return;
       }
   
-      const response = await fetch('http://192.168.1.21:3002/updateGoalbasketball', {
+      const response = await fetch('http://192.168.1.21:3002/updateGoalsnooker', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -299,7 +299,7 @@ export const BasketballScoreUpdatePage = ({ route,navigation }) => {
 
         const nextQuarter = currentQuarter + 1;
 
-        const response = await fetch('http://192.168.1.21:3002/updateHalfbasketball', {
+        const response = await fetch('http://192.168.1.21:3002/updateHalfsnooker', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
             body: JSON.stringify({ matchId: matchDetails._id, quarter: nextQuarter }),
@@ -332,7 +332,7 @@ const handleEnd4thQuarter = async () => {
           return;
       }
 
-      const response = await fetch('http://192.168.1.21:3002/updateHalf4thbasketball', {
+      const response = await fetch('http://192.168.1.21:3002/updateHalf4thsnooker', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
           body: JSON.stringify({ matchId: matchDetails._id, quarter: 4 }) // Ensure quarter 4 is correctly passed
@@ -429,7 +429,7 @@ const handleEnd4thQuarter = async () => {
         Points: {player.pointsByQuarter?.[matchDetails.quarter - 1] || 0}
       </Text>
     </View>
-
+    <Text style={styles.teamHeader1}>Score Buttons</Text>
     {/* Buttons placed on the next line */}
     <View style={styles.buttonRow}>
       <View style={styles.scoreButtonsContainer}>
@@ -440,6 +440,20 @@ const handleEnd4thQuarter = async () => {
             onPress={() => handlePointIncrement(player._id, 'team1', value)}
           >
             <Text style={styles.scoreButtonText}>+{value}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+    </View>
+    <Text style={styles.teamHeader1}>Foul Buttons</Text>
+    <View style={styles.buttonRow}>
+      <View style={styles.scoreButtonsContainer}>
+        {[-4, -5, -6, -7].map((value) => (
+          <TouchableOpacity
+            key={value}
+            style={styles.scoreButton}
+            onPress={() => handlePointIncrement(player._id, 'team1', value)}
+          >
+            <Text style={styles.scoreButtonText}>{value}</Text>
           </TouchableOpacity>
         ))}
       </View>
@@ -472,7 +486,7 @@ const handleEnd4thQuarter = async () => {
         Points: {player.pointsByQuarter?.[matchDetails.quarter - 1] || 0}
       </Text>
     </View>
-
+    <Text style={styles.teamHeader1}>Score Buttons</Text>
     {/* Buttons placed on the next line */}
     <View style={styles.buttonRow}>
       <View style={styles.scoreButtonsContainer}>
@@ -483,6 +497,20 @@ const handleEnd4thQuarter = async () => {
             onPress={() => handlePointIncrement(player._id, 'team2', value)}
           >
             <Text style={styles.scoreButtonText}>+{value}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+    </View>
+    <Text style={styles.teamHeader1}>Foul Buttons</Text>
+    <View style={styles.buttonRow}>
+      <View style={styles.scoreButtonsContainer}>
+        {[-4, -5, -6, -7].map((value) => (
+          <TouchableOpacity
+            key={value}
+            style={styles.scoreButton}
+            onPress={() => handlePointIncrement(player._id, 'team1', value)}
+          >
+            <Text style={styles.scoreButtonText}>{value}</Text>
           </TouchableOpacity>
         ))}
       </View>
@@ -571,6 +599,7 @@ const styles = StyleSheet.create({
   status: { fontSize: 18, fontWeight: 'bold', color: '#007AFF', textAlign: 'center', marginBottom: 20 },
   teamCard: { backgroundColor: '#fff', padding: 15, borderRadius: 10, marginBottom: 15, shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 4, elevation: 3 },
   teamHeader: { fontSize: 22, fontWeight: 'bold', marginBottom: 10, color: '#222', textAlign: 'center' },
+  teamHeader1: { fontSize: 18, fontWeight: 'bold', marginBottom: 5, color: '#222', textAlign: 'center',marginTop:5 },
   // playerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 8 },
   // playerName: { fontSize: 18, color: '#333', flex: 2 },
   // goalsText: { fontSize: 12, color: '#555', flex: 1, textAlign: 'right', marginRight:10},
@@ -678,5 +707,6 @@ shadowOffset: { width: 0, height: 2 },
     fontSize: 14,
     fontWeight: "bold",
   },
+  
 });
 
