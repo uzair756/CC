@@ -1,5 +1,5 @@
 import React, { useEffect, useState ,useCallback} from 'react';
-import { View, Text, Alert, StyleSheet, ScrollView, TouchableOpacity, BackHandler,Modal } from 'react-native';
+import { View, Text, Alert, StyleSheet, ScrollView, TouchableOpacity, BackHandler,Modal ,ImageBackground} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
 
@@ -15,6 +15,7 @@ export const CricketScoreUpdate = ({ route,navigation }) => {
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [activeMatchId, setActiveMatchId] = useState(null);
   const [reloadKey, setReloadKey] = useState(0);
+
   // State for swapping players
 
   const [playingTeam1, setPlayingTeam1] = useState([]);
@@ -31,8 +32,26 @@ export const CricketScoreUpdate = ({ route,navigation }) => {
   const [isWicketModalVisible, setIsWicketModalVisible] = useState(false);
   const [outgoingBatsman, setOutgoingBatsman] = useState(null);
 
-  const [isOverChangeModalVisible, setIsOverChangeModalVisible] = useState(true);
+  const [isOverChangeModalVisible, setIsOverChangeModalVisible] = useState(false);
 
+
+  let scoreUpdateTimeout = null; // Prevents multiple clicks
+
+
+
+
+  // Check inning and runsInning2 to navigate accordingly
+  useEffect(() => {
+    if (matchDetails?.inning === 2) {
+      if (matchDetails.runsInning2 && matchDetails.runsInning2.length > 0) {
+        // If runsInning2 is not empty, navigate to CricketScoreUpdateSecondInning
+        navigation.replace('CricketScoreUpdateSecondInning', { match });
+      } else {
+        // If runsInning2 is empty, navigate to CricketStartingPlayers2ndInnings
+        navigation.replace('CricketStartingPlayers2ndInnings', { match });
+      }
+    }
+  }, [matchDetails?.inning, matchDetails?.runsInning2]);
 
 
 
@@ -78,12 +97,12 @@ export const CricketScoreUpdate = ({ route,navigation }) => {
   }, [isTimerRunning]);
 
 
-
   useEffect(() => {
-    if (matchDetails?.oversInning1 % 1 === 0 && matchDetails?.oversInning1 !== 0) {
-        setIsOverChangeModalVisible(true); // Show modal when over completes
+    if (matchDetails?.oversInning1 > 0.0 && matchDetails?.oversInning1 % 1 === 0) {
+        setIsOverChangeModalVisible(true); // Show modal when a full over is completed
     }
 }, [matchDetails?.oversInning1]);
+
 
 
 
@@ -224,6 +243,12 @@ export const CricketScoreUpdate = ({ route,navigation }) => {
         Alert.alert('Match Not Started', 'You can only update scores while the match is live.');
         return;
     }
+     // Prevent multiple presses in quick succession
+     if (scoreUpdateTimeout) return; // If a request is already running, ignore
+
+     scoreUpdateTimeout = setTimeout(() => {
+         scoreUpdateTimeout = null; // Reset timeout after request completes
+     }, 500); // Set 500ms delay to prevent spamming
 
     try {
         const token = await AsyncStorage.getItem('token');
@@ -329,6 +354,50 @@ export const CricketScoreUpdate = ({ route,navigation }) => {
     } catch (error) {
       console.error("Error updating batsman:", error);
       Alert.alert("Error", "An error occurred while updating the batsman.");
+    }
+  };
+
+  const handleAllOut = async () => {
+    try {
+        if (!outgoingBatsman) {
+            Alert.alert("Error", "No batsman selected.");
+            return;
+        }
+  
+        const token = await AsyncStorage.getItem("token");
+        if (!token) {
+            Alert.alert("Error", "Authentication token missing. Please log in.");
+            return;
+        }
+  
+        const response = await fetch("http://192.168.1.21:3002/handlealloutinning1", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ matchId: matchDetails?._id , outgoingBatsmanId: outgoingBatsman._id }),
+        });
+  
+        const data = await response.json();
+        if (response.ok && data.success) {
+            Alert.alert("Success", "Batsman out recorded. Moving to next innings.", [
+                {
+                    text: "OK",
+                    onPress: () => {
+                        setIsWicketModalVisible(false);
+                        setIsTimerRunning(false);
+                        setActiveMatchId(null);
+                        navigation.navigate("CricketStartingPlayers2ndInnings", { match });
+                    },
+                },
+            ]);
+        } else {
+            Alert.alert("Error", data.message || "Failed to update batsman status.");
+        }
+    } catch (error) {
+        console.error("Error confirming all-out:", error);
+        Alert.alert("Error", "An error occurred while updating.");
     }
   };
 
@@ -444,8 +513,21 @@ const handleExtrasIncrement = async (team, extraType) => {
   }
 };
 
-  
-  
+
+const formatOvers = (balls) => {
+  const overs = Math.floor(balls / 6); // Full overs
+  const remainingBalls = balls % 6; // Balls left in the current over
+  return `${overs}.${remainingBalls}`;
+};
+
+const formatBowlerOvers = (ballsBowled) => {
+  const legalDeliveries = ballsBowled.filter(ball => ball !== "WD" && ball !== "NB").length;
+  const overs = Math.floor(legalDeliveries / 6);
+  const balls = legalDeliveries % 6;
+  return `${overs}.${balls}`;
+};
+
+
   
 
   return (
@@ -469,7 +551,7 @@ const handleExtrasIncrement = async (team, extraType) => {
           ? '2nd Inning'
           : ''}
       </Text>
-      <Text style={styles.header}>{matchDetails.team1}       {matchDetails.scoreT1}/{matchDetails.T1wickets}  -  {matchDetails.scoreT2}/{matchDetails.T2wickets}      {matchDetails.team2}</Text>
+      <Text style={styles.header}>{matchDetails.team1}        {matchDetails.scoreT1}/{matchDetails.T1wickets}  -  {matchDetails.scoreT2}/{matchDetails.T2wickets}        {matchDetails.team2}</Text>
       <View style={styles.scoreRow}>
   {matchDetails?.runsInning1 && matchDetails.runsInning1.length > 0 ? (
     matchDetails.runsInning1.slice(-6).map((run, i) => (
@@ -490,14 +572,20 @@ const handleExtrasIncrement = async (team, extraType) => {
       
 
            <View style={styles.buttonsContainer}>
+           {matchDetails?.inning === 0 && (
            <TouchableOpacity style={styles.actionButton} onPress={() => handleStart(matchDetails._id)}  disabled={isTimerRunning}>
           <Text style={styles.actionButtonText}>Start</Text>
         </TouchableOpacity>
+          )}
         {matchDetails?.inning === 1 && (
           <TouchableOpacity style={styles.actionButton} onPress={handleFirstInning}>
             <Text style={styles.actionButtonText}>End First Inning</Text>
           </TouchableOpacity>
         )}
+        <TouchableOpacity style={styles.revertButton}>
+    <Text style={styles.revertButtonText}>Revert Last Change</Text>
+  </TouchableOpacity>
+
         </View>
         <Text style={styles.teamHeader1}>Byes Buttons</Text>
          <View style={styles.buttonRow1}>
@@ -538,8 +626,15 @@ const handleExtrasIncrement = async (team, extraType) => {
   <Text style={styles.teamHeader}>{battingTeam} (Batting)</Text>
   {activeBattingTeam.map((batsman, index) => (
     <View key={index} style={styles.playerRow}>
-      <Text style={styles.playerName}>{batsman.shirtNo}    🏏 {batsman.name}</Text>
+      <Text style={styles.playerName}><ImageBackground source={require('../../assets/shirt.png')} style={styles.shirtIcon}>
+            <Text style={styles.shirtText}>{batsman.shirtNo}</Text>
+          </ImageBackground>  {batsman.name}</Text>
       <Text style={styles.goalsText}>Runs Scored: {batsman.runsScored}</Text>
+      <Text style={styles.goalsText}>Balls Faced: {batsman.ballsFaced.length}</Text>
+      <Text style={styles.goalsText}>
+  Strike Rate: {((batsman.runsScored / batsman.ballsFaced.length) * 100 || 0).toFixed(2)}
+</Text>
+
 
       {/* Wicket Button Positioned on Right Corner */}
       <TouchableOpacity 
@@ -591,8 +686,30 @@ const handleExtrasIncrement = async (team, extraType) => {
   <Text style={styles.teamHeader}>{bowlingTeam} (Bowling)</Text>
   {activeBowlingTeam.map((bowler, index) => (
     <View key={index} style={styles.playerRow}>
-      <Text style={styles.playerName}>{bowler.shirtNo}     🎯 {bowler.name}</Text>
+      <Text style={styles.playerName}><View style={styles.leftContainer}>
+          <ImageBackground source={require('../../assets/shirt.png')} style={styles.shirtIcon}>
+            <Text style={styles.shirtText}>{bowler.shirtNo}</Text>
+          </ImageBackground>
+</View> {bowler.name}</Text>
       <Text style={styles.goalsText}>Wickets Taken: {bowler.wicketsTaken}</Text>
+      <Text style={styles.goalsText}>Overs: {formatBowlerOvers(bowler.ballsBowled)}</Text>
+      <Text style={styles.goalsText}>
+  Runs Conceded: {bowler.ballsBowled.reduce((acc, val) => 
+    (val === "W" || val.endsWith("B") ? acc : acc + (["NB", "WD"].includes(val) ? 1 : Number(val) || 0))
+  , 0)}
+</Text>
+
+      <Text style={styles.goalsText}>
+  Economy Rate: {(
+    (bowler.ballsBowled.reduce((acc, val) => acc + (["W", "NB", "WD"].includes(val) || val.endsWith("B") ? 0 : Number(val)), 0) /
+    (bowler.ballsBowled.filter(ball => !["NB", "WD"].includes(ball) && !ball.endsWith("B")).length / 6)
+    ) || 0
+  ).toFixed(2)}
+</Text>
+
+
+
+
 
       <View style={styles.ballRow}>
   {bowler.ballsBowled.length > 0 ? (
@@ -616,17 +733,31 @@ const handleExtrasIncrement = async (team, extraType) => {
   <View style={styles.modalContainer}>
     <View style={styles.modalContent}>
       <Text style={styles.modalHeader}>Select New Batsman</Text>
-      <ScrollView>
-        {playingBattingTeam.map((player) => (
+      
+      {playingBattingTeam.length > 0 ? (
+        <ScrollView>
+          {playingBattingTeam.map((player) => (
+            <TouchableOpacity 
+              key={player._id} 
+              style={styles.playerButton} 
+              onPress={() => handleWicketSelection(player)}
+            >
+              <Text style={styles.playerText}>{player.name}</Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      ) : (
+        <View style={styles.noBatsmanContainer}>
+          <Text style={styles.noBatsmanText}>No new batsman left</Text>
           <TouchableOpacity 
-            key={player._id} 
-            style={styles.playerButton} 
-            onPress={() => handleWicketSelection(player)}
+            style={styles.confirmOutButton} 
+            onPress={handleAllOut}
           >
-            <Text style={styles.playerText}>{player.name}</Text>
+            <Text style={styles.confirmOutButtonText}>Confirm Batsman Out</Text>
           </TouchableOpacity>
-        ))}
-      </ScrollView>
+        </View>
+      )}
+
       <TouchableOpacity 
         style={styles.closeButton} 
         onPress={() => setIsWicketModalVisible(false)}
@@ -636,6 +767,7 @@ const handleExtrasIncrement = async (team, extraType) => {
     </View>
   </View>
 </Modal>
+
 <Modal visible={isOverChangeModalVisible} transparent animationType="slide">
   <View style={styles.modalContainer}>
     <View style={styles.modalContent}>
@@ -662,22 +794,23 @@ const handleExtrasIncrement = async (team, extraType) => {
 </Modal>
 
 
+
     </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: '#f4f4f4' },
-  loading: { textAlign: 'center', marginTop: 20, fontSize: 18, fontStyle: 'italic' },
-  header: { fontSize: 26, fontWeight: 'bold', textAlign: 'center', marginBottom: 10, color: '#333' },
-  pool: { fontSize: 18, color: '#555', textAlign: 'center', marginBottom: 5 },
-  status: { fontSize: 18, fontWeight: 'bold', color: '#007AFF', textAlign: 'center', marginBottom: 20 },
-  updateButton: { backgroundColor: '#007AFF', paddingVertical: 5, paddingHorizontal: 12, borderRadius: 5 },
+  container: { flex: 1, padding: 5, backgroundColor: '#f4f4f4' },
+  loading: { textAlign: 'center', marginTop: 20, fontSize:18, fontStyle: 'italic' },
+  header: { fontSize: 22, fontWeight: "bold", textAlign: "center", marginBottom: 10, color: "#333" },
+  pool: { fontSize: 16, color: "#555", textAlign: "center", marginBottom: 10 },
+  status: { fontSize: 16, fontWeight: "600", color: "#007bff", textAlign: "center", marginBottom: 10 },
+  updateButton: { backgroundColor: '#007AFF', paddingVertical: 5, paddingHorizontal:12, borderRadius: 5 },
   noData: { fontSize: 16, fontStyle: 'italic', color: 'gray', textAlign: 'center' },
-  stopwatchText: {fontSize: 18,fontWeight: 'bold',color: 'black',marginTop: 15,textAlign: 'center'},
-  buttonsContainer: {flexDirection: 'row',justifyContent: 'space-evenly',marginTop: 15,width: '100%',marginBottom:20},
-  actionButton: {backgroundColor: '#ffffff',paddingVertical: 8,paddingHorizontal: 15,borderRadius: 10,marginHorizontal: 5,elevation: 3,},
-  actionButtonText: {color: '#6573EA',fontWeight: 'bold'},
+  stopwatchText: {fontSize: 15,fontWeight: 'bold',color: 'black',marginTop: 8,textAlign: 'center'},
+  buttonsContainer: {flexDirection: 'row',justifyContent: 'space-evenly',marginTop: 8,width: '100%',marginBottom:8},
+  actionButton: {backgroundColor: '#007AFF',paddingVertical: 8,paddingHorizontal: 15,borderRadius: 10,marginHorizontal: 5,elevation: 3,},
+  actionButtonText: {color: 'white',fontWeight: 'bold',backgroundColor:'#007AFF'},
   modalContainer: {flex: 1,justifyContent: 'center',alignItems: 'center',backgroundColor: 'rgba(0, 0, 0, 0.5)',
   shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
@@ -750,8 +883,8 @@ const styles = StyleSheet.create({
     marginBottom:10,
   },
   ballBox: {
-    width: 30,
-    height: 30,
+    width: 20,
+    height: 20,
     borderRadius: 5,
     backgroundColor: "#e0e0e0",
     alignItems: "center",
@@ -759,7 +892,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 2,
   },
   ballText: {
-    fontSize: 15,
+    fontSize: 13,
     fontWeight: "bold",
   },
   buttonRow: {
@@ -790,7 +923,7 @@ const styles = StyleSheet.create({
   },
   scoreButton1: {
     backgroundColor: "#007AFF",
-    paddingVertical: 8,
+    paddingVertical: 7,
     paddingHorizontal: 12,
     borderRadius: 5,
     marginHorizontal: 2,
@@ -870,7 +1003,67 @@ closeButtonText: {
   color: "white",
   fontWeight: "bold",
 },
-  
+leftContainer: {
+  marginRight: 10, // Adds space between the shirt icon and player name
+},
+
+shirtIcon: {
+  width: 30, 
+  height: 30, 
+  justifyContent: 'center',
+  alignItems: 'center',
+  marginTop: 20,
+},
+shirtText: {
+  fontSize: 11,
+  fontWeight: 'bold',
+  color: 'white',
+  textAlign: 'center',
+},
+rightContainer: {
+  flex: 1,  // Ensures the player name and balls are properly aligned
+},
+noBatsmanContainer: {
+  alignItems: 'center',
+  justifyContent: 'center',
+  padding: 20,
+  backgroundColor: '#f8d7da', // Light red background
+  borderRadius: 10,
+  marginVertical: 10,
+  borderWidth: 1,
+  borderColor: '#f5c6cb',
+},
+noBatsmanText: {
+  fontSize: 18,
+  fontWeight: 'bold',
+  color: '#721c24', // Dark red text
+  textAlign: 'center',
+  marginBottom: 10,
+},
+confirmOutButton: {
+  backgroundColor: '#dc3545', // Red color for alert
+  paddingVertical: 10,
+  paddingHorizontal: 20,
+  borderRadius: 8,
+  alignItems: 'center',
+},
+confirmOutButtonText: {
+  fontSize: 16,
+  fontWeight: 'bold',
+  color: '#fff', // White text for contrast
+},
+revertButton: {
+  backgroundColor: '#dc3545', // Red color for alert
+  paddingVertical: 8,
+  paddingHorizontal: 15,
+  borderRadius: 10,
+  marginHorizontal: 5,
+  elevation: 3,
+},
+revertButtonText: {
+  color: 'white',
+  fontWeight: 'bold',
+},
 });
 
 

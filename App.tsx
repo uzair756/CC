@@ -47,6 +47,7 @@ import { CricketStartingPlayers } from './pages/Cricket/CricketStartingPlayers';
 import { CricketStartingPlayers2ndInnings } from './pages/Cricket/CricketStartingPlayers2ndInnings';
 import { CricketScoreUpdateSecondInning } from './pages/Cricket/CricketScoreUpdateSecondInning';
 import { FutsalPenalties } from './pages/Futsal/FutsalPenalties';
+import { BestCricketerPage } from './pages/Cricket/BestCricketerPage';
 const Stack = createNativeStackNavigator();
 
 const MyStack = () => {
@@ -103,6 +104,7 @@ const MyStack = () => {
           <Stack.Screen name="CricketScoreUpdateSecondInning" component={CricketScoreUpdateSecondInning} options={{ headerShown: false }} />
           <Stack.Screen name="FutsalPenalties" component={FutsalPenalties} options={{ headerShown: false }} />
           <Stack.Screen name="BasketballScoreUpdatePage" component={BasketballScoreUpdatePage} options={{ headerShown: false }} />
+          <Stack.Screen name="BestCricketerPage" component={BestCricketerPage} options={{ headerShown: false }} />
         </Stack.Navigator>
       </NavigationContainer>
     </>

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Alert, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, Alert, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const RefSelectedPlayerPage = ({ route, navigation }) => {
@@ -9,6 +9,7 @@ export const RefSelectedPlayerPage = ({ route, navigation }) => {
   const [team2Players, setTeam2Players] = useState([]);
   const [selectedTeam1, setSelectedTeam1] = useState([]);
   const [selectedTeam2, setSelectedTeam2] = useState([]);
+  const [isLoading, setIsLoading] = useState(true); // Add loading state
 
   // Define the player selection limit based on sport category
   const playerLimit =
@@ -27,92 +28,89 @@ export const RefSelectedPlayerPage = ({ route, navigation }) => {
     match.sport === 'Snooker' ? 1 :
     13; // Default for other sports
 
-    useEffect(() => {
-      const fetchMatchDetails = async () => {
-        try {
-          const token = await AsyncStorage.getItem('token');
-          if (!match || !match._id || !match.sport) {
-            Alert.alert('Error', 'Invalid match data.');
-            return;
-          }
-    
-          const response = await fetch(`http://192.168.1.21:3002/match/${match.sport}/${match._id}`, {
-            method: 'GET',
-            headers: { Authorization: `Bearer ${token}` },
-          });
-    
-          const data = await response.json();
-          if (data.success) {
-            setMatchDetails(data.match);
-            setTeam1Players(data.match.nominationsT1 || []);
-            setTeam2Players(data.match.nominationsT2 || []);
-    
-            // Check if any player has the playing status "playing"
-            const isPlaying = [...data.match.nominationsT1, ...data.match.nominationsT2].some(
-              player => player.playingStatus === 'Playing'
-            );
-    
-            if (isPlaying) {
-              // Redirect directly to the respective score update page
-              Alert.alert('Info', 'players are already selected for this match. Redirecting to score update page.');
-    
-              if (match.sport === 'Football') {
-                navigation.replace('FootballScoreUpdatePage', { match });
-              } else if (match.sport === 'Cricket') {
-                 navigation.replace('CricketToss', { match });
-              }
-              else if (match.sport === 'Futsal') {
-                navigation.replace('FutsalScoreUpdatePage', { match });
-             }
-             else if (match.sport === 'Basketball') {
-              navigation.replace('BasketballScoreUpdatePage', { match });
-             }
-             else if (match.sport === 'Volleyball') {
-              navigation.replace('VolleyballScoreUpdatePage', { match });
-             }
-             else if (match.sport === 'Tennis') {
-              navigation.replace('TennisScoreUpdatePage', { match });
-             }
-             else if (match.sport === 'Table Tennis (M)') {
-              navigation.replace('TableTennisScoreUpdatePage', { match });
-            }
-             else if (match.sport === 'Table Tennis (F)') {
-              navigation.replace('TableTennisScoreUpdatePage', { match });
-            }
-            else if (match.sport === 'Badminton (M)') {
-              navigation.replace('BadmintonScoreUpdatePage', { match });
-            }
-            else if (match.sport === 'Badminton (F)') {
-              navigation.replace('BadmintonScoreUpdatePage', { match });
-            }
-            else if (match.sport === 'Tug of War (M)') {
-              navigation.replace('TugofWarScoreUpdatePage', { match });
-            }
-            else if (match.sport === 'Tug of War (F)') {
-              navigation.replace('TugofWarScoreUpdatePage', { match });
-            }
-            else if (match.sport === 'Snooker') {
-              navigation.replace('SnookerScoreUpdatePage', { match });
-            }
-              else {
-                navigation.replace('OtherSportScoreUpdatePage', { match });
-              }
-              
-            }
-          } else {
-            Alert.alert('Error', data.message || 'Failed to fetch match details.');
-          }
-        } catch (error) {
-          console.error('Error fetching match details:', error);
-          Alert.alert('Error', 'An error occurred while fetching match details.');
+  useEffect(() => {
+    const fetchMatchDetails = async () => {
+      try {
+        setIsLoading(true); // Set loading to true when fetching starts
+        const token = await AsyncStorage.getItem('token');
+        if (!match || !match._id || !match.sport) {
+          Alert.alert('Error', 'Invalid match data.');
+          setIsLoading(false); // Set loading to false if there's an error
+          return;
         }
-      };
-    
-      fetchMatchDetails();
-    }, []);
-    
 
-  if (!matchDetails) return <Text style={styles.loading}>Loading players...</Text>;
+        const response = await fetch(`http://192.168.1.21:3002/match/${match.sport}/${match._id}`, {
+          method: 'GET',
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        const data = await response.json();
+        if (data.success) {
+          setMatchDetails(data.match);
+          setTeam1Players(data.match.nominationsT1 || []);
+          setTeam2Players(data.match.nominationsT2 || []);
+
+          // Check if any player has the playing status "playing"
+          const isPlaying = [...data.match.nominationsT1, ...data.match.nominationsT2].some(
+            player => player.playingStatus === 'Playing'
+          );
+
+          if (isPlaying) {
+            // Redirect directly to the respective score update page
+            Alert.alert('Info', 'Players are already selected for this match. Redirecting to score update page.');
+
+            if (match.sport === 'Football') {
+              navigation.replace('FootballScoreUpdatePage', { match });
+            } else if (match.sport === 'Cricket') {
+              navigation.replace('CricketToss', { match });
+            } else if (match.sport === 'Futsal') {
+              navigation.replace('FutsalScoreUpdatePage', { match });
+            } else if (match.sport === 'Basketball') {
+              navigation.replace('BasketballScoreUpdatePage', { match });
+            } else if (match.sport === 'Volleyball') {
+              navigation.replace('VolleyballScoreUpdatePage', { match });
+            } else if (match.sport === 'Tennis') {
+              navigation.replace('TennisScoreUpdatePage', { match });
+            } else if (match.sport === 'Table Tennis (M)') {
+              navigation.replace('TableTennisScoreUpdatePage', { match });
+            } else if (match.sport === 'Table Tennis (F)') {
+              navigation.replace('TableTennisScoreUpdatePage', { match });
+            } else if (match.sport === 'Badminton (M)') {
+              navigation.replace('BadmintonScoreUpdatePage', { match });
+            } else if (match.sport === 'Badminton (F)') {
+              navigation.replace('BadmintonScoreUpdatePage', { match });
+            } else if (match.sport === 'Tug of War (M)') {
+              navigation.replace('TugofWarScoreUpdatePage', { match });
+            } else if (match.sport === 'Tug of War (F)') {
+              navigation.replace('TugofWarScoreUpdatePage', { match });
+            } else if (match.sport === 'Snooker') {
+              navigation.replace('SnookerScoreUpdatePage', { match });
+            } else {
+              navigation.replace('OtherSportScoreUpdatePage', { match });
+            }
+          }
+        } else {
+          Alert.alert('Error', data.message || 'Failed to fetch match details.');
+        }
+      } catch (error) {
+        console.error('Error fetching match details:', error);
+        Alert.alert('Error', 'An error occurred while fetching match details.');
+      } finally {
+        setIsLoading(false); // Set loading to false when fetching is done
+      }
+    };
+
+    fetchMatchDetails();
+  }, [match]);
+
+  if (!matchDetails || isLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#007AFF" />
+        <Text style={styles.loadingText}>Loading players...</Text>
+      </View>
+    );
+  }
 
   // Function to handle player selection
   const handlePlayerSelection = (player, team) => {
@@ -167,38 +165,27 @@ export const RefSelectedPlayerPage = ({ route, navigation }) => {
           navigation.replace('CricketToss', { match });
         } else if (match.sport === 'Futsal') {
           navigation.replace('FutsalScoreUpdatePage', { match });
-        }
-        else if (match.sport === 'Basketball') {
+        } else if (match.sport === 'Basketball') {
           navigation.replace('BasketballScoreUpdatePage', { match });
-        }
-        else if (match.sport === 'Volleyball') {
+        } else if (match.sport === 'Volleyball') {
           navigation.replace('VolleyballScoreUpdatePage', { match });
-        }
-        else if (match.sport === 'Tennis') {
+        } else if (match.sport === 'Tennis') {
           navigation.replace('TennisScoreUpdatePage', { match });
-        }
-        else if (match.sport === 'Table Tennis (M)') {
+        } else if (match.sport === 'Table Tennis (M)') {
           navigation.replace('TableTennisScoreUpdatePage', { match });
-        }
-        else if (match.sport === 'Table Tennis (F)') {
+        } else if (match.sport === 'Table Tennis (F)') {
           navigation.replace('TableTennisScoreUpdatePage', { match });
-        }
-        else if (match.sport === 'Badminton (M)') {
+        } else if (match.sport === 'Badminton (M)') {
           navigation.replace('BadmintonScoreUpdatePage', { match });
-        }
-        else if (match.sport === 'Badminton (F)') {
+        } else if (match.sport === 'Badminton (F)') {
           navigation.replace('BadmintonScoreUpdatePage', { match });
-        }
-        else if (match.sport === 'Tug of War (M)') {
+        } else if (match.sport === 'Tug of War (M)') {
           navigation.replace('TugofWarScoreUpdatePage', { match });
-        }
-        else if (match.sport === 'Tug of War (F)') {
+        } else if (match.sport === 'Tug of War (F)') {
           navigation.replace('TugofWarScoreUpdatePage', { match });
-        }
-        else if (match.sport === 'Snooker') {
+        } else if (match.sport === 'Snooker') {
           navigation.replace('SnookerScoreUpdatePage', { match });
-        }
-         else {
+        } else {
           navigation.replace('OtherSportScoreUpdatePage', { match });
         }
       } else {
@@ -215,44 +202,54 @@ export const RefSelectedPlayerPage = ({ route, navigation }) => {
       <Text style={styles.header}>Select {playerLimit} Players for Each Team</Text>
 
       {/* Team 1 Players */}
-      <Text style={styles.teamHeader}>{matchDetails.team1} Players</Text>
-      {/* Team 1 Players */}
-    {team1Players.length > 0 ? (
-    <>
-    {team1Players.map(player => (
-      <TouchableOpacity
-        key={player._id}
-        style={[styles.playerItem, selectedTeam1.includes(player._id) && styles.selected]}
-        onPress={() => handlePlayerSelection(player, 'T1')}
-      >
-        <Text style={styles.playerName}>{player.name}</Text>
-      </TouchableOpacity>
-    ))}
-  </>
-) : (
-  <Text style={styles.noData}>No players found.</Text>
-)}
+      <View style={styles.teamContainer}>
+        <Text style={styles.teamHeader}>{matchDetails.team1} Players</Text>
+        {team1Players.length > 0 ? (
+          team1Players.map(player => (
+            <TouchableOpacity
+              key={player._id}
+              style={[
+                styles.playerItem,
+                selectedTeam1.includes(player._id) && styles.selectedPlayer,
+              ]}
+              onPress={() => handlePlayerSelection(player, 'T1')}
+            >
+              <Text style={styles.playerName}>{player.name}</Text>
+              {selectedTeam1.includes(player._id) && (
+                <Text style={styles.selectedIcon}>✔️</Text>
+              )}
+            </TouchableOpacity>
+          ))
+        ) : (
+          <Text style={styles.noData}>No players found.</Text>
+        )}
+      </View>
 
       {/* Team 2 Players */}
-      <Text style={styles.teamHeader}>{matchDetails.team2} Players</Text>
-      {/* Team 1 Players */}
-{team2Players.length > 0 ? (
-  <>
-    {team2Players.map(player => (
-      <TouchableOpacity
-        key={player._id}
-        style={[styles.playerItem, selectedTeam2.includes(player._id) && styles.selected]}
-        onPress={() => handlePlayerSelection(player, 'T2')}
-      >
-        <Text style={styles.playerName}>{player.name}</Text>
-      </TouchableOpacity>
-    ))}
-  </>
-) : (
-  <Text style={styles.noData}>No players found.</Text>
-)}
+      <View style={styles.teamContainer}>
+        <Text style={styles.teamHeader}>{matchDetails.team2} Players</Text>
+        {team2Players.length > 0 ? (
+          team2Players.map(player => (
+            <TouchableOpacity
+              key={player._id}
+              style={[
+                styles.playerItem,
+                selectedTeam2.includes(player._id) && styles.selectedPlayer,
+              ]}
+              onPress={() => handlePlayerSelection(player, 'T2')}
+            >
+              <Text style={styles.playerName}>{player.name}</Text>
+              {selectedTeam2.includes(player._id) && (
+                <Text style={styles.selectedIcon}>✔️</Text>
+              )}
+            </TouchableOpacity>
+          ))
+        ) : (
+          <Text style={styles.noData}>No players found.</Text>
+        )}
+      </View>
 
-
+      {/* Confirm Button */}
       <TouchableOpacity style={styles.confirmButton} onPress={confirmSelection}>
         <Text style={styles.confirmButtonText}>Confirm Selection</Text>
       </TouchableOpacity>
@@ -262,21 +259,95 @@ export const RefSelectedPlayerPage = ({ route, navigation }) => {
 
 // Styles
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: '#f4f4f4' },
-  loading: { textAlign: 'center', marginTop: 20, fontSize: 18, fontStyle: 'italic' },
-  header: { fontSize: 22, fontWeight: 'bold', textAlign: 'center', marginBottom: 15 },
-  teamHeader: { fontSize: 20, fontWeight: 'bold', marginBottom: 10, color: '#007AFF', textAlign: 'center' },
-  playerItem: { padding: 12, marginVertical: 5, backgroundColor: '#ddd', borderRadius: 8, alignItems: 'center' },
-  selected: { backgroundColor: '#4CAF50' },
-  playerName: { fontSize: 16, color: '#333' },
-  confirmButton: { backgroundColor: '#007AFF', padding: 15, borderRadius: 10, alignItems: 'center', marginTop: 20 },
-  confirmButtonText: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
+  container: {
+    flex: 1,
+    padding: 20,
+    backgroundColor: '#f8f9fa',
+  },
+  header: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 20,
+    color: '#333',
+  },
+  teamContainer: {
+    marginBottom: 25,
+  },
+  teamHeader: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    color: '#0056b3', // A slightly deeper blue for better contrast
+    textAlign: 'center',
+    textTransform: 'uppercase', // Makes it look more structured
+    letterSpacing: 1, // Adds spacing between letters for a sleek look
+    backgroundColor: '#f0f4ff', // Soft background to make it stand out
+    paddingVertical: 8, // Adds vertical padding for better spacing
+    borderRadius: 8, // Rounded edges for a modern look
+    overflow: 'hidden', // Ensures background stays within bounds
+  },
+
+  playerItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 15,
+    marginVertical: 5,
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  selectedPlayer: {
+    backgroundColor: '#e3f2fd',
+    borderColor: '#007AFF',
+    borderWidth: 1,
+  },
+  playerName: {
+    fontSize: 16,
+    color: '#333',
+  },
+  selectedIcon: {
+    fontSize: 16,
+    color: '#007AFF',
+  },
+  confirmButton: {
+    backgroundColor: '#007AFF',
+    padding: 15,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginTop: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  confirmButtonText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
   noData: {
     fontSize: 16,
     fontStyle: 'italic',
-    color: 'gray',
+    color: '#888',
     textAlign: 'center',
     marginVertical: 10,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: '#007AFF',
   },
 });
 

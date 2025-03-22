@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TouchableOpacity, Alert, StyleSheet, ActivityIndicator } from "react-native";
+import { View, Text, TouchableOpacity, Alert, StyleSheet, ActivityIndicator,ScrollView } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Picker } from "@react-native-picker/picker";
 
@@ -115,38 +115,149 @@ export const CricketStartingPlayers2ndInnings = ({ route, navigation }) => {
     };
 
     if (loading) {
-        return <ActivityIndicator size="large" color="#007bff" style={{ marginTop: 20 }} />;
-    }
-
+            return (
+                <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="large" color="#007bff" />
+                    <Text style={styles.loadingText}>Loading players...</Text>
+                </View>
+            );
+        }
     return (
-        <View style={styles.container}>
-            <Text style={styles.title}>Select Opening Batsmen & Bowler</Text>
-            <Text style={styles.teamLabel}>{battingTeamName} - Batsmen</Text>
-            <Picker selectedValue={selectedBatsman1} onValueChange={setSelectedBatsman1} style={styles.picker}>
-                <Picker.Item label="Select First Batsman" value={null} />
-                {battingTeam.map(player => <Picker.Item key={player._id} label={player.name} value={player._id} />)}
-            </Picker>
-            <Picker selectedValue={selectedBatsman2} onValueChange={setSelectedBatsman2} style={styles.picker}>
-                <Picker.Item label="Select Second Batsman" value={null} />
-                {battingTeam.map(player => <Picker.Item key={player._id} label={player.name} value={player._id} />)}
-            </Picker>
-            <Text style={styles.teamLabel}> {bowlingTeamName}- Bowler</Text>
-            <Picker selectedValue={selectedBowler} onValueChange={setSelectedBowler} style={styles.picker}>
-                <Picker.Item label="Select Bowler" value={null} />
-                {bowlingTeam.map(player => <Picker.Item key={player._id} label={player.name} value={player._id} />)}
-            </Picker>
-            <TouchableOpacity style={styles.button} onPress={handleSubmit}>
-                <Text style={styles.buttonText}>Submit & Start</Text>
-            </TouchableOpacity>
-        </View>
+        <ScrollView contentContainerStyle={styles.container}>
+                    <Text style={styles.title}>Select Opening Batsmen & Bowler</Text>
+        
+                    {/* Batting Team Section */}
+                    <View style={styles.section}>
+                        <Text style={styles.teamLabel}>{battingTeamName} - Batsmen</Text>
+                        <View style={styles.pickerContainer}>
+                            <Picker
+                                selectedValue={selectedBatsman1}
+                                onValueChange={setSelectedBatsman1}
+                                style={styles.picker}
+                                dropdownIconColor="#007bff"
+                            >
+                                <Picker.Item label="Select First Batsman" value={null} />
+                                {battingTeam.map(player => (
+                                    <Picker.Item key={player._id} label={player.name} value={player._id} />
+                                ))}
+                            </Picker>
+                        </View>
+                        <View style={styles.pickerContainer}>
+                            <Picker
+                                selectedValue={selectedBatsman2}
+                                onValueChange={setSelectedBatsman2}
+                                style={styles.picker}
+                                dropdownIconColor="#007bff"
+                            >
+                                <Picker.Item label="Select Second Batsman" value={null} />
+                                {battingTeam.map(player => (
+                                    <Picker.Item key={player._id} label={player.name} value={player._id} />
+                                ))}
+                            </Picker>
+                        </View>
+                    </View>
+        
+                    {/* Bowling Team Section */}
+                    <View style={styles.section}>
+                        <Text style={styles.teamLabel}>{bowlingTeamName} - Bowler</Text>
+                        <View style={styles.pickerContainer}>
+                            <Picker
+                                selectedValue={selectedBowler}
+                                onValueChange={setSelectedBowler}
+                                style={styles.picker}
+                                dropdownIconColor="#007bff"
+                            >
+                                <Picker.Item label="Select Bowler" value={null} />
+                                {bowlingTeam.map(player => (
+                                    <Picker.Item key={player._id} label={player.name} value={player._id} />
+                                ))}
+                            </Picker>
+                        </View>
+                    </View>
+        
+                    {/* Submit Button */}
+                    <TouchableOpacity style={styles.button} onPress={handleSubmit}>
+                        <Text style={styles.buttonText}>Submit & Start</Text>
+                    </TouchableOpacity>
+                </ScrollView>
     );
 };
 
+// Styles
 const styles = StyleSheet.create({
-    container: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#f5f5f5", padding: 20 },
-    title: { fontSize: 18, fontWeight: "bold", marginBottom: 20, color: "#333" },
-    teamLabel: { fontSize: 16, fontWeight: "bold", marginTop: 15, marginBottom: 5, color: "#007bff" },
-    picker: { width: "100%", height: 50, backgroundColor: "#fff", borderRadius: 10, borderWidth: 1, borderColor: "#ccc", marginBottom: 15 },
-    button: { backgroundColor: "#007bff", paddingVertical: 12, paddingHorizontal: 30, borderRadius: 8, marginTop: 20 },
-    buttonText: { color: "#fff", fontSize: 16, fontWeight: "bold", textAlign: "center" },
+    container: {
+        flexGrow: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: "#f8f9fa",
+        padding: 20,
+    },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: "#f8f9fa",
+    },
+    loadingText: {
+        marginTop: 10,
+        fontSize: 16,
+        color: "#007bff",
+    },
+    title: {
+        fontSize: 24,
+        fontWeight: "bold",
+        color: "#333",
+        marginBottom: 20,
+        textAlign: "center",
+    },
+    section: {
+        width: "100%",
+        marginBottom: 20,
+    },
+    teamLabel: {
+            fontSize: 22,
+            fontWeight: 'bold',
+            marginBottom: 10,
+            color: '#0056b3', // A slightly deeper blue for better contrast
+            textAlign: 'center',
+            textTransform: 'uppercase', // Makes it look more structured
+            letterSpacing: 1, // Adds spacing between letters for a sleek look
+            backgroundColor: '#f0f4ff', // Soft background to make it stand out
+            paddingVertical: 8, // Adds vertical padding for better spacing
+            borderRadius: 8, // Rounded edges for a modern look
+            overflow: 'hidden', // Ensures background stays within bounds
+        
+    },
+    pickerContainer: {
+        width: "100%",
+        marginBottom: 15,
+        backgroundColor: "#fff",
+        borderRadius: 10,
+        borderWidth: 1,
+        borderColor: "#ddd",
+        overflow: "hidden",
+    },
+    picker: {
+        width: "100%",
+        height: 50,
+        color: "#333",
+    },
+    button: {
+        backgroundColor: "#007bff",
+        paddingVertical: 12,
+        paddingHorizontal: 30,
+        borderRadius: 8,
+        marginTop: 20,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 4,
+        elevation: 3,
+    },
+    buttonText: {
+        color: "#fff",
+        fontSize: 16,
+        fontWeight: "bold",
+        textAlign: "center",
+    },
 });

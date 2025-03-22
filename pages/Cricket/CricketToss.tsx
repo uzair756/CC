@@ -8,12 +8,12 @@ export const CricketToss = ({ route, navigation }) => {
     const [tossWinner, setTossWinner] = useState(null);
     const [decision, setDecision] = useState(null);
 
-    // Redirect user if toss is already done
     useEffect(() => {
-        if (match.tosswin) {
+        if (match?.tosswin !== null && match?.tosswin !== undefined) {
             navigation.replace("CricketStartingPlayers", { match });
         }
-    }, []);
+    }, [match?.tosswin]);  // Dependency ensures reactivity
+    
 
     const handleTossSelection = (team) => {
         setTossWinner(team);
