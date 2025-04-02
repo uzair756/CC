@@ -18,7 +18,7 @@ export const CoordinatorLandingPage = ({ navigation }) => {
     const fetchProfile = async () => {
       try {
         const token = await AsyncStorage.getItem('token');
-        const response = await fetch('http://192.168.1.21:3002/coordinatorlandingpage', {
+        const response = await fetch('http://192.168.100.4:3002/coordinatorlandingpage', {
           method: 'GET',
           headers: { 'Authorization': `Bearer ${token}` },
         });
@@ -46,7 +46,7 @@ export const CoordinatorLandingPage = ({ navigation }) => {
 
   const handleAddRep = async () => {
     try {
-      const response = await fetch('http://192.168.1.21:3002/studentrepsignup', {
+      const response = await fetch('http://192.168.100.4:3002/studentrepsignup', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -88,7 +88,7 @@ export const CoordinatorLandingPage = ({ navigation }) => {
         return;
       }
 
-      const response = await fetch('http://192.168.1.21:3002/changepasswordcoordinator', {
+      const response = await fetch('http://192.168.100.4:3002/changepasswordcoordinator', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

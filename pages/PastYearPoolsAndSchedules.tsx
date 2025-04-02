@@ -38,7 +38,7 @@ export const PastYearPoolsAndSchedules = () => {
   //     }
 
   //     const response = await fetch(
-  //       `http://192.168.1.21:3002/get-schedules?sport=${selectedSport}&year=${selectedYear}`,
+  //       `http://192.168.100.4:3002/get-schedules?sport=${selectedSport}&year=${selectedYear}`,
   //       {
   //         headers: {
   //           Authorization: `Bearer ${token}`,
@@ -79,7 +79,7 @@ export const PastYearPoolsAndSchedules = () => {
       }
   
       const response = await fetch(
-        `http://192.168.1.21:3002/get-schedules?sport=${encodeURIComponent(selectedSport)}&year=${encodeURIComponent(selectedYear)}`,
+        `http://192.168.100.4:3002/get-schedules?sport=${encodeURIComponent(selectedSport)}&year=${encodeURIComponent(selectedYear)}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

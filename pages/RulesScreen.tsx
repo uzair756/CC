@@ -33,7 +33,7 @@ export const RulesScreen = () => {
   const fetchRules = async (sport) => {
     setLoading(true);
     try {
-      const response = await fetch(`http://192.168.1.21:3002/getruless/${sport.toLowerCase()}`);
+      const response = await fetch(`http://192.168.100.4:3002/getruless/${sport.toLowerCase()}`);
       const data = await response.json();
       if (data.success) {
         setRulesData(data.rules);

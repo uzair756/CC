@@ -18,7 +18,7 @@ export const CricketStartingPlayers = ({ route, navigation }) => {
         const fetchFirstInningTeams = async () => {
             try {
                 const token = await AsyncStorage.getItem("token");
-                const response = await fetch(`http://192.168.1.21:3002/getFirstInningTeams?matchId=${match._id}`, {
+                const response = await fetch(`http://192.168.100.4:3002/getFirstInningTeams?matchId=${match._id}`, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 const data = await response.json();
@@ -40,7 +40,7 @@ export const CricketStartingPlayers = ({ route, navigation }) => {
         const fetchPlayers = async (battingTeam, bowlingTeam) => {
             try {
                 const token = await AsyncStorage.getItem("token");
-                const response = await fetch(`http://192.168.1.21:3002/getPlayers?matchId=${match._id}`, {
+                const response = await fetch(`http://192.168.100.4:3002/getPlayers?matchId=${match._id}`, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 const data = await response.json();
@@ -94,7 +94,7 @@ export const CricketStartingPlayers = ({ route, navigation }) => {
 
         try {
             const token = await AsyncStorage.getItem("token");
-            const response = await fetch("http://192.168.1.21:3002/updatePlayingStatus", {
+            const response = await fetch("http://192.168.100.4:3002/updatePlayingStatus", {
                 method: "POST",
                 headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
                 body: JSON.stringify({ matchId: match._id, players: [selectedBatsman1, selectedBatsman2, selectedBowler] }),

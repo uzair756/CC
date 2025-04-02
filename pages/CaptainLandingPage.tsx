@@ -15,7 +15,7 @@ export const CaptainLandingPage = ({ navigation }) => {
       const fetchProfile = async () => {
         try {
           const token = await AsyncStorage.getItem('token');
-          const response = await fetch('http://192.168.1.21:3002/captainlandingpage', {
+          const response = await fetch('http://192.168.100.4:3002/captainlandingpage', {
             method: 'GET',
             headers: { Authorization: `Bearer ${token}` },
           });
@@ -55,7 +55,7 @@ export const CaptainLandingPage = ({ navigation }) => {
           return;
         }
   
-        const response = await fetch('http://192.168.1.21:3002/changepasswordcaptain', {
+        const response = await fetch('http://192.168.100.4:3002/changepasswordcaptain', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -84,7 +84,7 @@ export const CaptainLandingPage = ({ navigation }) => {
     const handleEventConfirmation = async (eventId) => {
       try {
         const token = await AsyncStorage.getItem('token');
-        const response = await fetch(`http://192.168.1.21:3002/confirmtrial/${eventId}`, {
+        const response = await fetch(`http://192.168.100.4:3002/confirmtrial/${eventId}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
