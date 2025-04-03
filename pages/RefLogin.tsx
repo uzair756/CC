@@ -40,7 +40,7 @@ export const RefLogin = ({ navigation }) => {
 
       
       // Use the fetched IP in the request URL
-      const response = await fetch(`http://192.168.100.4:3002/reflogin`, {
+      const response = await fetch(`http://192.168.1.21:3002/reflogin`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),

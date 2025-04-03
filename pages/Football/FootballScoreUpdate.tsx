@@ -66,7 +66,7 @@ export const FootballScoreUpdatePage = ({ route,navigation }) => {
           return;
         }
 
-        const response = await fetch(`http://192.168.100.4:3002/match/${match.sport}/${match._id}`, {
+        const response = await fetch(`http://192.168.1.21:3002/match/${match.sport}/${match._id}`, {
           method: 'GET',
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -144,7 +144,7 @@ export const FootballScoreUpdatePage = ({ route,navigation }) => {
         return;
       }
 
-      const response = await fetch('http://192.168.100.4:3002/swapPlayers', {
+      const response = await fetch('http://192.168.1.21:3002/swapPlayers', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({
@@ -181,7 +181,7 @@ export const FootballScoreUpdatePage = ({ route,navigation }) => {
         return;
       }
   
-      const response = await fetch('http://192.168.100.4:3002/startmatchfootball', {
+      const response = await fetch('http://192.168.1.21:3002/startmatchfootball', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ matchId }),
@@ -210,7 +210,7 @@ export const FootballScoreUpdatePage = ({ route,navigation }) => {
         return;
       }
   
-      const response = await fetch('http://192.168.100.4:3002/stopmatchfootball', {
+      const response = await fetch('http://192.168.1.21:3002/stopmatchfootball', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ matchId }),
@@ -265,7 +265,7 @@ export const FootballScoreUpdatePage = ({ route,navigation }) => {
         return;
       }
   
-      const response = await fetch('http://192.168.100.4:3002/updateGoalFootball', {
+      const response = await fetch('http://192.168.1.21:3002/updateGoalFootball', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -299,7 +299,7 @@ export const FootballScoreUpdatePage = ({ route,navigation }) => {
           return;
         }
 
-        const response = await fetch('http://192.168.100.4:3002/updateHalffootball', {
+        const response = await fetch('http://192.168.1.21:3002/updateHalffootball', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
           body: JSON.stringify({ matchId: matchDetails._id, half: 2 }),

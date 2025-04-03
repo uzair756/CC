@@ -8,7 +8,7 @@ export const FeedScreen = () => {
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        const response = await fetch('http://192.168.100.4:3002/getadminposts');
+        const response = await fetch('http://192.168.1.21:3002/getadminposts');
         const data = await response.json();
         if (data.success) {
           setPosts(data.posts || []);

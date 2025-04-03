@@ -165,7 +165,7 @@ export const CricketScoreUpdateSecondInning = ({route, navigation}) => {
         }
 
         const response = await fetch(
-          `http://192.168.100.4:3002/match/${match.sport}/${match._id}`,
+          `http://192.168.1.21:3002/match/${match.sport}/${match._id}`,
           {
             method: 'GET',
             headers: {Authorization: `Bearer ${token}`},
@@ -325,7 +325,7 @@ export const CricketScoreUpdateSecondInning = ({route, navigation}) => {
       }
 
       const response = await fetch(
-        'http://192.168.100.4:3002/updateScoreCricket',
+        'http://192.168.1.21:3002/updateScoreCricket',
         {
           method: 'POST',
           headers: {
@@ -369,7 +369,7 @@ export const CricketScoreUpdateSecondInning = ({route, navigation}) => {
       }
 
       const response = await fetch(
-        'http://192.168.100.4:3002/stopmatchcricket',
+        'http://192.168.1.21:3002/stopmatchcricket',
         {
           method: 'POST',
           headers: {
@@ -421,7 +421,7 @@ export const CricketScoreUpdateSecondInning = ({route, navigation}) => {
     try {
       const token = await AsyncStorage.getItem('token');
       const response = await fetch(
-        'http://192.168.100.4:3002/swapPlayerscricket2ndInning',
+        'http://192.168.1.21:3002/swapPlayerscricket2ndInning',
         {
           method: 'POST',
           headers: {
@@ -457,7 +457,7 @@ export const CricketScoreUpdateSecondInning = ({route, navigation}) => {
     try {
       const token = await AsyncStorage.getItem('token');
       const response = await fetch(
-        'http://192.168.100.4:3002/swapbowlercricket2ndInning',
+        'http://192.168.1.21:3002/swapbowlercricket2ndInning',
         {
           method: 'POST',
           headers: {
@@ -499,7 +499,7 @@ export const CricketScoreUpdateSecondInning = ({route, navigation}) => {
       }
 
       const response = await fetch(
-        'http://192.168.100.4:3002/updateByesCricket2ndInning',
+        'http://192.168.1.21:3002/updateByesCricket2ndInning',
         {
           method: 'POST',
           headers: {
@@ -558,7 +558,7 @@ export const CricketScoreUpdateSecondInning = ({route, navigation}) => {
       }
 
       const response = await fetch(
-        'http://192.168.100.4:3002/updateExtrasCricket2ndInning',
+        'http://192.168.1.21:3002/updateExtrasCricket2ndInning',
         {
           method: 'POST',
           headers: {
@@ -614,7 +614,7 @@ export const CricketScoreUpdateSecondInning = ({route, navigation}) => {
       }
 
       const response = await fetch(
-        'http://192.168.100.4:3002/handlealloutinning2',
+        'http://192.168.1.21:3002/handlealloutinning2',
         {
           method: 'POST',
           headers: {

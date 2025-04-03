@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import axios from 'axios';
 // import { API_BASE_URL } from '../config';
-const API_BASE_URL = 'http://192.168.100.4:3002';
+const API_BASE_URL = 'http://192.168.1.21:3002';
 
 export const CricketMatchDetailScreen = ({route}) => {
   const {matchId} = route.params;
@@ -628,5 +628,41 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: 'bold',
     // color
+  },
+  // Add these missing styles:
+  noDataText: {
+    fontSize: 14,
+    color: '#999',
+    textAlign: 'center',
+    paddingVertical: 10,
+  },
+  tableHeader: {
+    flexDirection: 'row',
+    backgroundColor: '#f0f0f0',
+    paddingVertical: 8,
+    paddingHorizontal: 5,
+    borderTopLeftRadius: 5,
+    borderTopRightRadius: 5,
+  },
+  tableHeaderCell: {
+    flex: 1,
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#333',
+    textAlign: 'center',
+  },
+  tableRow: {
+    flexDirection: 'row',
+    paddingVertical: 8,
+    paddingHorizontal: 5,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+    alignItems: 'center',
+  },
+  tableCell: {
+    flex: 1,
+    fontSize: 12,
+    color: '#333',
+    textAlign: 'center',
   },
 });
