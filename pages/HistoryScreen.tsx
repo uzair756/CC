@@ -39,7 +39,7 @@ export const HistoryScreen = () => {
       setLoading(true);
       try {
         const response = await fetch(
-          `http://192.168.1.21:3002/finalwinner?sportCategory=${encodeURIComponent(
+          `http://192.168.100.4:3002/finalwinner?sportCategory=${encodeURIComponent(
             selectedSport
           )}&year=${selectedYear}`
         );

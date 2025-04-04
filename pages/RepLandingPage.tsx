@@ -19,7 +19,7 @@ export const RepLandingPage = ({ navigation }) => {
     const fetchProfile = async () => {
       try {
         const token = await AsyncStorage.getItem('token');
-        const response = await fetch('http://192.168.1.21:3002/coordinatorlandingpage', {
+        const response = await fetch('http://192.168.100.4:3002/coordinatorlandingpage', {
           method: 'GET',
           headers: { 'Authorization': `Bearer ${token}` },
         });
@@ -58,7 +58,7 @@ export const RepLandingPage = ({ navigation }) => {
         return;
       }
 
-      const response = await fetch('http://192.168.1.21:3002/changepasswordrep', {
+      const response = await fetch('http://192.168.100.4:3002/changepasswordrep', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

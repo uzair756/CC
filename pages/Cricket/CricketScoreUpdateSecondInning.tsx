@@ -146,14 +146,29 @@ export const CricketScoreUpdateSecondInning = ({route, navigation}) => {
     return () => clearInterval(interval);
   }, [isTimerRunning]);
 
+  // Add this useEffect to check for tie condition
   useEffect(() => {
     if (
-      matchDetails?.oversInning2 % 1 === 0 &&
-      matchDetails?.oversInning2 !== 0
+      matchDetails?.scoreT1 === matchDetails?.scoreT2 &&
+      matchDetails?.inning === 2
     ) {
-      setIsOverChangeModalVisible(true); // Show modal when over completes
+      Alert.alert(
+        'Match Tied',
+        'The match has ended in a tie. Would you like to start a Super Over?',
+        [
+          {
+            text: 'No',
+            onPress: () => navigation.navigate('RefLandingPage'),
+            style: 'cancel',
+          },
+          {
+            text: 'Yes',
+            onPress: () => navigation.navigate('CricketSuperOver', {match}),
+          },
+        ],
+      );
     }
-  }, [matchDetails?.oversInning2]);
+  }, [matchDetails?.scoreT1, matchDetails?.scoreT2, matchDetails?.inning]);
 
   useEffect(() => {
     const fetchMatchDetails = async () => {
@@ -165,7 +180,7 @@ export const CricketScoreUpdateSecondInning = ({route, navigation}) => {
         }
 
         const response = await fetch(
-          `http://192.168.1.21:3002/match/${match.sport}/${match._id}`,
+          `http://192.168.100.4:3002/match/${match.sport}/${match._id}`,
           {
             method: 'GET',
             headers: {Authorization: `Bearer ${token}`},
@@ -325,7 +340,7 @@ export const CricketScoreUpdateSecondInning = ({route, navigation}) => {
       }
 
       const response = await fetch(
-        'http://192.168.1.21:3002/updateScoreCricket',
+        'http://192.168.100.4:3002/updateScoreCricket',
         {
           method: 'POST',
           headers: {
@@ -369,7 +384,7 @@ export const CricketScoreUpdateSecondInning = ({route, navigation}) => {
       }
 
       const response = await fetch(
-        'http://192.168.1.21:3002/stopmatchcricket',
+        'http://192.168.100.4:3002/stopmatchcricket',
         {
           method: 'POST',
           headers: {
@@ -421,7 +436,7 @@ export const CricketScoreUpdateSecondInning = ({route, navigation}) => {
     try {
       const token = await AsyncStorage.getItem('token');
       const response = await fetch(
-        'http://192.168.1.21:3002/swapPlayerscricket2ndInning',
+        'http://192.168.100.4:3002/swapPlayerscricket2ndInning',
         {
           method: 'POST',
           headers: {
@@ -457,7 +472,7 @@ export const CricketScoreUpdateSecondInning = ({route, navigation}) => {
     try {
       const token = await AsyncStorage.getItem('token');
       const response = await fetch(
-        'http://192.168.1.21:3002/swapbowlercricket2ndInning',
+        'http://192.168.100.4:3002/swapbowlercricket2ndInning',
         {
           method: 'POST',
           headers: {
@@ -499,7 +514,7 @@ export const CricketScoreUpdateSecondInning = ({route, navigation}) => {
       }
 
       const response = await fetch(
-        'http://192.168.1.21:3002/updateByesCricket2ndInning',
+        'http://192.168.100.4:3002/updateByesCricket2ndInning',
         {
           method: 'POST',
           headers: {
@@ -558,7 +573,7 @@ export const CricketScoreUpdateSecondInning = ({route, navigation}) => {
       }
 
       const response = await fetch(
-        'http://192.168.1.21:3002/updateExtrasCricket2ndInning',
+        'http://192.168.100.4:3002/updateExtrasCricket2ndInning',
         {
           method: 'POST',
           headers: {
@@ -614,7 +629,7 @@ export const CricketScoreUpdateSecondInning = ({route, navigation}) => {
       }
 
       const response = await fetch(
-        'http://192.168.1.21:3002/handlealloutinning2',
+        'http://192.168.100.4:3002/handlealloutinning2',
         {
           method: 'POST',
           headers: {

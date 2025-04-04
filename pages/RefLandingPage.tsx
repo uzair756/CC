@@ -19,7 +19,7 @@ export const RefLandingPage = ({ navigation }) => {
     const fetchProfileAndMatches = async () => {
       try {
         const token = await AsyncStorage.getItem('token');
-        const response = await fetch('http://192.168.1.21:3002/reflandingpage', {
+        const response = await fetch('http://192.168.100.4:3002/reflandingpage', {
           method: 'GET',
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -41,7 +41,7 @@ export const RefLandingPage = ({ navigation }) => {
   const fetchMatches = async (sportCategory) => {
     try {
       const token = await AsyncStorage.getItem('token');
-      const response = await fetch(`http://192.168.1.21:3002/refmatches`, {
+      const response = await fetch(`http://192.168.100.4:3002/refmatches`, {
         method: 'GET',
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -75,7 +75,7 @@ export const RefLandingPage = ({ navigation }) => {
 
     try {
       const token = await AsyncStorage.getItem('token');
-      const response = await fetch('http://192.168.1.21:3002/createSemiFinalMatch', {
+      const response = await fetch('http://192.168.100.4:3002/createSemiFinalMatch', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

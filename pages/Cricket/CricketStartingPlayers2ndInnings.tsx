@@ -27,7 +27,7 @@ export const CricketStartingPlayers2ndInnings = ({route, navigation}) => {
       try {
         const token = await AsyncStorage.getItem('token');
         const response = await fetch(
-          `http://192.168.1.21:3002/getSecondInningTeams?matchId=${match._id}`,
+          `http://192.168.100.4:3002/getSecondInningTeams?matchId=${match._id}`,
           {
             headers: {Authorization: `Bearer ${token}`},
           },
@@ -55,7 +55,7 @@ export const CricketStartingPlayers2ndInnings = ({route, navigation}) => {
       try {
         const token = await AsyncStorage.getItem('token');
         const response = await fetch(
-          `http://192.168.1.21:3002/getPlayers2ndinning?matchId=${match._id}`,
+          `http://192.168.100.4:3002/getPlayers2ndinning?matchId=${match._id}`,
           {
             headers: {Authorization: `Bearer ${token}`},
           },
@@ -130,7 +130,7 @@ export const CricketStartingPlayers2ndInnings = ({route, navigation}) => {
     try {
       const token = await AsyncStorage.getItem('token');
       const response = await fetch(
-        'http://192.168.1.21:3002/updatePlayingStatus2ndInning',
+        'http://192.168.100.4:3002/updatePlayingStatus2ndInning',
         {
           method: 'POST',
           headers: {

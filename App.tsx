@@ -49,6 +49,8 @@ import {CricketScoreUpdateSecondInning} from './pages/Cricket/CricketScoreUpdate
 import {FutsalPenalties} from './pages/Futsal/FutsalPenalties';
 import {BestCricketerPage} from './pages/Cricket/BestCricketerPage';
 import {CricketMatchDetailScreen} from './pages/Cricket/GameStats';
+import {CricketSuperOver} from './pages/Cricket/CricketScoreUpdateSuper';
+
 const Stack = createNativeStackNavigator();
 
 const MyStack = () => {
@@ -279,6 +281,12 @@ const MyStack = () => {
           <Stack.Screen
             name="CricketScoreUpdateSecondInning"
             component={CricketScoreUpdateSecondInning}
+            options={{headerShown: false}}
+          />
+
+          <Stack.Screen
+            name="CricketSuperOver"
+            component={CricketSuperOver}
             options={{headerShown: false}}
           />
           <Stack.Screen

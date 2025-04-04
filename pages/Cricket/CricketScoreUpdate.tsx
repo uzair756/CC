@@ -189,7 +189,7 @@ export const CricketScoreUpdate = ({route, navigation}) => {
         }
 
         const response = await fetch(
-          `http://192.168.1.21:3002/match/${match.sport}/${match._id}`,
+          `http://192.168.100.4:3002/match/${match.sport}/${match._id}`,
           {
             method: 'GET',
             headers: {Authorization: `Bearer ${token}`},
@@ -300,7 +300,7 @@ export const CricketScoreUpdate = ({route, navigation}) => {
       }
 
       const response = await fetch(
-        'http://192.168.1.21:3002/startmatchcricket',
+        'http://192.168.100.4:3002/startmatchcricket',
         {
           method: 'POST',
           headers: {
@@ -343,7 +343,7 @@ export const CricketScoreUpdate = ({route, navigation}) => {
       }
 
       const response = await fetch(
-        'http://192.168.1.21:3002/updateScoreCricket',
+        'http://192.168.100.4:3002/updateScoreCricket',
         {
           method: 'POST',
           headers: {
@@ -408,7 +408,7 @@ export const CricketScoreUpdate = ({route, navigation}) => {
         }
 
         const response = await fetch(
-          'http://192.168.1.21:3002/updateFirstInningcricket',
+          'http://192.168.100.4:3002/updateFirstInningcricket',
           {
             method: 'POST',
             headers: {
@@ -448,7 +448,7 @@ export const CricketScoreUpdate = ({route, navigation}) => {
     try {
       const token = await AsyncStorage.getItem('token');
       const response = await fetch(
-        'http://192.168.1.21:3002/swapPlayerscricket',
+        'http://192.168.100.4:3002/swapPlayerscricket',
         {
           method: 'POST',
           headers: {
@@ -491,7 +491,7 @@ export const CricketScoreUpdate = ({route, navigation}) => {
       }
 
       const response = await fetch(
-        'http://192.168.1.21:3002/handlealloutinning1',
+        'http://192.168.100.4:3002/handlealloutinning1',
         {
           method: 'POST',
           headers: {
@@ -543,7 +543,7 @@ export const CricketScoreUpdate = ({route, navigation}) => {
     try {
       const token = await AsyncStorage.getItem('token');
       const response = await fetch(
-        'http://192.168.1.21:3002/swapbowlercricket',
+        'http://192.168.100.4:3002/swapbowlercricket',
         {
           method: 'POST',
           headers: {
@@ -584,7 +584,7 @@ export const CricketScoreUpdate = ({route, navigation}) => {
       }
 
       const response = await fetch(
-        'http://192.168.1.21:3002/updateByesCricket',
+        'http://192.168.100.4:3002/updateByesCricket',
         {
           method: 'POST',
           headers: {
@@ -644,7 +644,7 @@ export const CricketScoreUpdate = ({route, navigation}) => {
       }
 
       const response = await fetch(
-        'http://192.168.1.21:3002/updateExtrasCricket',
+        'http://192.168.100.4:3002/updateExtrasCricket',
         {
           method: 'POST',
           headers: {
@@ -754,9 +754,6 @@ export const CricketScoreUpdate = ({route, navigation}) => {
             <Text style={styles.actionButtonText}>End First Inning</Text>
           </TouchableOpacity>
         )}
-        <TouchableOpacity style={styles.revertButton}>
-          <Text style={styles.revertButtonText}>Revert Last Change</Text>
-        </TouchableOpacity>
       </View>
       <Text style={styles.teamHeader1}>Byes Buttons</Text>
       <View style={styles.buttonRow1}>

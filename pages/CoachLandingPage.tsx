@@ -52,7 +52,7 @@ export const CoachLandingPage = ({ navigation }) => {
       try {
         setRefreshing(true);
         const token = await AsyncStorage.getItem('token');
-        const response = await fetch('http://192.168.1.21:3002/coachlandingpage', {
+        const response = await fetch('http://192.168.100.4:3002/coachlandingpage', {
           method: 'GET',
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -86,7 +86,7 @@ export const CoachLandingPage = ({ navigation }) => {
     }
 
     try {
-      const response = await fetch('http://192.168.1.21:3002/addcoordinator', {
+      const response = await fetch('http://192.168.100.4:3002/addcoordinator', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -125,7 +125,7 @@ export const CoachLandingPage = ({ navigation }) => {
     try {
       // Retrieve the JWT token from local storage or wherever you store it
       const token = await AsyncStorage.getItem('token');
-      const response = await fetch('http://192.168.1.21:3002/addref', {
+      const response = await fetch('http://192.168.100.4:3002/addref', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -167,7 +167,7 @@ export const CoachLandingPage = ({ navigation }) => {
 
     try {
       const token = await AsyncStorage.getItem('token');
-      const response = await fetch(`http://192.168.1.21:3002/getrules/${sport.toLowerCase()}`, {
+      const response = await fetch(`http://192.168.100.4:3002/getrules/${sport.toLowerCase()}`, {
         method: 'GET',
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -196,7 +196,7 @@ export const CoachLandingPage = ({ navigation }) => {
         return;
       }
 
-      const response = await fetch(`http://192.168.1.21:3002/updaterules/${selectedSport.toLowerCase()}`, {
+      const response = await fetch(`http://192.168.100.4:3002/updaterules/${selectedSport.toLowerCase()}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -231,7 +231,7 @@ export const CoachLandingPage = ({ navigation }) => {
 
     try {
       const token = await AsyncStorage.getItem('token');
-      const response = await fetch('http://192.168.1.21:3002/changepasswordcoach', {
+      const response = await fetch('http://192.168.100.4:3002/changepasswordcoach', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
