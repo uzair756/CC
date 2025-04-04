@@ -8,12 +8,15 @@ export const NominationForm = ({ route }) => {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [nominationData, setNominationData] = useState(null);
   const [lastUpdated, setLastUpdated] = useState(null);
+  const currentYear = new Date().getFullYear().toString(); // Get current year as string
 
   const playerLimit = sport === 'Football' ? 16 : sport === 'Futsal' ? 10 : sport === 'Volleyball' ? 12 : sport === 'Basketball' ? 10 : sport === 'Table Tennis (M)' ? 3 : sport === 'Table Tennis (F)' ? 3 : sport === 'Snooker' ? 3 : sport === 'Tug of War (M)' ? 10 : sport === 'Tug of War (F)' ? 10 : sport === 'Tennis' ? 3 : sport === 'Cricket' ? 15 : sport === 'Badminton (M)' ? 3 : sport === 'Badminton (F)' ? 3 : 0;
 
   useEffect(() => {
     const fetchNominationData = async () => {
       const token = await AsyncStorage.getItem('token');
+      const currentYear = new Date().getFullYear().toString();
+      
       try {
         const response = await fetch(`http://192.168.100.4:3002/getNominationForm/${sport}`, {
           method: 'GET',
@@ -25,18 +28,35 @@ export const NominationForm = ({ route }) => {
         const data = await response.json();
         if (data.success && data.data) {
           setNominationData(data.data);
-          const nominations = data.data.nominations || new Array(playerLimit).fill({ shirtNo: '', regNo: '', name: '', cnic: '', section: '' });
+          const nominations = data.data.nominations || 
+            new Array(playerLimit).fill({ 
+              shirtNo: "", 
+              regNo: "", 
+              name: "", 
+              cnic: "", 
+              section: "" 
+            });
           setNominations(nominations);
           setIsSubmitted(true);
-          setLastUpdated(`Last updated by ${data.data.lastUpdatedBy} at ${data.data.lastUpdatedAt}`);
+          setLastUpdated(
+            `Last updated by ${data.data.lastUpdatedBy} at ${data.data.lastUpdatedAt}`
+          );
         } else {
-          setNominations(new Array(playerLimit).fill({ shirtNo: '', regNo: '', name: '', cnic: '', section: '' }));
+          setNominations(
+            new Array(playerLimit).fill({ 
+              shirtNo: "", 
+              regNo: "", 
+              name: "", 
+              cnic: "", 
+              section: "" 
+            })
+          );
         }
       } catch (error) {
-        console.error('Error fetching nomination data:', error);
+        console.error("Error fetching nomination data:", error);
       }
     };
-
+  
     fetchNominationData();
   }, [sport]);
 
@@ -57,6 +77,7 @@ export const NominationForm = ({ route }) => {
       repDepartment,
       lastUpdatedBy: repName,
       lastUpdatedAt: currentDateTime,
+      year: currentYear, // Add current year to submission
     };
 
     try {
