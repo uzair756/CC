@@ -6,10 +6,12 @@ import {
   StyleSheet, 
   Modal, 
   ScrollView, 
-  Alert 
+  Alert ,
+  ImageBackground
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Picker } from "@react-native-picker/picker";
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 export const PoolsCreateSchedulingPage = () => {
   // State Variables
@@ -108,83 +110,15 @@ export const PoolsCreateSchedulingPage = () => {
         setPoolsData(responseData.pools);
         setSchedules(responseData.schedules);
       } else {
-        console.error("Error fetching pools and schedules:", responseData.message);
+        // console.error("Error fetching pools and schedules:", responseData.message);
         Alert.alert("Error", responseData.message);
       }
     } catch (error) {
-      console.error("Error during fetching pools and schedules:", error);
+      // console.error("Error during fetching pools and schedules:", error);
       Alert.alert("Error", "Failed to fetch pools and schedules. Please try again.");
     }
   };
-  
-  // const fetchPoolsAndSchedules = async (sport) => {
-  //   // Clear previous data to avoid showing old results
-  //   setPoolsData([]);
-  //   setSchedules([]);
-  
-  //   try {
-  //     const token = await AsyncStorage.getItem("token");
-  //     const response = await fetch(`http://192.168.1.21:3002/get-pools-and-schedules/${sport}`, {
-  //       method: "GET",
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //         Authorization: `Bearer ${token}`,
-  //       },
-  //     });
-  
-  //     const responseData = await response.json();
-  //     if (responseData.success) {
-  //       setPoolsData(responseData.pools);
-  //       setSchedules(responseData.schedules);
-  //     } else {
-  //       console.error("Error fetching pools and schedules:", responseData.message);
-  //     }
-  //   } catch (error) {
-  //     console.error("Error during fetching pools and schedules:", error);
-  //   }
-  // };
-  
 
-  // // Handle Create Pools
-  // const handleCreatePools = async () => {
-  //   try {
-  //     const token = await AsyncStorage.getItem("token");
-  //     const response = await fetch(`http://192.168.1.21:3002/create-pools`, {
-  //       method: "POST",
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //         Authorization: `Bearer ${token}`,
-  //       },
-  //       body: JSON.stringify({ sport: selectedSport }),
-  //     });
-
-  //     const responseData = await response.json();
-  //     if (responseData.success) {
-  //       console.log("Pools and schedules created successfully!");
-  //       fetchPoolsAndSchedules(selectedSport); // Fetch pools and schedules after creation
-  //     } else {
-  //       console.error("Error creating pools:", responseData.message);
-  //       if (responseData.message.includes("already been created")) {
-  //         const message = responseData.message;
-  //         const year = message.split(" ")[5];
-  //         const userName = message.split("by ")[1];
-  //         Alert.alert(
-  //           "Pools Already Created",
-  //           `The pools and schedules for ${year} have already been created by ${userName}.`,
-  //           [{ text: "OK" }]
-  //         );
-  //         console.log(message);
-  //       }
-  //       if (responseData.message.includes("No team rankings found")) {
-  //         setRankingModalVisible(true);
-  //       }
-  //     }
-  //   } catch (error) {
-  //     console.error("Error during pool creation:", error);
-  //   } finally {
-  //     setModalVisible(false);
-  //   }
-  // };
   // Handle Create Pools
 const handleCreatePools = async () => {
   try {
@@ -203,7 +137,7 @@ const handleCreatePools = async () => {
       console.log("Pools and schedules created successfully!");
       fetchPoolsAndSchedules(selectedSport); // Fetch updated pools and schedules
     } else {
-      console.error("Error creating pools:", responseData.message);
+      // console.error("Error creating pools:", responseData.message);
 
       if (responseData.message.includes("already been created")) {
         const message = responseData.message;
@@ -218,7 +152,7 @@ const handleCreatePools = async () => {
           `The pools and schedules for ${year} have already been created by ${userName}.`,
           [{ text: "OK" }]
         );
-        console.log(message);
+        // console.log(message);
       }
 
       if (responseData.message.includes("No team rankings found")) {
@@ -226,239 +160,396 @@ const handleCreatePools = async () => {
       }
     }
   } catch (error) {
-    console.error("Error during pool creation:", error);
+    // console.error("Error during pool creation:", error);
   } finally {
     setModalVisible(false);
   }
 };
 
 
-  return (
-    <ScrollView>
-      <View style={styles.container}>
-      <Text style={{fontSize:40,fontWeight:'bold'}}>POOLS PAGE</Text>
-        {/* Buttons for Each Sport */}
+return (
+  <ImageBackground 
+    style={styles.background}
+    blurRadius={2}
+  >
+    <ScrollView contentContainerStyle={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Tournament Pools & Scheduling</Text>
+        <Text style={styles.headerSubtitle}>Create and manage sports pools</Text>
+      </View>
+
+      {/* Sports Selection Cards */}
+      <View style={styles.sportsGrid}>
         {['Football', 'Futsal', 'Volleyball', 'Basketball','Table Tennis (M)', 'Table Tennis (F)', 'Snooker', 'Tug of War (M)','Tug of War (F)', 'Tennis', 'Cricket', 'Badminton (M)', 'Badminton (F)'].map((sport) => (
           <TouchableOpacity
             key={sport}
-            style={styles.button}
+            style={styles.sportCard}
             onPress={() => {
               setSelectedSport(sport);
               setModalVisible(true);
-              fetchPoolsAndSchedules(sport); // Fetch pools and schedules for the selected sport
+              fetchPoolsAndSchedules(sport);
             }}
           >
-            <Text style={styles.buttonText}>{sport}</Text>
+            <Icon 
+              name={getSportIcon(sport)} 
+              size={30} 
+              color="#3a7bd5" 
+              style={styles.sportIcon}
+            />
+            <Text style={styles.sportName}>{sport}</Text>
+            <Icon name="chevron-right" size={20} color="#3a7bd5" />
           </TouchableOpacity>
         ))}
+      </View>
 
-        {/* Modal for Pool Creation */}
-        <Modal visible={modalVisible} transparent={true}>
+      {/* Pool Creation Modal */}
+      <Modal visible={modalVisible} transparent={true} animationType="slide">
+        <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
-            <View style={styles.modalContent}>
-              <Text style={styles.modalTitle}>Create Pools for {selectedSport}</Text>
-              <TouchableOpacity style={styles.modalButton} onPress={handleCreatePools}>
-                <Text style={styles.buttonText}>Create Pools</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.modalButton}
-                onPress={() => setModalVisible(false)}
-              >
-                <Text style={styles.buttonText}>Cancel</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </Modal>
+            <Text style={styles.modalTitle}>Manage {selectedSport}</Text>
+            
+            <TouchableOpacity 
+              style={[styles.actionButton, styles.primaryButton]}
+              onPress={handleCreatePools}
+            >
+              <Icon name="plus-circle" size={20} color="white" />
+              <Text style={styles.buttonText}>Create New Pools</Text>
+            </TouchableOpacity>
 
-
-        {/* Ranking Modal */}
-<Modal visible={rankingModalVisible} transparent>
-  <View style={styles.modalContainer}>
-    <View style={styles.modalContent}>
-      <Text style={styles.modalTitle}>Enter Rankings for {selectedSport} for {year-1}</Text>
-      {Object.keys(rankings).map((key) => (
-        <View key={key} style={styles.rankRow}>
-          <Text style={styles.rankLabel}>{key}</Text>
-          <View style={styles.pickerWrapper}>
-          <Picker
-            selectedValue={rankings[key]}
-            style={styles.picker}
-            onValueChange={(itemValue) =>
-              setRankings({ ...rankings, [key]: itemValue })
-            }
-          >
-            <Picker.Item label="Select Team" value="" />
-            {getAvailableOptions(key).map((option) => (
-              <Picker.Item key={option} label={option} value={option} />
-            ))}
-          </Picker>
-
+            <TouchableOpacity
+              style={[styles.actionButton, styles.secondaryButton]}
+              onPress={() => setModalVisible(false)}
+            >
+              <Text style={[styles.buttonText, {color: '#3a7bd5'}]}>Cancel</Text>
+            </TouchableOpacity>
           </View>
         </View>
-      ))}
-      <TouchableOpacity style={styles.modalButton} onPress={handleStoreRankings}>
-        <Text style={styles.buttonText}>Submit Rankings</Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={styles.modalButton}
-        onPress={() => setRankingModalVisible(false)}
-      >
-        <Text style={styles.buttonText}>Cancel</Text>
-      </TouchableOpacity>
-    </View>
-  </View>
-</Modal>
+      </Modal>
 
-
-        {/* Pools and Matches Display */}
-        {selectedSport && (
-          <View style={styles.sportContainer}>
-            <Text style={styles.sportTitle}>Pools for {selectedSport}</Text>
-
-            {/* Pools Table */}
-            <View style={styles.poolsTable}>
-              <Text style={styles.tableHeader}>Pool A</Text>
-              <Text>{poolsData?.poolA?.join(", ")}</Text>
-              <Text style={styles.tableHeader}>Pool B</Text>
-              <Text>{poolsData?.poolB?.join(", ")}</Text>
-            </View>
-
-            {/* Scheduled Matches */}
-            <ScrollView style={styles.scheduleContainer}>
-              <Text style={styles.scheduleTitle}>Scheduled Matches</Text>
-              {schedules.length > 0 ? (
-                schedules.map((match, index) => (
-                  <View key={index} style={styles.matchCard}>
-                    <Text style={styles.matchDetails}>
-                      {match.team1} vs {match.team2}
-                    </Text>
-                    <Text style={styles.matchDetails}>Pool: {match.pool}</Text>
+      {/* Rankings Modal */}
+      <Modal visible={rankingModalVisible} transparent animationType="slide">
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContainer, {paddingBottom: 20}]}>
+            <Text style={styles.modalTitle}>
+              {selectedSport} Rankings for {year-1}
+            </Text>
+            
+            <ScrollView style={styles.rankingsContainer}>
+              {Object.keys(rankings).map((key) => (
+                <View key={key} style={styles.rankingRow}>
+                  <Text style={styles.rankLabel}>{key}</Text>
+                  <View style={styles.pickerContainer}>
+                    <Picker
+                      selectedValue={rankings[key]}
+                      style={styles.picker}
+                      dropdownIconColor="#3a7bd5"
+                      onValueChange={(itemValue) =>
+                        setRankings({ ...rankings, [key]: itemValue })
+                      }
+                    >
+                      <Picker.Item label="Select Team" value="" />
+                      {getAvailableOptions(key).map((option) => (
+                        <Picker.Item key={option} label={option} value={option} />
+                      ))}
+                    </Picker>
                   </View>
-                ))
-              ) : (
-                <Text>No matches scheduled yet.</Text>
-              )}
+                </View>
+              ))}
             </ScrollView>
+
+            <View style={styles.modalActions}>
+              <TouchableOpacity 
+                style={[styles.actionButton, styles.submitButton]}
+                onPress={handleStoreRankings}
+              >
+                <Text style={styles.buttonText}>Save Rankings</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.actionButton, styles.cancelButton]}
+                onPress={() => setRankingModalVisible(false)}
+              >
+                <Text style={[styles.buttonText, {color: '#3a7bd5'}]}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        )}
-      </View>
+        </View>
+      </Modal>
+
+      {/* Pools and Matches Display */}
+      {selectedSport && poolsData && (
+        <View style={styles.resultsContainer}>
+          <Text style={styles.sectionTitle}>{selectedSport} Tournament</Text>
+          
+          {/* Pools Display */}
+          <View style={styles.poolsSection}>
+            <Text style={styles.subsectionTitle}>Pools</Text>
+            <View style={styles.poolContainer}>
+              <View style={styles.poolColumn}>
+                <Text style={styles.poolHeader}>Pool A</Text>
+                {poolsData?.poolA?.map((team, index) => (
+                  <Text key={index} style={styles.teamName}>{team}</Text>
+                ))}
+              </View>
+              <View style={styles.poolColumn}>
+                <Text style={styles.poolHeader}>Pool B</Text>
+                {poolsData?.poolB?.map((team, index) => (
+                  <Text key={index} style={styles.teamName}>{team}</Text>
+                ))}
+              </View>
+            </View>
+          </View>
+
+          {/* Schedule Display */}
+          <View style={styles.scheduleSection}>
+            <Text style={styles.subsectionTitle}>Match Schedule</Text>
+            {schedules.length > 0 ? (
+              schedules.map((match, index) => (
+                <View key={index} style={styles.matchCard}>
+                  <View style={styles.matchTeams}>
+                    <Text style={styles.teamText}>{match.team1}</Text>
+                    <Text style={styles.vsText}>vs</Text>
+                    <Text style={styles.teamText}>{match.team2}</Text>
+                  </View>
+                  <Text style={styles.poolTag}>Pool {match.pool}</Text>
+                </View>
+              ))
+            ) : (
+              <Text style={styles.noMatches}>No matches scheduled yet</Text>
+            )}
+          </View>
+        </View>
+      )}
     </ScrollView>
-  );
+  </ImageBackground>
+);
+};
+
+// Helper function to get icons for each sport
+const getSportIcon = (sport) => {
+const icons = {
+  'Football': 'soccer',
+  'Futsal': 'soccer',
+  'Volleyball': 'volleyball',
+  'Basketball': 'basketball',
+  'Table Tennis (M)': 'table-tennis',
+  'Table Tennis (F)': 'table-tennis',
+  'Snooker': 'billiards',
+  'Tug of War (M)': 'rope',
+  'Tug of War (F)': 'rope',
+  'Tennis': 'tennis',
+  'Cricket': 'cricket',
+  'Badminton (M)': 'badminton',
+  'Badminton (F)': 'badminton'
+};
+return icons[sport] || 'sports';
 };
 
 // Styles
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 20,
-    backgroundColor: "white",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  button: {
-    backgroundColor: "#6573EA",
-    padding: 15,
-    borderRadius: 10,
-    marginTop: 10,
-    width: "80%",
-    alignItems: "center",
-  },
-  buttonText: {
-    color: "#FFF",
-    fontWeight: "bold",
-    fontSize: 16,
-  },
-  modalContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-  },
-  modalContent: {
-    backgroundColor: "white",
-    padding: 20,
-    borderRadius: 10,
-    width: "80%",
-    alignItems: "center",
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 10,
-  },
-  modalButton: {
-    backgroundColor: "#6573EA",
-    padding: 10,
-    borderRadius: 5,
-    marginTop: 10,
-    width: "100%",
-    alignItems: "center",
-  },
-  sportContainer: {
-    marginTop: 20,
-    width: "100%",
-    padding: 10,
-  },
-  sportTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginBottom: 10,
-  },
-  poolsTable: {
-    marginBottom: 20,
-  },
-  tableHeader: {
-    fontWeight: "bold",
-    marginTop: 10,
-  },
-  scheduleContainer: {
-    marginTop: 20,
-  },
-  scheduleTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-  matchCard: {
-    backgroundColor: "#f1f1f1",
-    padding: 10,
-    marginBottom: 10,
-    borderRadius: 5,
-  },
-  matchDetails: {
-    fontSize: 16,
-    marginBottom: 5,
-  },
-  dropdownContainer: {
-    width: "50%",
-    marginVertical: 10,
-    backgroundColor: "#f1f1f1",
-    borderRadius: 5,
-    borderColor: "#ccc",
-    borderWidth: 1,
-  },
-  rankRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    width: "100%",
-    marginVertical: 5,
-  },
-  rankLabel: {
-    flex: 1,
-    fontSize: 16,
-    color: "#000",
-  },
-  pickerWrapper: {
-    flex: 2,
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 5,
-    backgroundColor: "#f9f9f9",
-    overflow: "visible", // Ensure picker isn't cut off
-  },
-  picker: {
-    height: 50, // Increased height for better visibility
-    width: "100%",
-    color: "#000",
-  },
+background: {
+  flex: 1,
+  resizeMode: 'cover',
+},
+container: {
+  flexGrow: 1,
+  padding: 20,
+},
+header: {
+  backgroundColor: 'rgba(58, 123, 213, 0.9)',
+  padding: 20,
+  borderRadius: 10,
+  marginBottom: 20,
+  elevation: 3,
+},
+headerTitle: {
+  fontSize: 24,
+  fontWeight: 'bold',
+  color: 'white',
+  marginBottom: 5,
+},
+headerSubtitle: {
+  fontSize: 16,
+  color: 'rgba(255,255,255,0.9)',
+},
+sportsGrid: {
+  flexDirection: 'row',
+  flexWrap: 'wrap',
+  justifyContent: 'space-between',
+},
+sportCard: {
+  width: '48%',
+  backgroundColor: 'rgba(102, 139, 190, 0.9)',
+  borderRadius: 10,
+  padding: 15,
+  marginBottom: 15,
+  flexDirection: 'row',
+  alignItems: 'center',
+  elevation: 2,
+},
+sportIcon: {
+  marginRight: 10,
+},
+sportName: {
+  flex: 1,
+  fontSize: 14,
+  color: 'white',
+  fontWeight:'bold'
+},
+modalOverlay: {
+  flex: 1,
+  justifyContent: 'center',
+  backgroundColor: 'rgba(0,0,0,0.5)',
+},
+modalContainer: {
+  backgroundColor: 'white',
+  borderRadius: 15,
+  padding: 20,
+  marginHorizontal: 20,
+  elevation: 5,
+},
+modalTitle: {
+  fontSize: 20,
+  fontWeight: 'bold',
+  color: '#3a7bd5',
+  marginBottom: 20,
+  textAlign: 'center',
+},
+actionButton: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'center',
+  padding: 15,
+  borderRadius: 10,
+  marginBottom: 10,
+},
+primaryButton: {
+  backgroundColor: '#3a7bd5',
+},
+secondaryButton: {
+  backgroundColor: 'white',
+  borderWidth: 1,
+  borderColor: '#3a7bd5',
+},
+submitButton: {
+  backgroundColor: '#3a7bd5',
+},
+cancelButton: {
+  backgroundColor: 'white',
+  borderWidth: 1,
+  borderColor: '#3a7bd5',
+},
+buttonText: {
+  color: 'white',
+  fontWeight: 'bold',
+  marginLeft: 10,
+},
+rankingsContainer: {
+  maxHeight: 300,
+  marginBottom: 15,
+},
+rankingRow: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  marginBottom: 10,
+},
+rankLabel: {
+  width: 50,
+  fontSize: 16,
+  fontWeight: 'bold',
+  color: '#3a7bd5',
+},
+pickerContainer: {
+  flex: 1,
+  borderWidth: 1,
+  borderColor: '#ddd',
+  borderRadius: 8,
+  overflow: 'hidden',
+},
+picker: {
+  height: 50,
+  color: '#333',
+},
+modalActions: {
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+},
+resultsContainer: {
+  backgroundColor: 'rgba(255,255,255,0.9)',
+  borderRadius: 10,
+  padding: 15,
+  marginTop: 20,
+  elevation: 3,
+},
+sectionTitle: {
+  fontSize: 20,
+  fontWeight: 'bold',
+  color: '#3a7bd5',
+  marginBottom: 15,
+  textAlign: 'center',
+},
+poolsSection: {
+  marginBottom: 20,
+},
+subsectionTitle: {
+  fontSize: 18,
+  fontWeight: '600',
+  color: '#333',
+  marginBottom: 10,
+},
+poolContainer: {
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+},
+poolColumn: {
+  width: '48%',
+  backgroundColor: '#f8f9fa',
+  borderRadius: 8,
+  padding: 10,
+},
+poolHeader: {
+  fontWeight: 'bold',
+  color: '#3a7bd5',
+  marginBottom: 5,
+  textAlign: 'center',
+},
+teamName: {
+  paddingVertical: 5,
+  borderBottomWidth: 1,
+  borderBottomColor: '#eee',
+},
+scheduleSection: {
+  marginTop: 10,
+},
+matchCard: {
+  backgroundColor: 'white',
+  borderRadius: 8,
+  padding: 15,
+  marginBottom: 10,
+  elevation: 1,
+},
+matchTeams: {
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  marginBottom: 5,
+},
+teamText: {
+  flex: 1,
+  textAlign: 'center',
+  fontWeight: '500',
+},
+vsText: {
+  marginHorizontal: 10,
+  color: '#666',
+},
+poolTag: {
+  textAlign: 'center',
+  color: '#3a7bd5',
+  fontSize: 12,
+},
+noMatches: {
+  textAlign: 'center',
+  color: '#666',
+  fontStyle: 'italic',
+},
 });

@@ -9,6 +9,8 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+
 
 const sportsCategories = [
   { name: 'Football', icon: require('../assets/football.png') },
@@ -26,37 +28,37 @@ const sportsCategories = [
   { name: 'Badminton (F)', icon: require('../assets/badminton.png') },
 ];
 
-// Dummy history data for the selected sport and year
-const dummyHistoryData = {
-  Football: {
-    2024: 'CS',
-    2023: 'ME',
-    2022: 'EE',
-    2021: 'CS',
-  },
-  Cricket: {
-    2024: 'ME',
-    2023: 'CS',
-    2022: 'EE',
-    2021: 'ME',
-  },
-  // Add data for other sports as needed...
-};
-
 export const HistoryScreen = () => {
   const [selectedSport, setSelectedSport] = useState('Football');
-  const [selectedYear, setSelectedYear] = useState('2024');
+  const [selectedYear, setSelectedYear] = useState('2025');
   const [loading, setLoading] = useState(false);
   const [departmentWinner, setDepartmentWinner] = useState('');
 
   useEffect(() => {
-    setLoading(true);
-    // Simulate fetching data and updating the winner based on selected sport and year
-    setTimeout(() => {
-      const winner = dummyHistoryData[selectedSport]?.[selectedYear] || 'No data available';
-      setDepartmentWinner(winner);
-      setLoading(false);
-    }, 1000);
+    const fetchWinner = async () => {
+      setLoading(true);
+      try {
+        const response = await fetch(
+          `http://192.168.1.21:3002/finalwinner?sportCategory=${encodeURIComponent(
+            selectedSport
+          )}&year=${selectedYear}`
+        );
+        const data = await response.json();
+
+        if (data.success && data.winner) {
+          setDepartmentWinner(data.winner);
+        } else {
+          setDepartmentWinner(null);
+        }
+      } catch (error) {
+        console.error('Error fetching final match winner:', error);
+        setDepartmentWinner(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchWinner();
   }, [selectedSport, selectedYear]);
 
   return (
@@ -80,37 +82,52 @@ export const HistoryScreen = () => {
         </ScrollView>
       </View>
 
-      {/* Year Dropdown - Positioned at the top center */}
-      <View style={styles.yearDropdownWrapper}>
-        <Text style={styles.filterLabel}>Select Year</Text>
+      <ScrollView>
+  {/* Year Selection - Elegant Gradient Card */}
+  <View style={styles.yearSelectionContainer}>
+    <View style={styles.gradientCard}>
+      <Icon name="calendar-month" size={30} color="#fff" style={styles.calendarIcon} />
+      <Text style={styles.yearSelectionTitle}>Select Year</Text>
+      <View style={styles.pickerWrapper}>
         <Picker
           selectedValue={selectedYear}
-          style={styles.picker}
+          style={styles.yearPicker}
+          dropdownIconColor="#fff"
           onValueChange={(itemValue) => setSelectedYear(itemValue)}
         >
-          <Picker.Item label="2024" value="2024" />
-          <Picker.Item label="2023" value="2023" />
-          <Picker.Item label="2022" value="2022" />
-          <Picker.Item label="2021" value="2021" />
+          {[...Array(new Date().getFullYear() - 2019).keys()].map((_, index) => {
+            const year = String(new Date().getFullYear() - index);
+            return <Picker.Item key={year} label={year} value={year} />;
+          })}
         </Picker>
       </View>
-
-      {/* Winner Display Section */}
-      <View style={styles.filterAndWinner}>
-        <View style={styles.winnerDisplay}>
-          {loading ? (
-            <ActivityIndicator size="large" color="#007BFF" />
-          ) : (
-            <Text style={styles.winnerText}>
-              {departmentWinner ? `${departmentWinner} won in ${selectedSport} in ${selectedYear}` : 'No winner data'}
-            </Text>
-          )}
-        </View>
-      </View>
     </View>
-  );
-};
+  </View>
 
+  {/* Winner Display Card */}
+  <View style={styles.winnerContainer}>
+    <View style={styles.winnerCard}>
+      {loading ? (
+        <ActivityIndicator size="large" color="#6a11cb" />
+      ) : (
+        <>
+          <View style={styles.trophyContainer}>
+            <Icon name="trophy-award" size={40} color="#FFD700" />
+          </View>
+          <Text style={styles.winnerText}>
+            {departmentWinner
+              ? `${departmentWinner} won ${selectedSport} in ${selectedYear}`
+              : 'No winner data available'}
+          </Text>
+        </>
+      )}
+    </View>
+  </View>
+</ScrollView>
+
+  </View>
+);
+};
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -126,13 +143,13 @@ const styles = StyleSheet.create({
   },
   categoryItem: {
     alignItems: 'center',
-    justifyContent: 'center', // Ensures the content is centered vertically
+    justifyContent: 'center',
     marginHorizontal: 10,
     paddingVertical: 10,
     paddingHorizontal: 15,
     borderRadius: 10,
     backgroundColor: '#f1f1f1',
-    height: 80, // Set a fixed height for the category items
+    height: 80,
   },
   selectedCategory: {
     backgroundColor: '#007BFF',
@@ -150,12 +167,11 @@ const styles = StyleSheet.create({
   yearDropdownWrapper: {
     alignItems: 'center',
     marginVertical: 15,
-    borderWidth:3,
-    borderColor:'black',
-    borderRadius:40,
-    width:180,
-    alignContent:'center',
-    alignSelf:'center'
+    borderWidth: 3,
+    borderColor: 'black',
+    borderRadius: 40,
+    width: 180,
+    alignSelf: 'center',
   },
   filterLabel: {
     fontSize: 14,
@@ -166,10 +182,7 @@ const styles = StyleSheet.create({
   picker: {
     width: 100,
     height: 60,
-    borderColor: 'black',
-    borderWidth: 5,
-    borderRadius: 5,
-    color: '#000', // Change text color to black
+    color: '#000',
   },
   filterAndWinner: {
     flexDirection: 'row',
@@ -177,7 +190,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginVertical: 15,
     flex: 1,
-    height: 200, // Adjust height for centering winner text
+    height: 200,
   },
   winnerDisplay: {
     justifyContent: 'center',
@@ -189,10 +202,110 @@ const styles = StyleSheet.create({
     height: 100,
     marginLeft: 10,
   },
-  winnerText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: 'white',
-    textAlign: 'center',
+  yearSelectionContainer: {
+    paddingHorizontal: 20,
+    marginTop: 20,
   },
+  yearSelectionCard: {
+    backgroundColor: 'white',
+    borderRadius: 15,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  calendarIcon: {
+    alignSelf: 'center',
+    marginBottom: 10,
+  },
+  yearSelectionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#6a11cb',
+    textAlign: 'center',
+    marginBottom: 15,
+  },
+  pickerContainer: {
+    borderWidth: 2,
+    borderColor: '#6a11cb',
+    borderRadius: 25,
+    overflow: 'hidden',
+  },
+  yearPicker: {
+    height: 50,
+    color: '#333',
+  },
+  winnerContainer: {
+    paddingHorizontal: 20,
+    marginTop: 20,
+    flex: 1,
+  },
+  winnerCard: {
+    backgroundColor: 'white',
+    borderRadius: 15,
+    padding: 25,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 180,
+  },
+  trophyContainer: {
+    backgroundColor: 'rgba(106, 17, 203, 0.1)',
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 20,
+  },
+  winnerText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#333',
+    textAlign: 'center',
+    lineHeight: 26,
+  },
+  gradientCard: {
+    borderRadius: 20,
+    padding: 25,
+    marginHorizontal: 20,
+    backgroundColor: 'linear-gradient(45deg, #6a11cb, #2575fc)', // fallback
+    backgroundColor: '#6a11cb',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 6,
+    marginTop: 20,
+  },
+  pickerWrapper: {
+    backgroundColor: '#ffffff10',
+    borderRadius: 25,
+    overflow: 'hidden',
+    borderWidth: 1.5,
+    borderColor: '#ffffff40',
+    marginTop: 10,
+  },
+  yearPicker: {
+    height: 50,
+    color: '#fff',
+    paddingHorizontal: 10,
+  },
+  yearSelectionTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#fff',
+    textAlign: 'center',
+    marginBottom: 10,
+  },
+  calendarIcon: {
+    alignSelf: 'center',
+    marginBottom: 10,
+  }
 });

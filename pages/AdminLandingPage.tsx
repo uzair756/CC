@@ -1,62 +1,70 @@
 import React, { useEffect, useState } from 'react';
-import {View,Text,Button,TextInput,StyleSheet,Alert,Image,FlatList,TouchableOpacity,ScrollView} from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Alert,
+  Image,
+  TouchableOpacity,
+  ScrollView,
+  RefreshControl,
+  ImageBackground
+} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Modal from 'react-native-modal';
 import { launchImageLibrary } from 'react-native-image-picker';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { Card, Avatar, TextInput } from 'react-native-paper';
+import * as Animatable from 'react-native-animatable';
 
 export const AdminLandingPage = ({ navigation }) => {
   const [user, setUser] = useState(null);
-  const [posts, setPosts] = useState([]); // For storing user posts
+  const [posts, setPosts] = useState([]);
+  const [refreshing, setRefreshing] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [postVisible, setPostVisible] = useState(false);
   const [updateModalVisible, setUpdateModalVisible] = useState(false);
 
-  // For sports coach modal
+  // Form states
   const [coachUsername, setCoachUsername] = useState('');
   const [coachEmail, setCoachEmail] = useState('');
   const [coachPassword, setCoachPassword] = useState('');
-
-  // For announcement post modal
   const [postDescription, setPostDescription] = useState('');
-  const [postImage, setPostImage] = useState(null); // Store selected image
-
-  // For update modal
+  const [postImage, setPostImage] = useState(null);
   const [selectedPost, setSelectedPost] = useState(null);
   const [updatedDescription, setUpdatedDescription] = useState('');
   const [updatedImage, setUpdatedImage] = useState(null);
-
-
-
-
   const [isChangePasswordVisible, setIsChangePasswordVisible] = useState(false);
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmNewPassword, setConfirmNewPassword] = useState('');
 
-  
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const token = await AsyncStorage.getItem('token');
-        const response = await fetch('http://192.168.1.21:3002/dsalandingpage', {
-          method: 'GET',
-          headers: { Authorization: `Bearer ${token}` },
-        });
+  const fetchProfile = async () => {
+    try {
+      setRefreshing(true);
+      const token = await AsyncStorage.getItem('token');
+      const response = await fetch('http://192.168.1.21:3002/dsalandingpage', {
+        method: 'GET',
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
-        const data = await response.json();
+      const data = await response.json();
 
-        if (data.success) {
-          setUser(data.user);
-          setPosts(data.posts || []); // Set posts for the logged-in user
-        } else {
-          Alert.alert('Error', 'User not authenticated or failed to load profile');
-        }
-      } catch (error) {
-        console.error('Error fetching profile:', error);
-        Alert.alert('Error', 'An error occurred while fetching your profile');
+      if (data.success) {
+        setUser(data.user);
+        setPosts(data.posts || []);
+      } else {
+        Alert.alert('Error', 'Failed to load profile');
       }
-    };
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+      Alert.alert('Error', 'An error occurred while fetching your profile');
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
+  useEffect(() => {
     fetchProfile();
   }, []);
 
@@ -69,9 +77,7 @@ export const AdminLandingPage = ({ navigation }) => {
     try {
       const response = await fetch('http://192.168.1.21:3002/dsasportscoachuser', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           username: coachUsername,
           email: coachEmail,
@@ -81,13 +87,13 @@ export const AdminLandingPage = ({ navigation }) => {
 
       const data = await response.json();
       if (data.success) {
-        Alert.alert('Success', 'New sports coach account created successfully');
+        Alert.alert('Success', 'Sports coach account created successfully');
         setIsModalVisible(false);
         setCoachUsername('');
         setCoachEmail('');
         setCoachPassword('');
       } else {
-        Alert.alert('Error', data.error || 'Failed to create sports coach account');
+        Alert.alert('Error', data.error || 'Failed to create account');
       }
     } catch (error) {
       console.error('Error adding coach:', error);
@@ -122,25 +128,21 @@ export const AdminLandingPage = ({ navigation }) => {
         setPostVisible(false);
         setPostDescription('');
         setPostImage(null);
-        setPosts((prevPosts) => [...prevPosts, data.post]); // Add the new post to the list
+        setPosts([...posts, data.post]);
       } else {
-        Alert.alert('Error', data.error || 'Failed to post the announcement');
+        Alert.alert('Error', data.error || 'Failed to post announcement');
       }
     } catch (error) {
       console.error('Error posting announcement:', error);
-      Alert.alert('Error', 'An error occurred while posting the announcement');
+      Alert.alert('Error', 'An error occurred while posting');
     }
   };
 
   const handleImageSelection = async () => {
-    const options = {
-      mediaType: 'photo',
-      quality: 1,
-    };
-
+    const options = { mediaType: 'photo', quality: 1 };
     const result = await launchImageLibrary(options);
     if (result.assets && result.assets.length > 0) {
-      setPostImage(result.assets[0].uri); // Set the image URI
+      setPostImage(result.assets[0].uri);
     }
   };
 
@@ -169,25 +171,21 @@ export const AdminLandingPage = ({ navigation }) => {
       if (data.success) {
         Alert.alert('Success', 'Post updated successfully');
         setUpdateModalVisible(false);
-        setPosts((prevPosts) =>
-          prevPosts.map((post) =>
-            post._id === selectedPost._id ? { ...post, ...data.updatedPost } : post
-          )
-        ); // Update the post list
+        setPosts(posts.map(post => 
+          post._id === selectedPost._id ? { ...post, ...data.updatedPost } : post
+        ));
       } else {
         Alert.alert('Error', data.error || 'Failed to update post');
       }
     } catch (error) {
       console.error('Error updating post:', error);
-      Alert.alert('Error', 'An error occurred while updating the post');
+      Alert.alert('Error', 'An error occurred while updating');
     }
   };
 
-
-
   const handleChangePassword = async () => {
     if (newPassword !== confirmNewPassword) {
-      Alert.alert('Error', 'New password and confirmation do not match');
+      Alert.alert('Error', 'Passwords do not match');
       return;
     }
 
@@ -220,329 +218,524 @@ export const AdminLandingPage = ({ navigation }) => {
       }
     } catch (error) {
       console.error('Error updating password:', error);
-      Alert.alert('Error', 'An error occurred while updating the password');
+      Alert.alert('Error', 'An error occurred while updating');
     }
   };
 
-
   return (
-    <View style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-  {user ? (
-    <View>
-      <Text style={styles.welcomeText}>
-        Welcome, {user.username}
-      </Text>
-    </View>
-  ) : (
-    <Text>Loading...</Text>
-  )}
-
-  <View style={styles.buttonContainer}>
-    <TouchableOpacity style={styles.button} onPress={handleSignOut}>
-      <Text style={styles.buttonText}>Log Out</Text>
-    </TouchableOpacity>
-    <TouchableOpacity style={styles.button} onPress={() => setIsModalVisible(true)}>
-      <Text style={styles.buttonText}>Add New Sports Coach Account</Text>
-    </TouchableOpacity>
-    <TouchableOpacity style={styles.button} onPress={() => setPostVisible(true)}>
-      <Text style={styles.buttonText}>Add Announcement Post</Text>
-    </TouchableOpacity>
-    <TouchableOpacity style={styles.button} onPress={() => setIsChangePasswordVisible(true)}>
-      <Text style={styles.buttonText}>Change Password</Text>
-    </TouchableOpacity>
-  </View>
-
-  {/* Modal for Adding Coach */}
-  <Modal isVisible={isModalVisible}>
-    <View style={styles.modalContent}>
-      <Text style={styles.modalTitle}>Add New Coach</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Username"
-        value={coachUsername}
-        placeholderTextColor="black"
-        onChangeText={setCoachUsername}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        value={coachEmail}
-        placeholderTextColor="black"
-        onChangeText={setCoachEmail}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        secureTextEntry
-        placeholderTextColor="black"
-        value={coachPassword}
-        onChangeText={setCoachPassword}
-      />
-      <TouchableOpacity style={styles.button} onPress={handleAddCoach}>
-        <Text style={styles.buttonText}>Submit</Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={[styles.button, { backgroundColor: '#F3F4FE' }]}
-        onPress={() => setIsModalVisible(false)}
+    <ImageBackground 
+      style={styles.container}
+      resizeMode="cover"
+    >
+      <ScrollView
+        contentContainerStyle={styles.scrollContainer}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={fetchProfile}
+            colors={['#6573EA']}
+          />
+        }
       >
-        <Text style={[styles.buttonText, { color: '#6573EA' }]}>Cancel</Text>
-      </TouchableOpacity>
-    </View>
-  </Modal>
+        <Animatable.View animation="fadeInDown" duration={500}>
+          <Card style={styles.profileCard}>
+            <Card.Content style={styles.cardContent}>
+              <View style={styles.avatarContainer}>
+                <Avatar.Text 
+                  size={80} 
+                  label={user?.username?.charAt(0).toUpperCase() || 'A'} 
+                  style={styles.avatar}
+                  color="#fff"
+                />
+              </View>
+              <Text style={styles.welcomeText}>Welcome, {user?.username}</Text>
+              <Text style={styles.roleText}>Administrator</Text>
+            </Card.Content>
+          </Card>
+        </Animatable.View>
 
-  {/* Modal for Adding Announcement */}
-  <Modal isVisible={postVisible}>
-    <View style={[styles.modalContent, { borderWidth: 1, borderColor: '#6573EA' }]}>
-      <Text style={[styles.modalTitle, { color: '#6573EA' }]}>Add Announcement Post</Text>
-      <TextInput
-        style={[styles.input, { borderColor: '#6573EA', backgroundColor: '#F3F4FE' }]}
-        placeholder="Description"
-        placeholderTextColor="#6573EA"
-        value={postDescription}
-        onChangeText={setPostDescription}
-      />
-      {postImage && (
-        <Image source={{ uri: postImage }} style={styles.imagePreview} />
-      )}
-      <TouchableOpacity
-        style={[styles.button, { backgroundColor: '#6573EA' }]}
-        onPress={handleImageSelection}
-      >
-        <Text style={styles.buttonText}>Select Image</Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={[styles.button, { backgroundColor: '#6573EA' }]}
-        onPress={handleAddAnnouncement}
-      >
-        <Text style={styles.buttonText}>Post</Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={[styles.button, { backgroundColor: '#F3F4FE', borderWidth: 1, borderColor: '#6573EA' }]}
-        onPress={() => setPostVisible(false)}
-      >
-        <Text style={[styles.buttonText, { color: '#6573EA' }]}>Cancel</Text>
-      </TouchableOpacity>
-    </View>
-  </Modal>
-
-  {/* Modal for Changing Password */}
-  <Modal isVisible={isChangePasswordVisible}>
-    <View style={styles.modalContent}>
-      <Text style={styles.modalTitle}>Change Password</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Current Password"
-        secureTextEntry
-        placeholderTextColor="black"
-        value={currentPassword}
-        onChangeText={setCurrentPassword}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="New Password"
-        secureTextEntry
-        placeholderTextColor="black"
-        value={newPassword}
-        onChangeText={setNewPassword}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Confirm New Password"
-        secureTextEntry
-        placeholderTextColor="black"
-        value={confirmNewPassword}
-        onChangeText={setConfirmNewPassword}
-      />
-      <TouchableOpacity style={styles.button} onPress={handleChangePassword}>
-        <Text style={styles.buttonText}>Update Password</Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={[styles.button, { backgroundColor: '#F3F4FE' }]}
-        onPress={() => setIsChangePasswordVisible(false)}
-      >
-        <Text style={[styles.buttonText, { color: '#6573EA' }]}>Cancel</Text>
-      </TouchableOpacity>
-    </View>
-  </Modal>
-
-  {/* Modal for Updating Post */}
-  <Modal isVisible={updateModalVisible}>
-    <View style={styles.modalContent}>
-      <Text style={styles.modalTitle}>Update Post</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Update Description"
-        value={updatedDescription}
-        onChangeText={setUpdatedDescription}
-      />
-      {updatedImage && (
-        <Image source={{ uri: updatedImage }} style={[styles.imagePreview, { width: '100%', height: 250 }]} />
-      )}
-      <TouchableOpacity style={styles.button} onPress={handleImageSelection}>
-        <Text style={styles.buttonText}>Select New Image</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.button} onPress={handleUpdatePost}>
-        <Text style={styles.buttonText}>Update</Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={[styles.button, { backgroundColor: '#F3F4FE' }]}
-        onPress={() => setUpdateModalVisible(false)}
-      >
-        <Text style={[styles.buttonText, { color: '#6573EA' }]}>Cancel</Text>
-      </TouchableOpacity>
-    </View>
-  </Modal>
-
-  <Text style={styles.subTitle}>Existing Posts</Text>
-    {posts.length > 0 ? (
-      posts.map((item) => (
-        <View style={styles.post} key={item._id}>
-          <Text>{item.adminpostdescription}</Text>
-          {item.adminimagepost && (
-            <Image source={{ uri: item.adminimagepost }} style={styles.fullImagePreview} />
-          )}
-          <TouchableOpacity
-            style={[styles.button, { backgroundColor: '#F3F4FE', borderWidth: 1, borderColor: '#6573EA' }]}
-            onPress={() => {
-              setSelectedPost(item);
-              setUpdatedDescription(item.adminpostdescription);
-              setUpdatedImage(item.adminimagepost);
-              setUpdateModalVisible(true);
-            }}
+        <Animatable.View animation="fadeInUp" delay={300} style={styles.actionsContainer}>
+          <TouchableOpacity 
+            style={[styles.actionButton, styles.coachButton]} 
+            onPress={() => setIsModalVisible(true)}
           >
-            <Text style={[styles.buttonText, { color: '#6573EA' }]}>Update</Text>
+            <Icon name="account-plus" size={24} color="white" />
+            <Text style={styles.actionButtonText}>Add Sports Coach</Text>
           </TouchableOpacity>
-        </View>
-      ))
-    ) : (
-      <Text>No posts available</Text>
-    )}
-  </ScrollView>
-</View>
+
+          <TouchableOpacity 
+            style={[styles.actionButton, styles.announcementButton]} 
+            onPress={() => setPostVisible(true)}
+          >
+            <Icon name="bullhorn" size={24} color="white" />
+            <Text style={styles.actionButtonText}>Create Announcement</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={[styles.actionButton, styles.passwordButton]} 
+            onPress={() => setIsChangePasswordVisible(true)}
+          >
+            <Icon name="lock-reset" size={24} color="white" />
+            <Text style={styles.actionButtonText}>Change Password</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={[styles.actionButton, styles.logoutButton]} 
+            onPress={handleSignOut}
+          >
+            <Icon name="logout" size={24} color="white" />
+            <Text style={styles.actionButtonText}>Log Out</Text>
+          </TouchableOpacity>
+        </Animatable.View>
+
+        <Text style={styles.sectionTitle}>Recent Announcements</Text>
+        
+        {posts.length > 0 ? (
+          posts.map((post, index) => (
+            <Animatable.View 
+              key={post._id}
+              animation="fadeInUp"
+              delay={100 * index}
+              style={styles.postCard}
+            >
+              <Card>
+                <Card.Content>
+                  <Text style={styles.postText}>{post.adminpostdescription}</Text>
+                  {post.adminimagepost && (
+                    <Image 
+                      source={{ uri: post.adminimagepost }} 
+                      style={styles.postImage} 
+                      resizeMode="cover"
+                    />
+                  )}
+                  <TouchableOpacity
+                    style={styles.editButton}
+                    onPress={() => {
+                      setSelectedPost(post);
+                      setUpdatedDescription(post.adminpostdescription);
+                      setUpdatedImage(post.adminimagepost);
+                      setUpdateModalVisible(true);
+                    }}
+                  >
+                    <Icon name="pencil" size={20} color="#6573EA" />
+                    <Text style={styles.editButtonText}>Edit</Text>
+                  </TouchableOpacity>
+                </Card.Content>
+              </Card>
+            </Animatable.View>
+          ))
+        ) : (
+          <Text style={styles.noPostsText}>No announcements yet</Text>
+        )}
+      </ScrollView>
+
+      {/* Add Coach Modal */}
+      <Modal isVisible={isModalVisible}>
+        <Animatable.View animation="zoomIn" duration={300}>
+          <Card style={styles.modalCard}>
+            <Card.Content>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Add New Coach</Text>
+                <Icon name="account-plus" size={30} color="#6573EA" />
+              </View>
+              
+              <TextInput
+                label="Username"
+                mode="outlined"
+                style={styles.modalInput}
+                value={coachUsername}
+                onChangeText={setCoachUsername}
+                left={<TextInput.Icon name="account" />}
+                theme={{ colors: { primary: '#6573EA' } }}
+              />
+              
+              <TextInput
+                label="Email"
+                mode="outlined"
+                style={styles.modalInput}
+                value={coachEmail}
+                onChangeText={setCoachEmail}
+                left={<TextInput.Icon name="email" />}
+                theme={{ colors: { primary: '#6573EA' } }}
+              />
+              
+              <TextInput
+                label="Password"
+                mode="outlined"
+                secureTextEntry
+                style={styles.modalInput}
+                value={coachPassword}
+                onChangeText={setCoachPassword}
+                left={<TextInput.Icon name="lock" />}
+                theme={{ colors: { primary: '#6573EA' } }}
+              />
+              
+              <View style={styles.modalButtons}>
+                <TouchableOpacity 
+                  style={[styles.modalButton, styles.submitButton]} 
+                  onPress={handleAddCoach}
+                >
+                  <Text style={styles.modalButtonText}>Create Account</Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity 
+                  style={[styles.modalButton, styles.cancelButton]} 
+                  onPress={() => setIsModalVisible(false)}
+                >
+                  <Text style={[styles.modalButtonText, { color: '#6573EA' }]}>Cancel</Text>
+                </TouchableOpacity>
+              </View>
+            </Card.Content>
+          </Card>
+        </Animatable.View>
+      </Modal>
+
+      {/* Add Announcement Modal */}
+      <Modal isVisible={postVisible}>
+        <Animatable.View animation="zoomIn" duration={300}>
+          <Card style={styles.modalCard}>
+            <Card.Content>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>New Announcement</Text>
+                <Icon name="bullhorn" size={30} color="#6573EA" />
+              </View>
+              
+              <TextInput
+                label="Description"
+                mode="outlined"
+                multiline
+                numberOfLines={4}
+                style={styles.modalInput}
+                value={postDescription}
+                onChangeText={setPostDescription}
+                left={<TextInput.Icon name="text" />}
+                theme={{ colors: { primary: '#6573EA' } }}
+              />
+              
+              {postImage && (
+                <Image source={{ uri: postImage }} style={styles.imagePreview} />
+              )}
+              
+              <TouchableOpacity
+                style={[styles.modalButton, styles.imageButton]}
+                onPress={handleImageSelection}
+              >
+                <Icon name="image" size={20} color="white" />
+                <Text style={styles.modalButtonText}>Select Image</Text>
+              </TouchableOpacity>
+              
+              <View style={styles.modalButtons}>
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.submitButton]}
+                  onPress={handleAddAnnouncement}
+                >
+                  <Text style={styles.modalButtonText}>Post Announcement</Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.cancelButton]}
+                  onPress={() => setPostVisible(false)}
+                >
+                  <Text style={[styles.modalButtonText, { color: '#6573EA' }]}>Cancel</Text>
+                </TouchableOpacity>
+              </View>
+            </Card.Content>
+          </Card>
+        </Animatable.View>
+      </Modal>
+
+      {/* Change Password Modal */}
+      <Modal isVisible={isChangePasswordVisible}>
+        <Animatable.View animation="zoomIn" duration={300}>
+          <Card style={styles.modalCard}>
+            <Card.Content>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Change Password</Text>
+                <Icon name="lock" size={30} color="#6573EA" />
+              </View>
+              
+              <TextInput
+                label="Current Password"
+                mode="outlined"
+                secureTextEntry
+                style={styles.modalInput}
+                value={currentPassword}
+                onChangeText={setCurrentPassword}
+                left={<TextInput.Icon name="lock" />}
+                theme={{ colors: { primary: '#6573EA' } }}
+              />
+              
+              <TextInput
+                label="New Password"
+                mode="outlined"
+                secureTextEntry
+                style={styles.modalInput}
+                value={newPassword}
+                onChangeText={setNewPassword}
+                left={<TextInput.Icon name="lock-plus" />}
+                theme={{ colors: { primary: '#6573EA' } }}
+              />
+              
+              <TextInput
+                label="Confirm New Password"
+                mode="outlined"
+                secureTextEntry
+                style={styles.modalInput}
+                value={confirmNewPassword}
+                onChangeText={setConfirmNewPassword}
+                left={<TextInput.Icon name="lock-check" />}
+                theme={{ colors: { primary: '#6573EA' } }}
+              />
+              
+              <View style={styles.modalButtons}>
+                <TouchableOpacity 
+                  style={[styles.modalButton, styles.submitButton]} 
+                  onPress={handleChangePassword}
+                >
+                  <Text style={styles.modalButtonText}>Update Password</Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity 
+                  style={[styles.modalButton, styles.cancelButton]} 
+                  onPress={() => setIsChangePasswordVisible(false)}
+                >
+                  <Text style={[styles.modalButtonText, { color: '#6573EA' }]}>Cancel</Text>
+                </TouchableOpacity>
+              </View>
+            </Card.Content>
+          </Card>
+        </Animatable.View>
+      </Modal>
+
+      {/* Update Post Modal */}
+      <Modal isVisible={updateModalVisible}>
+        <Animatable.View animation="zoomIn" duration={300}>
+          <Card style={styles.modalCard}>
+            <Card.Content>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Update Announcement</Text>
+                <Icon name="pencil" size={30} color="#6573EA" />
+              </View>
+              
+              <TextInput
+                label="Description"
+                mode="outlined"
+                multiline
+                numberOfLines={4}
+                style={styles.modalInput}
+                value={updatedDescription}
+                onChangeText={setUpdatedDescription}
+                left={<TextInput.Icon name="text" />}
+                theme={{ colors: { primary: '#6573EA' } }}
+              />
+              
+              {updatedImage && (
+                <Image source={{ uri: updatedImage }} style={styles.imagePreview} />
+              )}
+              
+              <TouchableOpacity
+                style={[styles.modalButton, styles.imageButton]}
+                onPress={handleImageSelection}
+              >
+                <Icon name="image" size={20} color="white" />
+                <Text style={styles.modalButtonText}>Change Image</Text>
+              </TouchableOpacity>
+              
+              <View style={styles.modalButtons}>
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.submitButton]}
+                  onPress={handleUpdatePost}
+                >
+                  <Text style={styles.modalButtonText}>Update Announcement</Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.cancelButton]}
+                  onPress={() => setUpdateModalVisible(false)}
+                >
+                  <Text style={[styles.modalButtonText, { color: '#6573EA' }]}>Cancel</Text>
+                </TouchableOpacity>
+              </View>
+            </Card.Content>
+          </Card>
+        </Animatable.View>
+      </Modal>
+    </ImageBackground>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
-    backgroundColor: 'white',
-  },
-  fullImagePreview: {
-    width: '100%',
-    height: 250,
-    borderRadius: 10,
-    marginBottom: 15,
-    borderWidth: 1,
-    borderColor: '#6573EA',
-  },
-  scrollContent: {
-    paddingBottom: 20,
   },
   scrollContainer: {
-    flexGrow: 1,
-    justifyContent: 'flex-start',
+    padding: 20,
+    paddingBottom: 40,
   },
-  title: {
-    fontSize: 26,
+  profileCard: {
+    borderRadius: 15,
+    marginBottom: 20,
+    elevation: 5,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+  },
+  cardContent: {
+    padding: 20,
+  },
+  avatarContainer: {
+    alignItems: 'center',
+    marginBottom: 15,
+  },
+  avatar: {
+    backgroundColor: '#6573EA',
+  },
+  welcomeText: {
+    fontSize: 24,
     fontWeight: 'bold',
+    color: '#333',
     textAlign: 'center',
-    marginVertical: 20,
-    color: '#6573EA',
+    marginBottom: 5,
   },
-  profileInfo: {
-    flexDirection: 'row',
+  roleText: {
+    fontSize: 16,
+    color: '#6573EA',
+    textAlign: 'center',
+    fontWeight: '600',
     marginBottom: 10,
-    backgroundColor: '#F3F4FE',
+  },
+  actionsContainer: {
+    width: '100%',
+    marginBottom: 20,
+  },
+  actionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 15,
+    borderRadius: 10,
+    marginBottom: 15,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+  },
+  coachButton: {
+    backgroundColor: '#4CAF50',
+  },
+  announcementButton: {
+    backgroundColor: '#FF9800',
+  },
+  passwordButton: {
+    backgroundColor: '#9C27B0',
+  },
+  logoutButton: {
+    backgroundColor: '#F44336',
+  },
+  actionButtonText: {
+    color: '#FFF',
+    fontWeight: 'bold',
+    fontSize: 16,
+    marginLeft: 10,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 15,
+    marginTop: 10,
+  },
+  postCard: {
+    marginBottom: 15,
+  },
+  postText: {
+    fontSize: 16,
+    marginBottom: 15,
+    color: '#333',
+  },
+  postImage: {
+    width: '100%',
+    height: 200,
+    borderRadius: 8,
+    marginBottom: 15,
+  },
+  editButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
     padding: 10,
     borderRadius: 8,
     borderWidth: 1,
     borderColor: '#6573EA',
+    backgroundColor: 'rgba(101, 115, 234, 0.1)',
   },
-  label: {
-    fontWeight: 'bold',
+  editButtonText: {
     color: '#6573EA',
-  },
-  logoutButton: {
-    marginTop: 20,
-    backgroundColor: '#6573EA',
-    borderRadius: 10,
-  },
-  buttonContainer: {
-    marginTop: 20,
-    marginBottom: 20,
-
-  },
-  subTitle: {
-    fontSize: 20,
     fontWeight: 'bold',
-    marginTop: 20,
-    color: '#6573EA',
+    marginLeft: 5,
   },
-  welcomeText: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    color: '#6573EA',
+  noPostsText: {
     textAlign: 'center',
+    color: '#666',
+    fontSize: 16,
+    marginTop: 20,
   },
-  post: {
-    padding: 15,
-    borderWidth: 1,
-    borderColor: '#6573EA',
-    marginBottom: 15,
-    backgroundColor: '#FFF',
-    borderRadius: 10,
-  },
-  modalContent: {
-    backgroundColor: 'white',
-    padding: 25,
+  modalCard: {
     borderRadius: 15,
+    backgroundColor: 'white',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 5,
+    marginBottom: 20,
   },
   modalTitle: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: 'bold',
-    marginBottom: 15,
-    color: '#6573EA',
+    color: '#333',
   },
-  input: {
-    width: '100%',
-    borderWidth: 1,
-    borderRadius: 10,
-    padding: 15,
-    fontSize: 16,
+  modalInput: {
     marginBottom: 15,
-    borderColor: '#6573EA',
-    backgroundColor: '#F3F4FE',
+    backgroundColor: 'white',
   },
-  updatedImagePreview: {
-    width: '100%',
-    height: 300, // Full width and increased height
-    borderRadius: 10,
-    marginBottom: 15,
-    borderWidth: 1,
-    borderColor: '#6573EA',
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 10,
   },
-  button: {
-    width: '100%',
-    padding: 15,
-    borderRadius: 10,
+  modalButton: {
+    flex: 1,
+    padding: 12,
+    borderRadius: 8,
     alignItems: 'center',
-    marginVertical: 5,
+    justifyContent: 'center',
+    flexDirection: 'row',
+    marginHorizontal: 5,
+  },
+  submitButton: {
     backgroundColor: '#6573EA',
   },
-  buttonText: {
+  cancelButton: {
+    backgroundColor: 'white',
+    borderWidth: 1,
+    borderColor: '#6573EA',
+  },
+  imageButton: {
+    backgroundColor: '#FF9800',
+    marginBottom: 15,
+  },
+  modalButtonText: {
     color: 'white',
-    fontSize: 16,
     fontWeight: 'bold',
+    marginLeft: 5,
+  },
+  imagePreview: {
+    width: '100%',
+    height: 150,
+    borderRadius: 8,
+    marginBottom: 15,
+    borderWidth: 1,
+    borderColor: '#ddd',
   },
 });
 

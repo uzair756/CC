@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Button, TextInput, StyleSheet, Alert, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, Button, TextInput, StyleSheet, Alert, ScrollView, TouchableOpacity,RefreshControl ,ImageBackground} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Modal from 'react-native-modal';
 import { Picker } from '@react-native-picker/picker';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import * as Animatable from 'react-native-animatable';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 export const CoachLandingPage = ({ navigation }) => {
   const [user, setUser] = useState(null);
@@ -25,6 +28,10 @@ export const CoachLandingPage = ({ navigation }) => {
   const [updatedAt, setUpdatedAt] = useState('');
   const [isUpdatingSportRules, setIsUpdatingSportRules] = useState(false);
   const [isSportsModalVisible, setIsSportsModalVisible] = useState(false);
+   // Add this new state for pull-to-refresh
+   const [refreshing, setRefreshing] = useState(false);
+
+  
 
   const sportsCategories = ['Football', 'Futsal', 'Volleyball', 'Basketball','Table Tennis (M)', 'Table Tennis (F)', 'Snooker', 'Tug of War (M)','Tug of War (F)', 'Tennis', 'Cricket', 'Badminton (M)', 'Badminton (F)'];
   const [department, setDepartment] = useState('');
@@ -41,9 +48,9 @@ export const CoachLandingPage = ({ navigation }) => {
   ]);
   const [refsportscategories] = useState(['Football', 'Futsal', 'Volleyball', 'Basketball','Table Tennis (M)', 'Table Tennis (F)', 'Snooker', 'Tug of War (M)','Tug of War (F)', 'Tennis', 'Cricket', 'Badminton (M)', 'Badminton (F)']);
 
-  useEffect(() => {
-    const fetchProfile = async () => {
+  const fetchProfile = async () => {
       try {
+        setRefreshing(true);
         const token = await AsyncStorage.getItem('token');
         const response = await fetch('http://192.168.1.21:3002/coachlandingpage', {
           method: 'GET',
@@ -59,10 +66,13 @@ export const CoachLandingPage = ({ navigation }) => {
       } catch (error) {
         Alert.alert('Error', 'Failed to fetch profile');
       }
+      finally {
+        setRefreshing(false);
+      }
+       useEffect(() => {
+          fetchProfile();
+        }, []);
     };
-
-    fetchProfile();
-  }, []);
 
   const handleSignOut = async () => {
     await AsyncStorage.removeItem('token');
@@ -245,325 +255,534 @@ export const CoachLandingPage = ({ navigation }) => {
     }
   };
 
+
+
+
+  // [All your existing functions remain the same...]
+
   return (
-    <ScrollView>
-    <View style={styles.container}>
-      <Text style={styles.headerText}>Welcome, {user?.username || 'Coach'}</Text>
-  
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.button} onPress={handleSignOut}>
-          <Text style={styles.buttonText}>Sign Out</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.button} onPress={() => setIsChangePasswordVisible(true)}>
-          <Text style={styles.buttonText}>Change Password</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.button} onPress={() => setIsCoordinatorModalVisible(true)}>
-          <Text style={styles.buttonText}>Add Coordinator</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.button} onPress={() => setIsRefModalVisible(true)}>
-          <Text style={styles.buttonText}>Add Refree</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('PoolsCreateSchedulingPage')}>
-        <Text style={styles.buttonText}>Create Pools for current year ({new Date().getFullYear()})</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('PastYearPoolsAndSchedules')}>
-        <Text style={styles.buttonText}>View Past Year Schedules</Text>
-        </TouchableOpacity>
-      </View>
-  
-      <Text style={styles.sectionTitle}>Sports Categories Rules</Text>
-      <View style={styles.sportButtonsContainer}>
-        {sportsCategories.map((sport) => (
-          <TouchableOpacity key={sport} style={styles.sportButton} onPress={() => fetchSportRules(sport)}>
-            <Text style={styles.sportButtonText}>{sport}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-  
-      {/* Coordinator Modal */}
-      <Modal isVisible={isCoordinatorModalVisible}>
-        <View style={styles.modalContent}>
-          <Text style={styles.modalTitle}>Add Coordinator</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Username"
-            value={coordinatorUsername}
-            placeholderTextColor='black'
-            onChangeText={setCoordinatorUsername}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Email"
-            value={coordinatorEmail}
-            placeholderTextColor='black'
-            onChangeText={setCoordinatorEmail}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Password"
-            value={coordinatorPassword}
-            placeholderTextColor='black'
-            secureTextEntry
-            onChangeText={setCoordinatorPassword}
-          />
-          <Picker
-            selectedValue={department}
-            style={styles.picker}
-            onValueChange={(itemValue) => setDepartment(itemValue)}
+    <ImageBackground 
+      style={styles.container}
+      resizeMode="cover"
+    >
+      <ScrollView
+              contentContainerStyle={styles.scrollContainer}
+              refreshControl={
+                <RefreshControl
+                  refreshing={refreshing}
+                  onRefresh={fetchProfile}
+                  colors={['#6573EA']}
+                />
+              }
+            >
+        <Animatable.View animation="fadeInDown" duration={800}>
+          <View style={styles.headerContainer}>
+            <Text style={styles.headerText}>Welcome, {user?.username || 'Coach'}</Text>
+            <Text style={styles.roleText}>Sports Coach</Text>
+          </View>
+        </Animatable.View>
+
+        <Animatable.View animation="fadeInUp" delay={300} style={styles.actionsContainer}>
+          <TouchableOpacity 
+            style={[styles.actionButton, styles.logoutButton]}
+            onPress={handleSignOut}
           >
-            <Picker.Item label="Select Department" value="" />
-            {departments.map((dept, index) => (
-              <Picker.Item key={index} label={dept} value={dept} />
-            ))}
-          </Picker>
-          <TouchableOpacity style={styles.submitButton} onPress={handleAddCoordinator}>
-            <Text style={styles.submitButtonText}>Submit</Text>
+            <Icon name="logout" size={24} color="white" />
+            <Text style={styles.actionButtonText}>Sign Out</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.cancelButton} onPress={() => setIsCoordinatorModalVisible(false)}>
-            <Text style={styles.cancelButtonText}>Cancel</Text>
-          </TouchableOpacity>
-        </View>
-      </Modal>
 
-
-
-       {/* Ref Modal */}
-       <Modal isVisible={isRefModalVisible}>
-        <View style={styles.modalContent}>
-          <Text style={styles.modalTitle}>Add Refree</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Username"
-            value={refUsername}
-            placeholderTextColor='black'
-            onChangeText={setRefUsername}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Email"
-            value={refEmail}
-            placeholderTextColor='black'
-            onChangeText={setRefEmail}
-          />
-
-          <TextInput
-            style={styles.input}
-            placeholder="Password"
-            value={refPassword}
-            placeholderTextColor='black'
-            secureTextEntry
-            onChangeText={setRefPassword}
-          />
-          <Picker
-            selectedValue={refsportscategory}
-            style={styles.picker}
-            onValueChange={(itemValue) => setRefSportsCategory(itemValue)}
+          <TouchableOpacity 
+            style={[styles.actionButton, styles.passwordButton]}
+            onPress={() => setIsChangePasswordVisible(true)}
           >
-            <Picker.Item label="Select Sports Category" value="" />
-            {refsportscategories.map((rsc, index) => (
-              <Picker.Item key={index} label={rsc} value={rsc} />
-            ))}
-          </Picker>
-          <TouchableOpacity style={styles.submitButton} onPress={handleAddRef}>
-            <Text style={styles.submitButtonText}>Submit</Text>
+            <Icon name="lock-reset" size={24} color="white" />
+            <Text style={styles.actionButtonText}>Change Password</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.cancelButton} onPress={() => setIsRefModalVisible(false)}>
-            <Text style={styles.cancelButtonText}>Cancel</Text>
+
+          <TouchableOpacity 
+            style={[styles.actionButton, styles.coordinatorButton]}
+            onPress={() => setIsCoordinatorModalVisible(true)}
+          >
+            <Icon name="account-plus" size={24} color="white" />
+            <Text style={styles.actionButtonText}>Add Coordinator</Text>
           </TouchableOpacity>
-        </View>
-      </Modal>
-  
-      {/* Change Password Modal */}
-      <Modal isVisible={isChangePasswordVisible}>
-        <View style={styles.modalContent}>
-          <Text style={styles.modalTitle}>Change Password</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Current Password"
-            placeholderTextColor='black'
-            value={currentPassword}
-            secureTextEntry
-            onChangeText={setCurrentPassword}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="New Password"
-            placeholderTextColor='black'
-            value={newPassword}
-            secureTextEntry
-            onChangeText={setNewPassword}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Confirm New Password"
-            placeholderTextColor='black'
-            value={confirmNewPassword}
-            secureTextEntry
-            onChangeText={setConfirmNewPassword}
-          />
-          <TouchableOpacity style={styles.submitButton} onPress={handleChangePassword}>
-            <Text style={styles.submitButtonText}>Submit</Text>
+
+          <TouchableOpacity 
+            style={[styles.actionButton, styles.refereeButton]}
+            onPress={() => setIsRefModalVisible(true)}
+          >
+            <Icon name="whistle" size={24} color="white" />
+            <Text style={styles.actionButtonText}>Add Referee</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.cancelButton} onPress={() => setIsChangePasswordVisible(false)}>
-            <Text style={styles.cancelButtonText}>Cancel</Text>
+
+          <TouchableOpacity 
+            style={[styles.actionButton, styles.poolsButton]}
+            onPress={() => navigation.navigate('PoolsCreateSchedulingPage')}
+          >
+            <Icon name="calendar-plus" size={24} color="white" />
+            <Text style={styles.actionButtonText}>Create {new Date().getFullYear()} Pools</Text>
           </TouchableOpacity>
-        </View>
-      </Modal>
-  
-      {/* Sports Rules Modal */}
-      <Modal isVisible={isSportsModalVisible}>
-        <ScrollView style={styles.modalContent}>
-          <Text style={styles.modalTitle}>{selectedSport} Rules</Text>
-          <Text style={styles.rulesText}>{sportRules}</Text>
-          <Text style={styles.updatedByText}>
-            Last updated by: {lastUpdatedBy} on {updatedAt}
-          </Text>
-          {isUpdatingSportRules ? (
-            <>
-              <TextInput
-                style={styles.input}
-                placeholder="Update Rules"
-                value={updatedSportRules}
-                onChangeText={setUpdatedSportRules}
-              />
-              <TouchableOpacity style={styles.submitButton} onPress={updateSportRules}>
-                <Text style={styles.submitButtonText}>Submit</Text>
+
+          <TouchableOpacity 
+            style={[styles.actionButton, styles.historyButton]}
+            onPress={() => navigation.navigate('PastYearPoolsAndSchedules')}
+          >
+            <Icon name="history" size={24} color="white" />
+            <Text style={styles.actionButtonText}>View Past Schedules</Text>
+          </TouchableOpacity>
+        </Animatable.View>
+
+        <Text style={styles.sectionTitle}>Sports Categories Rules</Text>
+        
+        <View style={styles.sportsGrid}>
+          {sportsCategories.map((sport, index) => (
+            <Animatable.View 
+              key={sport}
+              animation="fadeInUp"
+              delay={100 * index}
+              style={styles.sportCard}
+            >
+              <TouchableOpacity onPress={() => fetchSportRules(sport)}>
+                <Text style={styles.sportText}>{sport}</Text>
+                <Icon name="chevron-right" size={24} color="#6573EA" style={styles.sportIcon} />
               </TouchableOpacity>
-            </>
-          ) : (
-            <TouchableOpacity style={styles.updateButton} onPress={() => setIsUpdatingSportRules(true)}>
-              <Text style={styles.buttonText}>Update Rules</Text>
-            </TouchableOpacity>
-          )}
-          <TouchableOpacity style={styles.cancelButton} onPress={() => setIsSportsModalVisible(false)}>
-            <Text style={styles.cancelButtonText}>Close</Text>
-          </TouchableOpacity>
-        </ScrollView>
-      </Modal>
-    </View>
-    </ScrollView>
+            </Animatable.View>
+          ))}
+        </View>
+
+        {/* Coordinator Modal */}
+        <Modal isVisible={isCoordinatorModalVisible}>
+          <Animatable.View animation="zoomIn" duration={300}>
+            <View style={styles.modalCard}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Add Coordinator</Text>
+                <Icon name="account-plus" size={30} color="#6573EA" />
+              </View>
+              
+              <TextInput
+                style={styles.modalInput}
+                placeholder="Username"
+                placeholderTextColor="#666"
+                value={coordinatorUsername}
+                onChangeText={setCoordinatorUsername}
+              />
+              
+              <TextInput
+                style={styles.modalInput}
+                placeholder="Email"
+                placeholderTextColor="#666"
+                value={coordinatorEmail}
+                onChangeText={setCoordinatorEmail}
+                keyboardType="email-address"
+              />
+              
+              <TextInput
+                style={styles.modalInput}
+                placeholder="Password"
+                placeholderTextColor="#666"
+                value={coordinatorPassword}
+                secureTextEntry
+                onChangeText={setCoordinatorPassword}
+              />
+              
+              <View style={styles.pickerContainer}>
+                <Picker
+                  selectedValue={department}
+                  style={styles.picker}
+                  onValueChange={(itemValue) => setDepartment(itemValue)}
+                >
+                  <Picker.Item label="Select Department" value="" />
+                  {departments.map((dept) => (
+                    <Picker.Item key={dept} label={dept} value={dept} />
+                  ))}
+                </Picker>
+              </View>
+              
+              <View style={styles.modalButtons}>
+                <TouchableOpacity 
+                  style={[styles.modalButton, styles.submitButton]}
+                  onPress={handleAddCoordinator}
+                >
+                  <Text style={styles.modalButtonText}>Create Account</Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity 
+                  style={[styles.modalButton, styles.cancelButton]}
+                  onPress={() => setIsCoordinatorModalVisible(false)}
+                >
+                  <Text style={[styles.modalButtonText, { color: '#6573EA' }]}>Cancel</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </Animatable.View>
+        </Modal>
+
+        {/* Referee Modal */}
+        <Modal isVisible={isRefModalVisible}>
+          <Animatable.View animation="zoomIn" duration={300}>
+            <View style={styles.modalCard}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Add Referee</Text>
+                <Icon name="whistle" size={30} color="#6573EA" />
+              </View>
+              
+              <TextInput
+                style={styles.modalInput}
+                placeholder="Username"
+                placeholderTextColor="#666"
+                value={refUsername}
+                onChangeText={setRefUsername}
+              />
+              
+              <TextInput
+                style={styles.modalInput}
+                placeholder="Email"
+                placeholderTextColor="#666"
+                value={refEmail}
+                onChangeText={setRefEmail}
+                keyboardType="email-address"
+              />
+              
+              <TextInput
+                style={styles.modalInput}
+                placeholder="Password"
+                placeholderTextColor="#666"
+                value={refPassword}
+                secureTextEntry
+                onChangeText={setRefPassword}
+              />
+              
+              <View style={styles.pickerContainer}>
+                <Picker
+                  selectedValue={refsportscategory}
+                  style={styles.picker}
+                  onValueChange={(itemValue) => setRefSportsCategory(itemValue)}
+                >
+                  <Picker.Item label="Select Sport Category" value="" />
+                  {refsportscategories.map((sport) => (
+                    <Picker.Item key={sport} label={sport} value={sport} />
+                  ))}
+                </Picker>
+              </View>
+              
+              <View style={styles.modalButtons}>
+                <TouchableOpacity 
+                  style={[styles.modalButton, styles.submitButton]}
+                  onPress={handleAddRef}
+                >
+                  <Text style={styles.modalButtonText}>Create Account</Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity 
+                  style={[styles.modalButton, styles.cancelButton]}
+                  onPress={() => setIsRefModalVisible(false)}
+                >
+                  <Text style={[styles.modalButtonText, { color: '#6573EA' }]}>Cancel</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </Animatable.View>
+        </Modal>
+
+        {/* Change Password Modal */}
+        <Modal isVisible={isChangePasswordVisible}>
+          <Animatable.View animation="zoomIn" duration={300}>
+            <View style={styles.modalCard}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Change Password</Text>
+                <Icon name="lock" size={30} color="#6573EA" />
+              </View>
+              
+              <TextInput
+                style={styles.modalInput}
+                placeholder="Current Password"
+                placeholderTextColor="#666"
+                value={currentPassword}
+                secureTextEntry
+                onChangeText={setCurrentPassword}
+              />
+              
+              <TextInput
+                style={styles.modalInput}
+                placeholder="New Password"
+                placeholderTextColor="#666"
+                value={newPassword}
+                secureTextEntry
+                onChangeText={setNewPassword}
+              />
+              
+              <TextInput
+                style={styles.modalInput}
+                placeholder="Confirm New Password"
+                placeholderTextColor="#666"
+                value={confirmNewPassword}
+                secureTextEntry
+                onChangeText={setConfirmNewPassword}
+              />
+              
+              <View style={styles.modalButtons}>
+                <TouchableOpacity 
+                  style={[styles.modalButton, styles.submitButton]}
+                  onPress={handleChangePassword}
+                >
+                  <Text style={styles.modalButtonText}>Update Password</Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity 
+                  style={[styles.modalButton, styles.cancelButton]}
+                  onPress={() => setIsChangePasswordVisible(false)}
+                >
+                  <Text style={[styles.modalButtonText, { color: '#6573EA' }]}>Cancel</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </Animatable.View>
+        </Modal>
+
+        {/* Sports Rules Modal */}
+        <Modal isVisible={isSportsModalVisible}>
+          <Animatable.View animation="zoomIn" duration={300}>
+            <View style={[styles.modalCard, { maxHeight: '80%' }]}>
+              <ScrollView>
+                <View style={styles.modalHeader}>
+                  <Text style={styles.modalTitle}>{selectedSport} Rules</Text>
+                  <Icon name="rules" size={30} color="#6573EA" />
+                </View>
+                
+                {isUpdatingSportRules ? (
+                  <TextInput
+                    style={[styles.modalInput, { height: 150, textAlignVertical: 'top' }]}
+                    placeholder="Update Rules"
+                    placeholderTextColor="#666"
+                    value={updatedSportRules}
+                    multiline
+                    onChangeText={setUpdatedSportRules}
+                  />
+                ) : (
+                  <Text style={styles.rulesText}>{sportRules || 'No rules defined yet'}</Text>
+                )}
+                
+                <Text style={styles.updatedInfo}>
+                  Last updated by {lastUpdatedBy} on {updatedAt}
+                </Text>
+                
+                <View style={styles.modalButtons}>
+                  {isUpdatingSportRules ? (
+                    <TouchableOpacity 
+                      style={[styles.modalButton, styles.submitButton]}
+                      onPress={updateSportRules}
+                    >
+                      <Text style={styles.modalButtonText}>Save Changes</Text>
+                    </TouchableOpacity>
+                  ) : (
+                    <TouchableOpacity 
+                      style={[styles.modalButton, styles.updateButton]}
+                      onPress={() => setIsUpdatingSportRules(true)}
+                    >
+                      <Text style={styles.modalButtonText}>Update Rules</Text>
+                    </TouchableOpacity>
+                  )}
+                  
+                  <TouchableOpacity 
+                    style={[styles.modalButton, styles.cancelButton]}
+                    onPress={() => {
+                      setIsSportsModalVisible(false);
+                      setIsUpdatingSportRules(false);
+                    }}
+                  >
+                    <Text style={[styles.modalButtonText, { color: '#6573EA' }]}>Close</Text>
+                  </TouchableOpacity>
+                </View>
+              </ScrollView>
+            </View>
+          </Animatable.View>
+        </Modal>
+      </ScrollView>
+    </ImageBackground>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 50,
-    backgroundColor: 'white',
+  },
+  scrollContainer: {
+    padding: 20,
+    paddingBottom: 40,
+  },
+  headerContainer: {
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    padding: 20,
+    borderRadius: 15,
+    marginBottom: 20,
+    alignItems: 'center',
+    elevation: 3,
   },
   headerText: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 5,
+  },
+  roleText: {
+    fontSize: 16,
     color: '#6573EA',
+    fontWeight: '600',
+  },
+  actionsContainer: {
     marginBottom: 20,
   },
-  buttonContainer: {
-    flexDirection: 'column',
+  actionButton: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 20,
-  },
-  button: {
-    backgroundColor: '#6573EA',
+    justifyContent: 'center',
     padding: 15,
-    borderRadius: 12,
-    width: '80%',
-    alignItems: 'center',
-    marginVertical: 10,
+    borderRadius: 10,
+    marginBottom: 15,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
   },
-  buttonText: {
+  logoutButton: {
+    backgroundColor: '#F44336',
+  },
+  passwordButton: {
+    backgroundColor: '#9C27B0',
+  },
+  coordinatorButton: {
+    backgroundColor: '#4CAF50',
+  },
+  refereeButton: {
+    backgroundColor: '#FF9800',
+  },
+  poolsButton: {
+    backgroundColor: '#2196F3',
+  },
+  historyButton: {
+    backgroundColor: '#607D8B',
+  },
+  actionButtonText: {
     color: 'white',
     fontWeight: 'bold',
+    fontSize: 16,
+    marginLeft: 10,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
-    color: '#6573EA',
-    marginBottom: 10,
+    color: '#333',
+    marginBottom: 15,
+    marginTop: 10,
     textAlign: 'center',
   },
-  sportButtonsContainer: {
-    flexDirection: 'column',
-    alignItems: 'center',
+  sportsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
   },
-  sportButton: {
-    backgroundColor: '#6573EA',
-    paddingVertical: 15,
-    paddingHorizontal: 25,
+  sportCard: {
+    width: '48%',
+    backgroundColor: 'rgba(102, 139, 190, 0.9)',
     borderRadius: 10,
-    marginVertical: 10,
-    width: '80%',
-    alignItems: 'center',
+    padding: 15,
+    marginBottom: 15,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
   },
-  sportButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
+  sportText: {
+    fontSize: 16,
+    color: '#333',
+    fontWeight: '500',
   },
-  modalContent: {
+  sportIcon: {
+    position: 'absolute',
+    right: 10,
+    top: '50%',
+    marginTop: -12,
+  },
+  modalCard: {
     backgroundColor: 'white',
+    borderRadius: 15,
     padding: 20,
-    borderRadius: 10,
+    elevation: 5,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
   },
   modalTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#6573EA',
-    marginBottom: 15,
-    textAlign: 'center',
+    color: '#333',
   },
-  input: {
+  modalInput: {
+    width: '100%',
     borderWidth: 1,
-    borderColor: '#6573EA',
-    padding: 10,
-    marginBottom: 15,
+    borderColor: '#E0E0E0',
     borderRadius: 8,
-    color: '#6573EA',
+    padding: 15,
+    fontSize: 16,
+    marginBottom: 15,
+    backgroundColor: 'white',
+  },
+  pickerContainer: {
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    borderRadius: 8,
+    marginBottom: 15,
+    overflow: 'hidden',
   },
   picker: {
-    height: 60,
-    marginBottom: 15,
-    color: 'white',
-    backgroundColor: '#6573EA',
-    borderWidth: 1,
-    borderColor: '#6573EA', // Your desired border color
-    borderRadius: 8, // Optional: add rounded corners to the border
+    height: 50,
+    width: '100%',
+    color: '#333',
+    backgroundColor: 'white',
   },
-  
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 10,
+  },
+  modalButton: {
+    flex: 1,
+    padding: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginHorizontal: 5,
+  },
   submitButton: {
     backgroundColor: '#6573EA',
-    padding: 10,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginVertical: 10,
-  },
-  submitButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
-  },
-  cancelButton: {
-    backgroundColor: 'gray',
-    padding: 10,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  cancelButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
   },
   updateButton: {
-    backgroundColor: '#6573EA',
-    padding: 10,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginVertical: 10,
+    backgroundColor: '#FF9800',
+  },
+  cancelButton: {
+    backgroundColor: 'white',
+    borderWidth: 1,
+    borderColor: '#6573EA',
+  },
+  modalButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
   },
   rulesText: {
     fontSize: 16,
-    marginBottom: 10,
     color: '#333',
+    lineHeight: 24,
+    marginBottom: 15,
   },
-  updatedByText: {
+  updatedInfo: {
     fontSize: 14,
-    color: '#aaa',
-    marginBottom: 10,
+    color: '#666',
+    fontStyle: 'italic',
+    marginBottom: 15,
   },
 });
+
+export default CoachLandingPage;

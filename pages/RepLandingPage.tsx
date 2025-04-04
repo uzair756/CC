@@ -1,7 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, StyleSheet, Alert, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Alert, TouchableOpacity, ScrollView, ImageBackground } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Modal from 'react-native-modal';
+import { TextInput, Card, Avatar } from 'react-native-paper';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import * as Animatable from 'react-native-animatable';
+import { useTheme } from '@react-navigation/native';
 
 export const RepLandingPage = ({ navigation }) => {
   const [user, setUser] = useState(null);
@@ -9,6 +13,7 @@ export const RepLandingPage = ({ navigation }) => {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  const { colors } = useTheme();
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -108,166 +113,239 @@ export const RepLandingPage = ({ navigation }) => {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.welcomeText}>
-        Welcome, {user?.username} of department {user?.department}
-      </Text>
 
-      <TouchableOpacity style={styles.button} onPress={handleGoToNominations}>
-        <Text style={styles.buttonText}>Go to Nominations</Text>
-      </TouchableOpacity>
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <Animatable.View animation="fadeInDown" duration={1000}>
+          <Card style={styles.profileCard}>
+            <Card.Content>
+              <View style={styles.avatarContainer}>
+                <Avatar.Text 
+                  size={80} 
+                  label={user?.username?.charAt(0).toUpperCase() || 'U'} 
+                  style={styles.avatar}
+                  color="#fff"
+                />
+              </View>
+              <Text style={styles.welcomeText}>
+                Welcome, {user?.username}
+              </Text>
+              <Text style={styles.departmentText}>
+                Department of {user?.department}
+              </Text>
+            </Card.Content>
+          </Card>
+        </Animatable.View>
 
-      <TouchableOpacity style={styles.button} onPress={handleGoToTrialsConfirmation}>
-        <Text style={styles.buttonText}>Create Trials Schedule</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity style={styles.button} onPress={CreateCaptainsAccount}>
-        <Text style={styles.buttonText}>Create Captains Account</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity style={styles.logoutButton} onPress={handleSignOut}>
-        <Text style={styles.logoutButtonText}>Log Out</Text>
-      </TouchableOpacity>
-
-
-      <TouchableOpacity style={styles.button} onPress={() => setIsChangePasswordVisible(true)}>
-        <Text style={styles.buttonText}>Change Password</Text>
-      </TouchableOpacity>
-
-      <Modal isVisible={isChangePasswordVisible}>
-        <View style={styles.modalContent}>
-          <Text style={styles.modalTitle}>Change Password</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Current Password"
-            secureTextEntry
-            placeholderTextColor='black'
-            value={currentPassword}
-            onChangeText={setCurrentPassword}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="New Password"
-            secureTextEntry
-            placeholderTextColor='black'
-            value={newPassword}
-            onChangeText={setNewPassword}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Confirm New Password"
-            secureTextEntry
-            placeholderTextColor='black'
-            value={confirmNewPassword}
-            onChangeText={setConfirmNewPassword}
-          />
-          <TouchableOpacity style={styles.button} onPress={handleChangePassword}>
-            <Text style={styles.buttonText}>Update Password</Text>
+        <Animatable.View animation="fadeInUp" delay={300} style={styles.actionsContainer}>
+          <TouchableOpacity 
+            style={[styles.actionButton, { backgroundColor: '#6573EA' }]} 
+            onPress={handleGoToNominations}
+          >
+            <Icon name="vote" size={24} color="white" style={styles.buttonIcon} />
+            <Text style={styles.actionButtonText}>Nominations</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.cancelButton} onPress={() => setIsChangePasswordVisible(false)}>
-            <Text style={styles.cancelButtonText}>Cancel</Text>
+
+          <TouchableOpacity 
+            style={[styles.actionButton, { backgroundColor: '#4CAF50' }]} 
+            onPress={handleGoToTrialsConfirmation}
+          >
+            <Icon name="calendar-clock" size={24} color="white" style={styles.buttonIcon} />
+            <Text style={styles.actionButtonText}>Trials Schedule</Text>
           </TouchableOpacity>
-        </View>
-      </Modal>
-    </View>
+
+          <TouchableOpacity 
+            style={[styles.actionButton, { backgroundColor: '#FF9800' }]} 
+            onPress={CreateCaptainsAccount}
+          >
+            <Icon name="account-plus" size={24} color="white" style={styles.buttonIcon} />
+            <Text style={styles.actionButtonText}>Create Captain Account</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={[styles.actionButton, { backgroundColor: '#9C27B0' }]} 
+            onPress={() => setIsChangePasswordVisible(true)}
+          >
+            <Icon name="lock-reset" size={24} color="white" style={styles.buttonIcon} />
+            <Text style={styles.actionButtonText}>Change Password</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={[styles.actionButton, { backgroundColor: '#F44336', borderWidth: 0 }]} 
+            onPress={handleSignOut}
+          >
+            <Icon name="logout" size={24} color="white" style={styles.buttonIcon} />
+            <Text style={styles.actionButtonText}>Log Out</Text>
+          </TouchableOpacity>
+        </Animatable.View>
+
+        <Modal 
+          isVisible={isChangePasswordVisible}
+          backdropColor="#000"
+          backdropOpacity={0.5}
+          animationIn="zoomIn"
+          animationOut="zoomOut"
+          animationInTiming={300}
+          animationOutTiming={300}
+          backdropTransitionInTiming={300}
+          backdropTransitionOutTiming={300}
+        >
+          <Animatable.View animation="zoomIn" duration={300}>
+            <Card style={styles.modalCard}>
+              <Card.Content>
+                <View style={styles.modalHeader}>
+                  <Text style={styles.modalTitle}>Change Password</Text>
+                  <Icon name="lock" size={30} color="#6573EA" />
+                </View>
+                
+                <TextInput
+                  label="Current Password"
+                  mode="outlined"
+                  secureTextEntry
+                  style={styles.input}
+                  value={currentPassword}
+                  onChangeText={setCurrentPassword}
+                  left={<TextInput.Icon name="lock" />}
+                  theme={{ colors: { primary: '#6573EA' } }}
+                />
+                
+                <TextInput
+                  label="New Password"
+                  mode="outlined"
+                  secureTextEntry
+                  style={styles.input}
+                  value={newPassword}
+                  onChangeText={setNewPassword}
+                  left={<TextInput.Icon name="lock-plus" />}
+                  theme={{ colors: { primary: '#6573EA' } }}
+                />
+                
+                <TextInput
+                  label="Confirm New Password"
+                  mode="outlined"
+                  secureTextEntry
+                  style={styles.input}
+                  value={confirmNewPassword}
+                  onChangeText={setConfirmNewPassword}
+                  left={<TextInput.Icon name="lock-check" />}
+                  theme={{ colors: { primary: '#6573EA' } }}
+                />
+                
+                <View style={styles.modalButtons}>
+                  <TouchableOpacity 
+                    style={[styles.modalButton, { backgroundColor: '#6573EA' }]} 
+                    onPress={handleChangePassword}
+                  >
+                    <Text style={styles.modalButtonText}>Update Password</Text>
+                  </TouchableOpacity>
+                  
+                  <TouchableOpacity 
+                    style={[styles.modalButton, { backgroundColor: '#F44336' }]} 
+                    onPress={() => setIsChangePasswordVisible(false)}
+                  >
+                    <Text style={styles.modalButtonText}>Cancel</Text>
+                  </TouchableOpacity>
+                </View>
+              </Card.Content>
+            </Card>
+          </Animatable.View>
+        </Modal>
+      </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  scrollContainer: {
     padding: 20,
-    justifyContent: 'center',
+    paddingBottom: 40,
+  },
+  profileCard: {
+    borderRadius: 15,
+    marginBottom: 20,
+    elevation: 5,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    paddingVertical: 20,
+  },
+  avatarContainer: {
     alignItems: 'center',
-    backgroundColor: 'white',
+    marginBottom: 15,
+  },
+  avatar: {
+    backgroundColor: '#6573EA',
   },
   welcomeText: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: 'bold',
-    color: '#6573EA',
-    marginBottom: 20,
+    color: '#333',
+    textAlign: 'center',
+    marginBottom: 5,
   },
-  button: {
-    backgroundColor: '#6573EA',
+  departmentText: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: 10,
+  },
+  actionsContainer: {
+    width: '100%',
+  },
+  actionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
     padding: 15,
     borderRadius: 10,
-    marginTop: 10,
-    width: '80%',
-    alignItems: 'center',
+    marginBottom: 15,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
   },
-  buttonText: {
+  actionButtonText: {
     color: '#FFF',
     fontWeight: 'bold',
     fontSize: 16,
+    marginLeft: 10,
   },
-  logoutButton: {
-    backgroundColor: '#FFF',
-    borderWidth: 1,
-    borderColor: '#6573EA',
-    padding: 15,
-    borderRadius: 10,
-    marginTop: 10,
-    width: '80%',
-    alignItems: 'center',
+  buttonIcon: {
+    marginRight: 10,
   },
-  logoutButtonText: {
-    color: '#6573EA',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-  profileHeader: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#6573EA',
-    marginTop: 20,
-    marginBottom: 10,
-  },
-  profileContainer: {
-    backgroundColor: '#FFF',
-    padding: 15,
-    borderRadius: 10,
-    width: '90%',
-    marginBottom: 20,
-    alignItems: 'center',
-  },
-  profileText: {
-    fontSize: 16,
-    marginBottom: 5,
-    color: '#333',
-  },
-  modalContent: {
+  modalCard: {
+    borderRadius: 15,
     backgroundColor: 'white',
-    padding: 20,
-    borderRadius: 10,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
+    marginBottom: 20,
   },
   modalTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
-    marginBottom: 10,
-    color: '#6573EA',
+    color: '#333',
   },
   input: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
-    padding: 10,
-    width: '100%',
     marginBottom: 15,
+    backgroundColor: 'white',
   },
-  cancelButton: {
-    backgroundColor: '#FFF',
-    borderWidth: 1,
-    borderColor: '#6573EA',
-    padding: 15,
-    borderRadius: 10,
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     marginTop: 10,
-    width: '80%',
-    alignItems: 'center',
   },
-  cancelButtonText: {
-    color: '#6573EA',
+  modalButton: {
+    flex: 1,
+    padding: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginHorizontal: 5,
+  },
+  modalButtonText: {
+    color: 'white',
     fontWeight: 'bold',
-    fontSize: 16,
   },
 });
