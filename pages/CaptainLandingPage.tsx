@@ -11,12 +11,17 @@ export const CaptainLandingPage = ({ navigation }) => {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  const [errors, setErrors] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmNewPassword: '',
+  });
 
   useEffect(() => {
     const fetchProfile = async () => {
       try {
         const token = await AsyncStorage.getItem('token');
-        const response = await fetch('http://192.168.100.4:3002/captainlandingpage', {
+        const response = await fetch('http://192.168.1.21:3002/captainlandingpage', {
           method: 'GET',
           headers: { 'Authorization': `Bearer ${token}` },
         });
@@ -40,23 +45,60 @@ export const CaptainLandingPage = ({ navigation }) => {
 
   const handleSignOut = async () => {
     await AsyncStorage.removeItem('token');
-    navigation.navigate('IndexPage');
+    navigation.replace('IndexPage');
+  };
+
+
+  const validatePassword = (password) => {
+    return password.length >= 6;
+  };
+  
+  const validateForm = () => {
+    let isValid = true;
+    const newErrors = {
+      currentPassword: '',
+      newPassword: '',
+      confirmNewPassword: '',
+    };
+  
+    if (!currentPassword) {
+      newErrors.currentPassword = 'Current password is required';
+      isValid = false;
+    }
+  
+    if (!newPassword) {
+      newErrors.newPassword = 'New password is required';
+      isValid = false;
+    } else if (!validatePassword(newPassword)) {
+      newErrors.newPassword = 'Password must be at least 6 characters';
+      isValid = false;
+    }
+  
+    if (!confirmNewPassword) {
+      newErrors.confirmNewPassword = 'Please confirm your new password';
+      isValid = false;
+    } else if (newPassword !== confirmNewPassword) {
+      newErrors.confirmNewPassword = 'Passwords do not match';
+      isValid = false;
+    }
+  
+    setErrors(newErrors);
+    return isValid;
   };
 
   const handleChangePassword = async () => {
-    if (newPassword !== confirmNewPassword) {
-      Alert.alert('Error', 'New password and confirmation do not match');
+    if (!validateForm()) {
       return;
     }
-
+  
     try {
       const token = await AsyncStorage.getItem('token');
       if (!token) {
         Alert.alert('Error', 'No authentication token found');
         return;
       }
-
-      const response = await fetch('http://192.168.100.4:3002/changepasswordcaptain', {
+  
+      const response = await fetch('http://192.168.1.21:3002/changepasswordcaptain', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -64,15 +106,20 @@ export const CaptainLandingPage = ({ navigation }) => {
         },
         body: JSON.stringify({ currentPassword, newPassword }),
       });
-
+  
       const data = await response.json();
-
+  
       if (data.success) {
         Alert.alert('Success', 'Password updated successfully');
         setIsChangePasswordVisible(false);
         setCurrentPassword('');
         setNewPassword('');
         setConfirmNewPassword('');
+        setErrors({
+          currentPassword: '',
+          newPassword: '',
+          confirmNewPassword: '',
+        });
       } else {
         Alert.alert('Error', data.error || 'Failed to update password');
       }
@@ -85,7 +132,7 @@ export const CaptainLandingPage = ({ navigation }) => {
   const handleEventConfirmation = async (eventId) => {
     try {
       const token = await AsyncStorage.getItem('token');
-      const response = await fetch(`http://192.168.100.4:3002/confirmtrial/${eventId}`, {
+      const response = await fetch(`http://192.168.1.21:3002/confirmtrial/${eventId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -207,63 +254,83 @@ export const CaptainLandingPage = ({ navigation }) => {
         <Icon name="logout" size={20} color="#fff" />
       </TouchableOpacity>
 
-      {/* Change Password Modal */}
       <Modal isVisible={isChangePasswordVisible}>
-        <View style={styles.modalContainer}>
-          <Text style={styles.modalTitle}>Change Password</Text>
-          
-          <View style={styles.inputContainer}>
-            <Icon name="lock" size={20} color="#3a7bd5" style={styles.inputIcon} />
-            <TextInput
-              style={styles.modalInput}
-              placeholder="Current Password"
-              placeholderTextColor="#666"
-              secureTextEntry
-              value={currentPassword}
-              onChangeText={setCurrentPassword}
-            />
-          </View>
+  <View style={styles.modalContainer}>
+    <Text style={styles.modalTitle}>Change Password</Text>
+    
+    <View style={styles.inputContainer}>
+      <Icon name="lock" size={20} color="#3a7bd5" style={styles.inputIcon} />
+      <TextInput
+        style={styles.modalInput}
+        placeholder="Current Password"
+        placeholderTextColor="#666"
+        secureTextEntry
+        value={currentPassword}
+        onChangeText={(text) => {
+          setCurrentPassword(text);
+          setErrors({...errors, currentPassword: ''});
+        }}
+      />
+    </View>
+    {errors.currentPassword ? <Text style={styles.errorText}>{errors.currentPassword}</Text> : null}
 
-          <View style={styles.inputContainer}>
-            <Icon name="lock-plus" size={20} color="#3a7bd5" style={styles.inputIcon} />
-            <TextInput
-              style={styles.modalInput}
-              placeholder="New Password"
-              placeholderTextColor="#666"
-              secureTextEntry
-              value={newPassword}
-              onChangeText={setNewPassword}
-            />
-          </View>
+    <View style={styles.inputContainer}>
+      <Icon name="lock-plus" size={20} color="#3a7bd5" style={styles.inputIcon} />
+      <TextInput
+        style={styles.modalInput}
+        placeholder="New Password"
+        placeholderTextColor="#666"
+        secureTextEntry
+        value={newPassword}
+        onChangeText={(text) => {
+          setNewPassword(text);
+          setErrors({...errors, newPassword: ''});
+        }}
+      />
+    </View>
+    {errors.newPassword ? <Text style={styles.errorText}>{errors.newPassword}</Text> : null}
 
-          <View style={styles.inputContainer}>
-            <Icon name="lock-check" size={20} color="#3a7bd5" style={styles.inputIcon} />
-            <TextInput
-              style={styles.modalInput}
-              placeholder="Confirm New Password"
-              placeholderTextColor="#666"
-              secureTextEntry
-              value={confirmNewPassword}
-              onChangeText={setConfirmNewPassword}
-            />
-          </View>
+    <View style={styles.inputContainer}>
+      <Icon name="lock-check" size={20} color="#3a7bd5" style={styles.inputIcon} />
+      <TextInput
+        style={styles.modalInput}
+        placeholder="Confirm New Password"
+        placeholderTextColor="#666"
+        secureTextEntry
+        value={confirmNewPassword}
+        onChangeText={(text) => {
+          setConfirmNewPassword(text);
+          setErrors({...errors, confirmNewPassword: ''});
+        }}
+      />
+    </View>
+    {errors.confirmNewPassword ? <Text style={styles.errorText}>{errors.confirmNewPassword}</Text> : null}
 
-          <View style={styles.modalButtonContainer}>
-            <TouchableOpacity 
-              style={[styles.modalButton, styles.cancelButton]}
-              onPress={() => setIsChangePasswordVisible(false)}
-            >
-              <Text style={styles.cancelButtonText}>Cancel</Text>
-            </TouchableOpacity>
-            <TouchableOpacity 
-              style={[styles.modalButton, styles.submitButton]}
-              onPress={handleChangePassword}
-            >
-              <Text style={styles.submitButtonText}>Update Password</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
+    <View style={styles.modalButtonContainer}>
+      <TouchableOpacity 
+        style={[styles.modalButton, styles.cancelButton]}
+        onPress={() => {
+          setIsChangePasswordVisible(false);
+          setErrors({
+            currentPassword: '',
+            newPassword: '',
+            confirmNewPassword: '',
+          });
+        }}
+      >
+        <Text style={styles.cancelButtonText}>Cancel</Text>
+      </TouchableOpacity>
+      <TouchableOpacity 
+        style={[styles.modalButton, styles.submitButton, 
+          (!currentPassword || !newPassword || !confirmNewPassword) && styles.disabledButton]}
+        onPress={handleChangePassword}
+        disabled={!currentPassword || !newPassword || !confirmNewPassword}
+      >
+        <Text style={styles.submitButtonText}>Update Password</Text>
+      </TouchableOpacity>
+    </View>
+  </View>
+</Modal>
     </ScrollView>
   );
 };
@@ -508,6 +575,16 @@ const styles = StyleSheet.create({
   cancelButtonText: {
     color: '#333',
     fontWeight: 'bold',
+  },
+  errorText: {
+    color: '#e74c3c',
+    fontSize: 12,
+    marginTop: -10,
+    marginBottom: 10,
+    marginLeft: 35,
+  },
+  disabledButton: {
+    opacity: 0.6,
   },
 });
 

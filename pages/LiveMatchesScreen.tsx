@@ -40,7 +40,7 @@ export const LiveMatchesScreen = () => {
       setLoading(true);
       try {
         const response = await fetch(
-          `http://192.168.100.4:3002/livematches?sportCategory=${selectedSport}`,
+          `http://192.168.1.21:3002/livematches?sportCategory=${selectedSport}`,
         );
         const data = await response.json();
 
@@ -378,7 +378,7 @@ const styles = StyleSheet.create({
     padding: 15,
   },
   matchContainer: {
-    backgroundColor: '#007BFF',
+    backgroundColor: '#3498db',
     borderRadius: 10,
     shadowColor: '#000',
     shadowOffset: {width: 0, height: 2},

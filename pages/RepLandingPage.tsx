@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Alert, TouchableOpacity, ScrollView, ImageBackground } from 'react-native';
+import { View, Text, StyleSheet, Alert, TouchableOpacity, ScrollView } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Modal from 'react-native-modal';
 import { TextInput, Card, Avatar } from 'react-native-paper';
@@ -13,13 +13,15 @@ export const RepLandingPage = ({ navigation }) => {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  const [passwordErrors, setPasswordErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { colors } = useTheme();
 
   useEffect(() => {
     const fetchProfile = async () => {
       try {
         const token = await AsyncStorage.getItem('token');
-        const response = await fetch('http://192.168.100.4:3002/coordinatorlandingpage', {
+        const response = await fetch('http://192.168.1.21:3002/coordinatorlandingpage', {
           method: 'GET',
           headers: { 'Authorization': `Bearer ${token}` },
         });
@@ -40,17 +42,38 @@ export const RepLandingPage = ({ navigation }) => {
     fetchProfile();
   }, []);
 
-  const handleSignOut = async () => {
-    await AsyncStorage.removeItem('token');
-    navigation.navigate('IndexPage');
+  const validatePasswordForm = () => {
+    const newErrors = {};
+    
+    if (!currentPassword) {
+      newErrors.currentPassword = 'Current password is required';
+    }
+    
+    if (!newPassword) {
+      newErrors.newPassword = 'New password is required';
+    } else if (newPassword.length < 8) {
+      newErrors.newPassword = 'Password must be at least 8 characters';
+    } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/.test(newPassword)) {
+      newErrors.newPassword = 'Must include uppercase, lowercase, number, and special character';
+    } else if (newPassword === currentPassword) {
+      newErrors.newPassword = 'New password must be different from current password';
+    }
+    
+    if (!confirmNewPassword) {
+      newErrors.confirmNewPassword = 'Please confirm your new password';
+    } else if (newPassword !== confirmNewPassword) {
+      newErrors.confirmNewPassword = 'Passwords do not match';
+    }
+    
+    setPasswordErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleChangePassword = async () => {
-    if (newPassword !== confirmNewPassword) {
-      Alert.alert('Error', 'New password and confirmation do not match');
-      return;
-    }
-
+    if (!validatePasswordForm()) return;
+    
+    setIsSubmitting(true);
+    
     try {
       const token = await AsyncStorage.getItem('token');
       if (!token) {
@@ -58,7 +81,7 @@ export const RepLandingPage = ({ navigation }) => {
         return;
       }
 
-      const response = await fetch('http://192.168.100.4:3002/changepasswordrep', {
+      const response = await fetch('http://192.168.1.21:3002/changepasswordrep', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -75,13 +98,21 @@ export const RepLandingPage = ({ navigation }) => {
         setCurrentPassword('');
         setNewPassword('');
         setConfirmNewPassword('');
+        setPasswordErrors({});
       } else {
         Alert.alert('Error', data.error || 'Failed to update password');
       }
     } catch (error) {
       console.error('Error updating password:', error);
       Alert.alert('Error', 'An error occurred while updating the password');
+    } finally {
+      setIsSubmitting(false);
     }
+  };
+
+  const handleSignOut = async () => {
+    await AsyncStorage.removeItem('token');
+    navigation.replace('IndexPage');
   };
 
   const handleGoToNominations = () => {
@@ -113,143 +144,164 @@ export const RepLandingPage = ({ navigation }) => {
   };
 
   return (
+    <ScrollView contentContainerStyle={styles.scrollContainer}>
+      <Animatable.View animation="fadeInDown" duration={1000}>
+        <Card style={styles.profileCard}>
+          <Card.Content>
+            <View style={styles.avatarContainer}>
+              <Avatar.Text 
+                size={80} 
+                label={user?.username?.charAt(0).toUpperCase() || 'U'} 
+                style={styles.avatar}
+                color="#fff"
+              />
+            </View>
+            <Text style={styles.welcomeText}>
+              Welcome, {user?.username}
+            </Text>
+            <Text style={styles.departmentText}>
+              Department of {user?.department}
+            </Text>
+          </Card.Content>
+        </Card>
+      </Animatable.View>
 
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <Animatable.View animation="fadeInDown" duration={1000}>
-          <Card style={styles.profileCard}>
+      <Animatable.View animation="fadeInUp" delay={300} style={styles.actionsContainer}>
+        <TouchableOpacity 
+          style={[styles.actionButton, { backgroundColor: '#6573EA' }]} 
+          onPress={handleGoToNominations}
+        >
+          <Icon name="vote" size={24} color="white" style={styles.buttonIcon} />
+          <Text style={styles.actionButtonText}>Nominations</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          style={[styles.actionButton, { backgroundColor: '#4CAF50' }]} 
+          onPress={handleGoToTrialsConfirmation}
+        >
+          <Icon name="calendar-clock" size={24} color="white" style={styles.buttonIcon} />
+          <Text style={styles.actionButtonText}>Trials Schedule</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          style={[styles.actionButton, { backgroundColor: '#FF9800' }]} 
+          onPress={CreateCaptainsAccount}
+        >
+          <Icon name="account-plus" size={24} color="white" style={styles.buttonIcon} />
+          <Text style={styles.actionButtonText}>Create Captain Account</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          style={[styles.actionButton, { backgroundColor: '#9C27B0' }]} 
+          onPress={() => {
+            setIsChangePasswordVisible(true);
+            setPasswordErrors({});
+          }}
+        >
+          <Icon name="lock-reset" size={24} color="white" style={styles.buttonIcon} />
+          <Text style={styles.actionButtonText}>Change Password</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          style={[styles.actionButton, { backgroundColor: '#F44336', borderWidth: 0 }]} 
+          onPress={handleSignOut}
+        >
+          <Icon name="logout" size={24} color="white" style={styles.buttonIcon} />
+          <Text style={styles.actionButtonText}>Log Out</Text>
+        </TouchableOpacity>
+      </Animatable.View>
+
+      <Modal 
+        isVisible={isChangePasswordVisible}
+        backdropColor="#000"
+        backdropOpacity={0.5}
+        animationIn="zoomIn"
+        animationOut="zoomOut"
+        animationInTiming={300}
+        animationOutTiming={300}
+        backdropTransitionInTiming={300}
+        backdropTransitionOutTiming={300}
+        onBackdropPress={() => setIsChangePasswordVisible(false)}
+      >
+        <Animatable.View animation="zoomIn" duration={300}>
+          <Card style={styles.modalCard}>
             <Card.Content>
-              <View style={styles.avatarContainer}>
-                <Avatar.Text 
-                  size={80} 
-                  label={user?.username?.charAt(0).toUpperCase() || 'U'} 
-                  style={styles.avatar}
-                  color="#fff"
-                />
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Change Password</Text>
+                <Icon name="lock" size={30} color="#6573EA" />
               </View>
-              <Text style={styles.welcomeText}>
-                Welcome, {user?.username}
-              </Text>
-              <Text style={styles.departmentText}>
-                Department of {user?.department}
-              </Text>
+              
+              <TextInput
+                label="Current Password"
+                mode="outlined"
+                secureTextEntry
+                style={styles.input}
+                value={currentPassword}
+                onChangeText={setCurrentPassword}
+                left={<TextInput.Icon name="lock" />}
+                theme={{ colors: { primary: '#6573EA' } }}
+                error={!!passwordErrors.currentPassword}
+              />
+              {passwordErrors.currentPassword && (
+                <Text style={styles.errorText}>{passwordErrors.currentPassword}</Text>
+              )}
+              
+              <TextInput
+                label="New Password"
+                mode="outlined"
+                secureTextEntry
+                style={styles.input}
+                value={newPassword}
+                onChangeText={setNewPassword}
+                left={<TextInput.Icon name="lock-plus" />}
+                theme={{ colors: { primary: '#6573EA' } }}
+                error={!!passwordErrors.newPassword}
+              />
+              {passwordErrors.newPassword && (
+                <Text style={styles.errorText}>{passwordErrors.newPassword}</Text>
+              )}
+              
+              <TextInput
+                label="Confirm New Password"
+                mode="outlined"
+                secureTextEntry
+                style={styles.input}
+                value={confirmNewPassword}
+                onChangeText={setConfirmNewPassword}
+                left={<TextInput.Icon name="lock-check" />}
+                theme={{ colors: { primary: '#6573EA' } }}
+                error={!!passwordErrors.confirmNewPassword}
+              />
+              {passwordErrors.confirmNewPassword && (
+                <Text style={styles.errorText}>{passwordErrors.confirmNewPassword}</Text>
+              )}
+              
+              <View style={styles.modalButtons}>
+                <TouchableOpacity 
+                  style={[styles.modalButton, { backgroundColor: '#6573EA' }]} 
+                  onPress={handleChangePassword}
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? (
+                    <ActivityIndicator color="#fff" />
+                  ) : (
+                    <Text style={styles.modalButtonText}>Update Password</Text>
+                  )}
+                </TouchableOpacity>
+                
+                <TouchableOpacity 
+                  style={[styles.modalButton, { backgroundColor: '#F44336' }]} 
+                  onPress={() => setIsChangePasswordVisible(false)}
+                  disabled={isSubmitting}
+                >
+                  <Text style={styles.modalButtonText}>Cancel</Text>
+                </TouchableOpacity>
+              </View>
             </Card.Content>
           </Card>
         </Animatable.View>
-
-        <Animatable.View animation="fadeInUp" delay={300} style={styles.actionsContainer}>
-          <TouchableOpacity 
-            style={[styles.actionButton, { backgroundColor: '#6573EA' }]} 
-            onPress={handleGoToNominations}
-          >
-            <Icon name="vote" size={24} color="white" style={styles.buttonIcon} />
-            <Text style={styles.actionButtonText}>Nominations</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity 
-            style={[styles.actionButton, { backgroundColor: '#4CAF50' }]} 
-            onPress={handleGoToTrialsConfirmation}
-          >
-            <Icon name="calendar-clock" size={24} color="white" style={styles.buttonIcon} />
-            <Text style={styles.actionButtonText}>Trials Schedule</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity 
-            style={[styles.actionButton, { backgroundColor: '#FF9800' }]} 
-            onPress={CreateCaptainsAccount}
-          >
-            <Icon name="account-plus" size={24} color="white" style={styles.buttonIcon} />
-            <Text style={styles.actionButtonText}>Create Captain Account</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity 
-            style={[styles.actionButton, { backgroundColor: '#9C27B0' }]} 
-            onPress={() => setIsChangePasswordVisible(true)}
-          >
-            <Icon name="lock-reset" size={24} color="white" style={styles.buttonIcon} />
-            <Text style={styles.actionButtonText}>Change Password</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity 
-            style={[styles.actionButton, { backgroundColor: '#F44336', borderWidth: 0 }]} 
-            onPress={handleSignOut}
-          >
-            <Icon name="logout" size={24} color="white" style={styles.buttonIcon} />
-            <Text style={styles.actionButtonText}>Log Out</Text>
-          </TouchableOpacity>
-        </Animatable.View>
-
-        <Modal 
-          isVisible={isChangePasswordVisible}
-          backdropColor="#000"
-          backdropOpacity={0.5}
-          animationIn="zoomIn"
-          animationOut="zoomOut"
-          animationInTiming={300}
-          animationOutTiming={300}
-          backdropTransitionInTiming={300}
-          backdropTransitionOutTiming={300}
-        >
-          <Animatable.View animation="zoomIn" duration={300}>
-            <Card style={styles.modalCard}>
-              <Card.Content>
-                <View style={styles.modalHeader}>
-                  <Text style={styles.modalTitle}>Change Password</Text>
-                  <Icon name="lock" size={30} color="#6573EA" />
-                </View>
-                
-                <TextInput
-                  label="Current Password"
-                  mode="outlined"
-                  secureTextEntry
-                  style={styles.input}
-                  value={currentPassword}
-                  onChangeText={setCurrentPassword}
-                  left={<TextInput.Icon name="lock" />}
-                  theme={{ colors: { primary: '#6573EA' } }}
-                />
-                
-                <TextInput
-                  label="New Password"
-                  mode="outlined"
-                  secureTextEntry
-                  style={styles.input}
-                  value={newPassword}
-                  onChangeText={setNewPassword}
-                  left={<TextInput.Icon name="lock-plus" />}
-                  theme={{ colors: { primary: '#6573EA' } }}
-                />
-                
-                <TextInput
-                  label="Confirm New Password"
-                  mode="outlined"
-                  secureTextEntry
-                  style={styles.input}
-                  value={confirmNewPassword}
-                  onChangeText={setConfirmNewPassword}
-                  left={<TextInput.Icon name="lock-check" />}
-                  theme={{ colors: { primary: '#6573EA' } }}
-                />
-                
-                <View style={styles.modalButtons}>
-                  <TouchableOpacity 
-                    style={[styles.modalButton, { backgroundColor: '#6573EA' }]} 
-                    onPress={handleChangePassword}
-                  >
-                    <Text style={styles.modalButtonText}>Update Password</Text>
-                  </TouchableOpacity>
-                  
-                  <TouchableOpacity 
-                    style={[styles.modalButton, { backgroundColor: '#F44336' }]} 
-                    onPress={() => setIsChangePasswordVisible(false)}
-                  >
-                    <Text style={styles.modalButtonText}>Cancel</Text>
-                  </TouchableOpacity>
-                </View>
-              </Card.Content>
-            </Card>
-          </Animatable.View>
-        </Modal>
-      </ScrollView>
+      </Modal>
+    </ScrollView>
   );
 };
 
@@ -329,8 +381,14 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   input: {
-    marginBottom: 15,
+    marginBottom: 5,
     backgroundColor: 'white',
+  },
+  errorText: {
+    color: '#F44336',
+    fontSize: 12,
+    marginBottom: 10,
+    marginLeft: 5,
   },
   modalButtons: {
     flexDirection: 'row',
@@ -343,9 +401,12 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
     marginHorizontal: 5,
+    opacity: 1,
   },
   modalButtonText: {
     color: 'white',
     fontWeight: 'bold',
   },
 });
+
+export default RepLandingPage;

@@ -39,11 +39,25 @@ export const AdminLandingPage = ({ navigation }) => {
   const [newPassword, setNewPassword] = useState('');
   const [confirmNewPassword, setConfirmNewPassword] = useState('');
 
+    // Validation functions
+    const validateEmail = (email) => {
+      const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      return re.test(email);
+    };
+  
+    const validatePassword = (password) => {
+      return password.length >= 6;
+    };
+  
+    const validateUsername = (username) => {
+      return username.length >= 3;
+    };
+
   const fetchProfile = async () => {
     try {
       setRefreshing(true);
       const token = await AsyncStorage.getItem('token');
-      const response = await fetch('http://192.168.100.4:3002/dsalandingpage', {
+      const response = await fetch('http://192.168.1.21:3002/dsalandingpage', {
         method: 'GET',
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -70,73 +84,151 @@ export const AdminLandingPage = ({ navigation }) => {
 
   const handleSignOut = async () => {
     await AsyncStorage.removeItem('token');
-    navigation.navigate('IndexPage');
+    navigation.replace('IndexPage');
   };
 
-  const handleAddCoach = async () => {
-    try {
-      const response = await fetch('http://192.168.100.4:3002/dsasportscoachuser', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          username: coachUsername,
-          email: coachEmail,
-          password: coachPassword,
-        }),
+
+  // Add state for validation errors
+const [errors, setErrors] = useState({
+  coachUsername: '',
+  coachEmail: '',
+  coachPassword: '',
+});
+
+const validateCoachForm = () => {
+  let valid = true;
+  const newErrors = {
+    coachUsername: '',
+    coachEmail: '',
+    coachPassword: '',
+  };
+
+  if (!coachUsername.trim()) {
+    newErrors.coachUsername = 'Username is required';
+    valid = false;
+  } else if (!validateUsername(coachUsername)) {
+    newErrors.coachUsername = 'Username must be at least 3 characters';
+    valid = false;
+  }
+
+  if (!coachEmail.trim()) {
+    newErrors.coachEmail = 'Email is required';
+    valid = false;
+  } else if (!validateEmail(coachEmail)) {
+    newErrors.coachEmail = 'Please enter a valid email';
+    valid = false;
+  }
+
+  if (!coachPassword) {
+    newErrors.coachPassword = 'Password is required';
+    valid = false;
+  } else if (!validatePassword(coachPassword)) {
+    newErrors.coachPassword = 'Password must be at least 6 characters';
+    valid = false;
+  }
+
+  setErrors(newErrors);
+  return valid;
+};
+
+const handleAddCoach = async () => {
+  if (!validateCoachForm()) {
+    return;
+  }
+
+  try {
+    const response = await fetch('http://192.168.1.21:3002/dsasportscoachuser', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        username: coachUsername,
+        email: coachEmail,
+        password: coachPassword,
+      }),
+    });
+
+    const data = await response.json();
+    if (data.success) {
+      Alert.alert('Success', 'Sports coach account created successfully');
+      setIsModalVisible(false);
+      setCoachUsername('');
+      setCoachEmail('');
+      setCoachPassword('');
+      setErrors({
+        coachUsername: '',
+        coachEmail: '',
+        coachPassword: '',
       });
-
-      const data = await response.json();
-      if (data.success) {
-        Alert.alert('Success', 'Sports coach account created successfully');
-        setIsModalVisible(false);
-        setCoachUsername('');
-        setCoachEmail('');
-        setCoachPassword('');
-      } else {
-        Alert.alert('Error', data.error || 'Failed to create account');
-      }
-    } catch (error) {
-      console.error('Error adding coach:', error);
-      Alert.alert('Error', 'An error occurred while adding the coach');
+    } else {
+      Alert.alert('Error', data.error || 'Failed to create account');
     }
+  } catch (error) {
+    console.error('Error adding coach:', error);
+    Alert.alert('Error', 'An error occurred while adding the coach');
+  }
+};
+
+  // Add state for announcement errors
+const [announcementErrors, setAnnouncementErrors] = useState({
+  postDescription: '',
+});
+
+const validateAnnouncementForm = () => {
+  let valid = true;
+  const newErrors = {
+    postDescription: '',
   };
 
-  const handleAddAnnouncement = async () => {
-    try {
-      const token = await AsyncStorage.getItem('token');
-      if (!token) {
-        Alert.alert('Error', 'No authentication token found');
-        return;
-      }
+  if (!postDescription.trim()) {
+    newErrors.postDescription = 'Description is required';
+    valid = false;
+  }
 
-      const response = await fetch('http://192.168.100.4:3002/adminpost', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          adminpostdescription: postDescription,
-          adminimagepost: postImage,
-        }),
-      });
+  setAnnouncementErrors(newErrors);
+  return valid;
+};
 
-      const data = await response.json();
+const handleAddAnnouncement = async () => {
+  if (!validateAnnouncementForm()) {
+    return;
+  }
 
-      if (data.success) {
-        Alert.alert('Success', 'Announcement posted successfully');
-        setPostVisible(false);
-        setPostDescription('');
-        setPostImage(null);
-        setPosts([...posts, data.post]);
-      } else {
-        Alert.alert('Error', data.error || 'Failed to post announcement');
-      }
-    } catch (error) {
-      console.error('Error posting announcement:', error);
-      Alert.alert('Error', 'An error occurred while posting');
+  try {
+    const token = await AsyncStorage.getItem('token');
+    if (!token) {
+      Alert.alert('Error', 'No authentication token found');
+      return;
     }
-  };
+
+    const response = await fetch('http://192.168.1.21:3002/adminpost', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        adminpostdescription: postDescription,
+        adminimagepost: postImage,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      Alert.alert('Success', 'Announcement posted successfully');
+      setPostVisible(false);
+      setPostDescription('');
+      setPostImage(null);
+      setPosts([...posts, data.post]);
+      setAnnouncementErrors({ postDescription: '' });
+    } else {
+      Alert.alert('Error', data.error || 'Failed to post announcement');
+    }
+  } catch (error) {
+    console.error('Error posting announcement:', error);
+    Alert.alert('Error', 'An error occurred while posting');
+  }
+};
 
   const handleImageSelection = async () => {
     const options = { mediaType: 'photo', quality: 1 };
@@ -154,7 +246,7 @@ export const AdminLandingPage = ({ navigation }) => {
         return;
       }
 
-      const response = await fetch(`http://192.168.100.4:3002/adminpost/${selectedPost._id}`, {
+      const response = await fetch(`http://192.168.1.21:3002/adminpost/${selectedPost._id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -183,44 +275,88 @@ export const AdminLandingPage = ({ navigation }) => {
     }
   };
 
-  const handleChangePassword = async () => {
-    if (newPassword !== confirmNewPassword) {
-      Alert.alert('Error', 'Passwords do not match');
+  // Add state for password errors
+const [passwordErrors, setPasswordErrors] = useState({
+  currentPassword: '',
+  newPassword: '',
+  confirmNewPassword: '',
+});
+
+const validatePasswordForm = () => {
+  let valid = true;
+  const newErrors = {
+    currentPassword: '',
+    newPassword: '',
+    confirmNewPassword: '',
+  };
+
+  if (!currentPassword) {
+    newErrors.currentPassword = 'Current password is required';
+    valid = false;
+  }
+
+  if (!newPassword) {
+    newErrors.newPassword = 'New password is required';
+    valid = false;
+  } else if (!validatePassword(newPassword)) {
+    newErrors.newPassword = 'Password must be at least 6 characters';
+    valid = false;
+  }
+
+  if (!confirmNewPassword) {
+    newErrors.confirmNewPassword = 'Please confirm your new password';
+    valid = false;
+  } else if (newPassword !== confirmNewPassword) {
+    newErrors.confirmNewPassword = 'Passwords do not match';
+    valid = false;
+  }
+
+  setPasswordErrors(newErrors);
+  return valid;
+};
+
+const handleChangePassword = async () => {
+  if (!validatePasswordForm()) {
+    return;
+  }
+
+  try {
+    const token = await AsyncStorage.getItem('token');
+    if (!token) {
+      Alert.alert('Error', 'No authentication token found');
       return;
     }
 
-    try {
-      const token = await AsyncStorage.getItem('token');
-      if (!token) {
-        Alert.alert('Error', 'No authentication token found');
-        return;
-      }
+    const response = await fetch('http://192.168.1.21:3002/changepasswordadmin', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ currentPassword, newPassword }),
+    });
 
-      const response = await fetch('http://192.168.100.4:3002/changepasswordadmin', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ currentPassword, newPassword }),
+    const data = await response.json();
+
+    if (data.success) {
+      Alert.alert('Success', 'Password updated successfully');
+      setIsChangePasswordVisible(false);
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmNewPassword('');
+      setPasswordErrors({
+        currentPassword: '',
+        newPassword: '',
+        confirmNewPassword: '',
       });
-
-      const data = await response.json();
-
-      if (data.success) {
-        Alert.alert('Success', 'Password updated successfully');
-        setIsChangePasswordVisible(false);
-        setCurrentPassword('');
-        setNewPassword('');
-        setConfirmNewPassword('');
-      } else {
-        Alert.alert('Error', data.error || 'Failed to update password');
-      }
-    } catch (error) {
-      console.error('Error updating password:', error);
-      Alert.alert('Error', 'An error occurred while updating');
+    } else {
+      Alert.alert('Error', data.error || 'Failed to update password');
     }
-  };
+  } catch (error) {
+    console.error('Error updating password:', error);
+    Alert.alert('Error', 'An error occurred while updating');
+  }
+};
 
   return (
     <ImageBackground 
@@ -329,184 +465,238 @@ export const AdminLandingPage = ({ navigation }) => {
         )}
       </ScrollView>
 
-      {/* Add Coach Modal */}
       <Modal isVisible={isModalVisible}>
-        <Animatable.View animation="zoomIn" duration={300}>
-          <Card style={styles.modalCard}>
-            <Card.Content>
-              <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>Add New Coach</Text>
-                <Icon name="account-plus" size={30} color="#6573EA" />
-              </View>
-              
-              <TextInput
-                label="Username"
-                mode="outlined"
-                style={styles.modalInput}
-                value={coachUsername}
-                onChangeText={setCoachUsername}
-                left={<TextInput.Icon name="account" />}
-                theme={{ colors: { primary: '#6573EA' } }}
-              />
-              
-              <TextInput
-                label="Email"
-                mode="outlined"
-                style={styles.modalInput}
-                value={coachEmail}
-                onChangeText={setCoachEmail}
-                left={<TextInput.Icon name="email" />}
-                theme={{ colors: { primary: '#6573EA' } }}
-              />
-              
-              <TextInput
-                label="Password"
-                mode="outlined"
-                secureTextEntry
-                style={styles.modalInput}
-                value={coachPassword}
-                onChangeText={setCoachPassword}
-                left={<TextInput.Icon name="lock" />}
-                theme={{ colors: { primary: '#6573EA' } }}
-              />
-              
-              <View style={styles.modalButtons}>
-                <TouchableOpacity 
-                  style={[styles.modalButton, styles.submitButton]} 
-                  onPress={handleAddCoach}
-                >
-                  <Text style={styles.modalButtonText}>Create Account</Text>
-                </TouchableOpacity>
-                
-                <TouchableOpacity 
-                  style={[styles.modalButton, styles.cancelButton]} 
-                  onPress={() => setIsModalVisible(false)}
-                >
-                  <Text style={[styles.modalButtonText, { color: '#6573EA' }]}>Cancel</Text>
-                </TouchableOpacity>
-              </View>
-            </Card.Content>
-          </Card>
-        </Animatable.View>
-      </Modal>
+  <Animatable.View animation="zoomIn" duration={300}>
+    <Card style={styles.modalCard}>
+      <Card.Content>
+        <View style={styles.modalHeader}>
+          <Text style={styles.modalTitle}>Add New Coach</Text>
+          <Icon name="account-plus" size={30} color="#6573EA" />
+        </View>
+        
+        <TextInput
+          label="Username"
+          mode="outlined"
+          style={styles.modalInput}
+          value={coachUsername}
+          onChangeText={(text) => {
+            setCoachUsername(text);
+            setErrors({...errors, coachUsername: ''});
+          }}
+          left={<TextInput.Icon name="account" />}
+          theme={{ colors: { primary: '#6573EA', error: '#FF0000' } }}
+          error={!!errors.coachUsername}
+        />
+        {errors.coachUsername ? <Text style={styles.errorText}>{errors.coachUsername}</Text> : null}
+        
+        <TextInput
+          label="Email"
+          mode="outlined"
+          style={styles.modalInput}
+          value={coachEmail}
+          onChangeText={(text) => {
+            setCoachEmail(text);
+            setErrors({...errors, coachEmail: ''});
+          }}
+          left={<TextInput.Icon name="email" />}
+          theme={{ colors: { primary: '#6573EA', error: '#FF0000' } }}
+          error={!!errors.coachEmail}
+        />
+        {errors.coachEmail ? <Text style={styles.errorText}>{errors.coachEmail}</Text> : null}
+        
+        <TextInput
+          label="Password"
+          mode="outlined"
+          secureTextEntry
+          style={styles.modalInput}
+          value={coachPassword}
+          onChangeText={(text) => {
+            setCoachPassword(text);
+            setErrors({...errors, coachPassword: ''});
+          }}
+          left={<TextInput.Icon name="lock" />}
+          theme={{ colors: { primary: '#6573EA', error: '#FF0000' } }}
+          error={!!errors.coachPassword}
+        />
+        {errors.coachPassword ? <Text style={styles.errorText}>{errors.coachPassword}</Text> : null}
+        
+        <View style={styles.modalButtons}>
+          <TouchableOpacity 
+            style={[styles.modalButton, styles.submitButton, 
+              (!coachUsername || !coachEmail || !coachPassword) && styles.disabledButton]} 
+            onPress={handleAddCoach}
+            disabled={!coachUsername || !coachEmail || !coachPassword}
+          >
+            <Text style={styles.modalButtonText}>Create Account</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={[styles.modalButton, styles.cancelButton]} 
+            onPress={() => {
+              setIsModalVisible(false);
+              setErrors({
+                coachUsername: '',
+                coachEmail: '',
+                coachPassword: '',
+              });
+            }}
+          >
+            <Text style={[styles.modalButtonText, { color: '#6573EA' }]}>Cancel</Text>
+          </TouchableOpacity>
+        </View>
+      </Card.Content>
+    </Card>
+  </Animatable.View>
+</Modal>
 
-      {/* Add Announcement Modal */}
-      <Modal isVisible={postVisible}>
-        <Animatable.View animation="zoomIn" duration={300}>
-          <Card style={styles.modalCard}>
-            <Card.Content>
-              <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>New Announcement</Text>
-                <Icon name="bullhorn" size={30} color="#6573EA" />
-              </View>
-              
-              <TextInput
-                label="Description"
-                mode="outlined"
-                multiline
-                numberOfLines={4}
-                style={styles.modalInput}
-                value={postDescription}
-                onChangeText={setPostDescription}
-                left={<TextInput.Icon name="text" />}
-                theme={{ colors: { primary: '#6573EA' } }}
-              />
-              
-              {postImage && (
-                <Image source={{ uri: postImage }} style={styles.imagePreview} />
-              )}
-              
-              <TouchableOpacity
-                style={[styles.modalButton, styles.imageButton]}
-                onPress={handleImageSelection}
-              >
-                <Icon name="image" size={20} color="white" />
-                <Text style={styles.modalButtonText}>Select Image</Text>
-              </TouchableOpacity>
-              
-              <View style={styles.modalButtons}>
-                <TouchableOpacity
-                  style={[styles.modalButton, styles.submitButton]}
-                  onPress={handleAddAnnouncement}
-                >
-                  <Text style={styles.modalButtonText}>Post Announcement</Text>
-                </TouchableOpacity>
-                
-                <TouchableOpacity
-                  style={[styles.modalButton, styles.cancelButton]}
-                  onPress={() => setPostVisible(false)}
-                >
-                  <Text style={[styles.modalButtonText, { color: '#6573EA' }]}>Cancel</Text>
-                </TouchableOpacity>
-              </View>
-            </Card.Content>
-          </Card>
-        </Animatable.View>
-      </Modal>
+<Modal isVisible={postVisible}>
+  <Animatable.View animation="zoomIn" duration={300}>
+    <Card style={styles.modalCard}>
+      <Card.Content>
+        <View style={styles.modalHeader}>
+          <Text style={styles.modalTitle}>New Announcement</Text>
+          <Icon name="bullhorn" size={30} color="#6573EA" />
+        </View>
+        
+        <TextInput
+          label="Description"
+          mode="outlined"
+          multiline
+          numberOfLines={4}
+          style={styles.modalInput}
+          value={postDescription}
+          onChangeText={(text) => {
+            setPostDescription(text);
+            setAnnouncementErrors({...announcementErrors, postDescription: ''});
+          }}
+          left={<TextInput.Icon name="text" />}
+          theme={{ colors: { primary: '#6573EA', error: '#FF0000' } }}
+          error={!!announcementErrors.postDescription}
+        />
+        {announcementErrors.postDescription ? <Text style={styles.errorText}>{announcementErrors.postDescription}</Text> : null}
+        
+        {postImage && (
+          <Image source={{ uri: postImage }} style={styles.imagePreview} />
+        )}
+        
+        <TouchableOpacity
+          style={[styles.modalButton, styles.imageButton]}
+          onPress={handleImageSelection}
+        >
+          <Icon name="image" size={20} color="white" />
+          <Text style={styles.modalButtonText}>Select Image</Text>
+        </TouchableOpacity>
+        
+        <View style={styles.modalButtons}>
+          <TouchableOpacity
+            style={[styles.modalButton, styles.submitButton, 
+              !postDescription && styles.disabledButton]}
+            onPress={handleAddAnnouncement}
+            disabled={!postDescription}
+          >
+            <Text style={styles.modalButtonText}>Post Announcement</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity
+            style={[styles.modalButton, styles.cancelButton]}
+            onPress={() => {
+              setPostVisible(false);
+              setAnnouncementErrors({ postDescription: '' });
+            }}
+          >
+            <Text style={[styles.modalButtonText, { color: '#6573EA' }]}>Cancel</Text>
+          </TouchableOpacity>
+        </View>
+      </Card.Content>
+    </Card>
+  </Animatable.View>
+</Modal>
 
-      {/* Change Password Modal */}
       <Modal isVisible={isChangePasswordVisible}>
-        <Animatable.View animation="zoomIn" duration={300}>
-          <Card style={styles.modalCard}>
-            <Card.Content>
-              <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>Change Password</Text>
-                <Icon name="lock" size={30} color="#6573EA" />
-              </View>
-              
-              <TextInput
-                label="Current Password"
-                mode="outlined"
-                secureTextEntry
-                style={styles.modalInput}
-                value={currentPassword}
-                onChangeText={setCurrentPassword}
-                left={<TextInput.Icon name="lock" />}
-                theme={{ colors: { primary: '#6573EA' } }}
-              />
-              
-              <TextInput
-                label="New Password"
-                mode="outlined"
-                secureTextEntry
-                style={styles.modalInput}
-                value={newPassword}
-                onChangeText={setNewPassword}
-                left={<TextInput.Icon name="lock-plus" />}
-                theme={{ colors: { primary: '#6573EA' } }}
-              />
-              
-              <TextInput
-                label="Confirm New Password"
-                mode="outlined"
-                secureTextEntry
-                style={styles.modalInput}
-                value={confirmNewPassword}
-                onChangeText={setConfirmNewPassword}
-                left={<TextInput.Icon name="lock-check" />}
-                theme={{ colors: { primary: '#6573EA' } }}
-              />
-              
-              <View style={styles.modalButtons}>
-                <TouchableOpacity 
-                  style={[styles.modalButton, styles.submitButton]} 
-                  onPress={handleChangePassword}
-                >
-                  <Text style={styles.modalButtonText}>Update Password</Text>
-                </TouchableOpacity>
-                
-                <TouchableOpacity 
-                  style={[styles.modalButton, styles.cancelButton]} 
-                  onPress={() => setIsChangePasswordVisible(false)}
-                >
-                  <Text style={[styles.modalButtonText, { color: '#6573EA' }]}>Cancel</Text>
-                </TouchableOpacity>
-              </View>
-            </Card.Content>
-          </Card>
-        </Animatable.View>
-      </Modal>
-
+  <Animatable.View animation="zoomIn" duration={300}>
+    <Card style={styles.modalCard}>
+      <Card.Content>
+        <View style={styles.modalHeader}>
+          <Text style={styles.modalTitle}>Change Password</Text>
+          <Icon name="lock" size={30} color="#6573EA" />
+        </View>
+        
+        <TextInput
+          label="Current Password"
+          mode="outlined"
+          secureTextEntry
+          style={styles.modalInput}
+          value={currentPassword}
+          onChangeText={(text) => {
+            setCurrentPassword(text);
+            setPasswordErrors({...passwordErrors, currentPassword: ''});
+          }}
+          left={<TextInput.Icon name="lock" />}
+          theme={{ colors: { primary: '#6573EA', error: '#FF0000' } }}
+          error={!!passwordErrors.currentPassword}
+        />
+        {passwordErrors.currentPassword ? <Text style={styles.errorText}>{passwordErrors.currentPassword}</Text> : null}
+        
+        <TextInput
+          label="New Password"
+          mode="outlined"
+          secureTextEntry
+          style={styles.modalInput}
+          value={newPassword}
+          onChangeText={(text) => {
+            setNewPassword(text);
+            setPasswordErrors({...passwordErrors, newPassword: ''});
+          }}
+          left={<TextInput.Icon name="lock-plus" />}
+          theme={{ colors: { primary: '#6573EA', error: '#FF0000' } }}
+          error={!!passwordErrors.newPassword}
+        />
+        {passwordErrors.newPassword ? <Text style={styles.errorText}>{passwordErrors.newPassword}</Text> : null}
+        
+        <TextInput
+          label="Confirm New Password"
+          mode="outlined"
+          secureTextEntry
+          style={styles.modalInput}
+          value={confirmNewPassword}
+          onChangeText={(text) => {
+            setConfirmNewPassword(text);
+            setPasswordErrors({...passwordErrors, confirmNewPassword: ''});
+          }}
+          left={<TextInput.Icon name="lock-check" />}
+          theme={{ colors: { primary: '#6573EA', error: '#FF0000' } }}
+          error={!!passwordErrors.confirmNewPassword}
+        />
+        {passwordErrors.confirmNewPassword ? <Text style={styles.errorText}>{passwordErrors.confirmNewPassword}</Text> : null}
+        
+        <View style={styles.modalButtons}>
+          <TouchableOpacity 
+            style={[styles.modalButton, styles.submitButton, 
+              (!currentPassword || !newPassword || !confirmNewPassword) && styles.disabledButton]} 
+            onPress={handleChangePassword}
+            disabled={!currentPassword || !newPassword || !confirmNewPassword}
+          >
+            <Text style={styles.modalButtonText}>Update Password</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={[styles.modalButton, styles.cancelButton]} 
+            onPress={() => {
+              setIsChangePasswordVisible(false);
+              setPasswordErrors({
+                currentPassword: '',
+                newPassword: '',
+                confirmNewPassword: '',
+              });
+            }}
+          >
+            <Text style={[styles.modalButtonText, { color: '#6573EA' }]}>Cancel</Text>
+          </TouchableOpacity>
+        </View>
+      </Card.Content>
+    </Card>
+  </Animatable.View>
+</Modal>
       {/* Update Post Modal */}
       <Modal isVisible={updateModalVisible}>
         <Animatable.View animation="zoomIn" duration={300}>

@@ -6,6 +6,7 @@ import { Picker } from '@react-native-picker/picker';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import * as Animatable from 'react-native-animatable';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import LinearGradient from 'react-native-linear-gradient'
 
 export const CoachLandingPage = ({ navigation }) => {
   const [user, setUser] = useState(null);
@@ -31,6 +32,40 @@ export const CoachLandingPage = ({ navigation }) => {
    // Add this new state for pull-to-refresh
    const [refreshing, setRefreshing] = useState(false);
 
+   const [errors, setErrors] = useState({
+    coordinator: {
+      username: '',
+      email: '',
+      password: '',
+      department: ''
+    },
+    referee: {
+      username: '',
+      email: '',
+      password: '',
+      sportscategory: ''
+    },
+    password: {
+      current: '',
+      new: '',
+      confirm: ''
+    }
+  });
+
+  // Validation functions
+const validateEmail = (email) => {
+  const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return re.test(email);
+};
+
+const validatePassword = (password) => {
+  return password.length >= 6;
+};
+
+const validateUsername = (username) => {
+  return username.length >= 3;
+};
+
   
 
   const sportsCategories = ['Football', 'Futsal', 'Volleyball', 'Basketball','Table Tennis (M)', 'Table Tennis (F)', 'Snooker', 'Tug of War (M)','Tug of War (F)', 'Tennis', 'Cricket', 'Badminton (M)', 'Badminton (F)'];
@@ -52,7 +87,7 @@ export const CoachLandingPage = ({ navigation }) => {
       try {
         setRefreshing(true);
         const token = await AsyncStorage.getItem('token');
-        const response = await fetch('http://192.168.100.4:3002/coachlandingpage', {
+        const response = await fetch('http://192.168.1.21:3002/coachlandingpage', {
           method: 'GET',
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -76,17 +111,62 @@ export const CoachLandingPage = ({ navigation }) => {
 
   const handleSignOut = async () => {
     await AsyncStorage.removeItem('token');
-    navigation.navigate('IndexPage');
+    navigation.replace('IndexPage');
   };
 
-  const handleAddCoordinator = async () => {
+  const validateCoordinatorForm = () => {
+    let isValid = true;
+    const newErrors = {
+      username: '',
+      email: '',
+      password: '',
+      department: ''
+    };
+  
+    if (!coordinatorUsername.trim()) {
+      newErrors.username = 'Username is required';
+      isValid = false;
+    } else if (!validateUsername(coordinatorUsername)) {
+      newErrors.username = 'Username must be at least 3 characters';
+      isValid = false;
+    }
+  
+    if (!coordinatorEmail.trim()) {
+      newErrors.email = 'Email is required';
+      isValid = false;
+    } else if (!validateEmail(coordinatorEmail)) {
+      newErrors.email = 'Please enter a valid email';
+      isValid = false;
+    }
+  
+    if (!coordinatorPassword) {
+      newErrors.password = 'Password is required';
+      isValid = false;
+    } else if (!validatePassword(coordinatorPassword)) {
+      newErrors.password = 'Password must be at least 6 characters';
+      isValid = false;
+    }
+  
     if (!department) {
-      Alert.alert('Error', 'Please select a department');
+      newErrors.department = 'Department is required';
+      isValid = false;
+    }
+  
+    setErrors({
+      ...errors,
+      coordinator: newErrors
+    });
+  
+    return isValid;
+  };
+  
+  const handleAddCoordinator = async () => {
+    if (!validateCoordinatorForm()) {
       return;
     }
-
+  
     try {
-      const response = await fetch('http://192.168.100.4:3002/addcoordinator', {
+      const response = await fetch('http://192.168.1.21:3002/addcoordinator', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -98,7 +178,7 @@ export const CoachLandingPage = ({ navigation }) => {
           department: department,
         }),
       });
-
+  
       const data = await response.json();
       if (data.success) {
         Alert.alert('Success', 'New coordinator account created successfully');
@@ -107,6 +187,15 @@ export const CoachLandingPage = ({ navigation }) => {
         setCoordinatorEmail('');
         setCoordinatorPassword('');
         setDepartment('');
+        setErrors({
+          ...errors,
+          coordinator: {
+            username: '',
+            email: '',
+            password: '',
+            department: ''
+          }
+        });
       } else if (data.error === 'CoordinatorExists') {
         Alert.alert('Error', 'A coordinator for this department already exists');
       } else {
@@ -117,19 +206,64 @@ export const CoachLandingPage = ({ navigation }) => {
     }
   };
 
-  const handleAddRef = async () => {
-    if (!refsportscategory) {
-      Alert.alert('Error', 'Please select a sport category');
-      return; // Prevent the API call if sport category is not selected
+  const validateRefereeForm = () => {
+    let isValid = true;
+    const newErrors = {
+      username: '',
+      email: '',
+      password: '',
+      sportscategory: ''
+    };
+  
+    if (!refUsername.trim()) {
+      newErrors.username = 'Username is required';
+      isValid = false;
+    } else if (!validateUsername(refUsername)) {
+      newErrors.username = 'Username must be at least 3 characters';
+      isValid = false;
     }
+  
+    if (!refEmail.trim()) {
+      newErrors.email = 'Email is required';
+      isValid = false;
+    } else if (!validateEmail(refEmail)) {
+      newErrors.email = 'Please enter a valid email';
+      isValid = false;
+    }
+  
+    if (!refPassword) {
+      newErrors.password = 'Password is required';
+      isValid = false;
+    } else if (!validatePassword(refPassword)) {
+      newErrors.password = 'Password must be at least 6 characters';
+      isValid = false;
+    }
+  
+    if (!refsportscategory) {
+      newErrors.sportscategory = 'Sport category is required';
+      isValid = false;
+    }
+  
+    setErrors({
+      ...errors,
+      referee: newErrors
+    });
+  
+    return isValid;
+  };
+  
+  const handleAddRef = async () => {
+    if (!validateRefereeForm()) {
+      return;
+    }
+  
     try {
-      // Retrieve the JWT token from local storage or wherever you store it
       const token = await AsyncStorage.getItem('token');
-      const response = await fetch('http://192.168.100.4:3002/addref', {
+      const response = await fetch('http://192.168.1.21:3002/addref', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`, // Send JWT token in header
+          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({
           username: refUsername,
@@ -147,6 +281,15 @@ export const CoachLandingPage = ({ navigation }) => {
         setRefEmail('');
         setRefPassword('');
         setRefSportsCategory('');
+        setErrors({
+          ...errors,
+          referee: {
+            username: '',
+            email: '',
+            password: '',
+            sportscategory: ''
+          }
+        });
       } else if (data.error === 'EmailExists') {
         Alert.alert('Error', 'Email already exists');
       } else {
@@ -167,7 +310,7 @@ export const CoachLandingPage = ({ navigation }) => {
 
     try {
       const token = await AsyncStorage.getItem('token');
-      const response = await fetch(`http://192.168.100.4:3002/getrules/${sport.toLowerCase()}`, {
+      const response = await fetch(`http://192.168.1.21:3002/getrules/${sport.toLowerCase()}`, {
         method: 'GET',
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -196,7 +339,7 @@ export const CoachLandingPage = ({ navigation }) => {
         return;
       }
 
-      const response = await fetch(`http://192.168.100.4:3002/updaterules/${selectedSport.toLowerCase()}`, {
+      const response = await fetch(`http://192.168.1.21:3002/updaterules/${selectedSport.toLowerCase()}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -223,15 +366,51 @@ export const CoachLandingPage = ({ navigation }) => {
     }
   };
 
+  const validatePasswordForm = () => {
+    let isValid = true;
+    const newErrors = {
+      current: '',
+      new: '',
+      confirm: ''
+    };
+  
+    if (!currentPassword) {
+      newErrors.current = 'Current password is required';
+      isValid = false;
+    }
+  
+    if (!newPassword) {
+      newErrors.new = 'New password is required';
+      isValid = false;
+    } else if (!validatePassword(newPassword)) {
+      newErrors.new = 'Password must be at least 6 characters';
+      isValid = false;
+    }
+  
+    if (!confirmNewPassword) {
+      newErrors.confirm = 'Please confirm your new password';
+      isValid = false;
+    } else if (newPassword !== confirmNewPassword) {
+      newErrors.confirm = 'Passwords do not match';
+      isValid = false;
+    }
+  
+    setErrors({
+      ...errors,
+      password: newErrors
+    });
+  
+    return isValid;
+  };
+  
   const handleChangePassword = async () => {
-    if (newPassword !== confirmNewPassword) {
-      Alert.alert('Error', 'Passwords do not match');
+    if (!validatePasswordForm()) {
       return;
     }
-
+  
     try {
       const token = await AsyncStorage.getItem('token');
-      const response = await fetch('http://192.168.100.4:3002/changepasswordcoach', {
+      const response = await fetch('http://192.168.1.21:3002/changepasswordcoach', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -239,7 +418,7 @@ export const CoachLandingPage = ({ navigation }) => {
         },
         body: JSON.stringify({ currentPassword, newPassword }),
       });
-
+  
       const data = await response.json();
       if (data.success) {
         Alert.alert('Success', 'Password updated successfully');
@@ -247,6 +426,14 @@ export const CoachLandingPage = ({ navigation }) => {
         setCurrentPassword('');
         setNewPassword('');
         setConfirmNewPassword('');
+        setErrors({
+          ...errors,
+          password: {
+            current: '',
+            new: '',
+            confirm: ''
+          }
+        });
       } else {
         Alert.alert('Error', data.error || 'Failed to update password');
       }
@@ -254,7 +441,6 @@ export const CoachLandingPage = ({ navigation }) => {
       Alert.alert('Error', 'An error occurred while changing the password');
     }
   };
-
 
 
 
@@ -359,44 +545,85 @@ export const CoachLandingPage = ({ navigation }) => {
                 <Icon name="account-plus" size={30} color="#6573EA" />
               </View>
               
-              <TextInput
-                style={styles.modalInput}
-                placeholder="Username"
-                placeholderTextColor="#666"
-                value={coordinatorUsername}
-                onChangeText={setCoordinatorUsername}
-              />
-              
-              <TextInput
-                style={styles.modalInput}
-                placeholder="Email"
-                placeholderTextColor="#666"
-                value={coordinatorEmail}
-                onChangeText={setCoordinatorEmail}
-                keyboardType="email-address"
-              />
-              
-              <TextInput
-                style={styles.modalInput}
-                placeholder="Password"
-                placeholderTextColor="#666"
-                value={coordinatorPassword}
-                secureTextEntry
-                onChangeText={setCoordinatorPassword}
-              />
-              
-              <View style={styles.pickerContainer}>
-                <Picker
-                  selectedValue={department}
-                  style={styles.picker}
-                  onValueChange={(itemValue) => setDepartment(itemValue)}
-                >
-                  <Picker.Item label="Select Department" value="" />
-                  {departments.map((dept) => (
-                    <Picker.Item key={dept} label={dept} value={dept} />
-                  ))}
-                </Picker>
-              </View>
+              // In Coordinator Modal:
+<TextInput
+  style={styles.modalInput}
+  placeholder="Username"
+  placeholderTextColor="#666"
+  value={coordinatorUsername}
+  onChangeText={(text) => {
+    setCoordinatorUsername(text);
+    setErrors({
+      ...errors,
+      coordinator: {
+        ...errors.coordinator,
+        username: ''
+      }
+    });
+  }}
+/>
+{errors.coordinator.username ? <Text style={styles.errorText}>{errors.coordinator.username}</Text> : null}
+
+<TextInput
+  style={styles.modalInput}
+  placeholder="Email"
+  placeholderTextColor="#666"
+  value={coordinatorEmail}
+  onChangeText={(text) => {
+    setCoordinatorEmail(text);
+    setErrors({
+      ...errors,
+      coordinator: {
+        ...errors.coordinator,
+        email: ''
+      }
+    });
+  }}
+  keyboardType="email-address"
+/>
+{errors.coordinator.email ? <Text style={styles.errorText}>{errors.coordinator.email}</Text> : null}
+
+<TextInput
+  style={styles.modalInput}
+  placeholder="Password"
+  placeholderTextColor="#666"
+  value={coordinatorPassword}
+  secureTextEntry
+  onChangeText={(text) => {
+    setCoordinatorPassword(text);
+    setErrors({
+      ...errors,
+      coordinator: {
+        ...errors.coordinator,
+        password: ''
+      }
+    });
+  }}
+/>
+{errors.coordinator.password ? <Text style={styles.errorText}>{errors.coordinator.password}</Text> : null}
+
+<View style={styles.pickerContainer}>
+  <Picker
+    selectedValue={department}
+    style={styles.picker}
+    onValueChange={(itemValue) => {
+      setDepartment(itemValue);
+      setErrors({
+        ...errors,
+        coordinator: {
+          ...errors.coordinator,
+          department: ''
+        }
+      });
+    }}
+  >
+    <Picker.Item label="Select Department" value="" />
+    {departments.map((dept) => (
+      <Picker.Item key={dept} label={dept} value={dept} />
+    ))}
+  </Picker>
+</View>
+{errors.coordinator.department ? <Text style={styles.errorText}>{errors.coordinator.department}</Text> : null}
               
               <View style={styles.modalButtons}>
                 <TouchableOpacity 
@@ -426,44 +653,85 @@ export const CoachLandingPage = ({ navigation }) => {
                 <Icon name="whistle" size={30} color="#6573EA" />
               </View>
               
-              <TextInput
-                style={styles.modalInput}
-                placeholder="Username"
-                placeholderTextColor="#666"
-                value={refUsername}
-                onChangeText={setRefUsername}
-              />
-              
-              <TextInput
-                style={styles.modalInput}
-                placeholder="Email"
-                placeholderTextColor="#666"
-                value={refEmail}
-                onChangeText={setRefEmail}
-                keyboardType="email-address"
-              />
-              
-              <TextInput
-                style={styles.modalInput}
-                placeholder="Password"
-                placeholderTextColor="#666"
-                value={refPassword}
-                secureTextEntry
-                onChangeText={setRefPassword}
-              />
-              
-              <View style={styles.pickerContainer}>
-                <Picker
-                  selectedValue={refsportscategory}
-                  style={styles.picker}
-                  onValueChange={(itemValue) => setRefSportsCategory(itemValue)}
-                >
-                  <Picker.Item label="Select Sport Category" value="" />
-                  {refsportscategories.map((sport) => (
-                    <Picker.Item key={sport} label={sport} value={sport} />
-                  ))}
-                </Picker>
-              </View>
+              // In Referee Modal:
+<TextInput
+  style={styles.modalInput}
+  placeholder="Username"
+  placeholderTextColor="#666"
+  value={refUsername}
+  onChangeText={(text) => {
+    setRefUsername(text);
+    setErrors({
+      ...errors,
+      referee: {
+        ...errors.referee,
+        username: ''
+      }
+    });
+  }}
+/>
+{errors.referee.username ? <Text style={styles.errorText}>{errors.referee.username}</Text> : null}
+
+<TextInput
+  style={styles.modalInput}
+  placeholder="Email"
+  placeholderTextColor="#666"
+  value={refEmail}
+  onChangeText={(text) => {
+    setRefEmail(text);
+    setErrors({
+      ...errors,
+      referee: {
+        ...errors.referee,
+        email: ''
+      }
+    });
+  }}
+  keyboardType="email-address"
+/>
+{errors.referee.email ? <Text style={styles.errorText}>{errors.referee.email}</Text> : null}
+
+<TextInput
+  style={styles.modalInput}
+  placeholder="Password"
+  placeholderTextColor="#666"
+  value={refPassword}
+  secureTextEntry
+  onChangeText={(text) => {
+    setRefPassword(text);
+    setErrors({
+      ...errors,
+      referee: {
+        ...errors.referee,
+        password: ''
+      }
+    });
+  }}
+/>
+{errors.referee.password ? <Text style={styles.errorText}>{errors.referee.password}</Text> : null}
+
+<View style={styles.pickerContainer}>
+  <Picker
+    selectedValue={refsportscategory}
+    style={styles.picker}
+    onValueChange={(itemValue) => {
+      setRefSportsCategory(itemValue);
+      setErrors({
+        ...errors,
+        referee: {
+          ...errors.referee,
+          sportscategory: ''
+        }
+      });
+    }}
+  >
+    <Picker.Item label="Select Sport Category" value="" />
+    {refsportscategories.map((sport) => (
+      <Picker.Item key={sport} label={sport} value={sport} />
+    ))}
+  </Picker>
+</View>
+{errors.referee.sportscategory ? <Text style={styles.errorText}>{errors.referee.sportscategory}</Text> : null}
               
               <View style={styles.modalButtons}>
                 <TouchableOpacity 
@@ -493,32 +761,63 @@ export const CoachLandingPage = ({ navigation }) => {
                 <Icon name="lock" size={30} color="#6573EA" />
               </View>
               
-              <TextInput
-                style={styles.modalInput}
-                placeholder="Current Password"
-                placeholderTextColor="#666"
-                value={currentPassword}
-                secureTextEntry
-                onChangeText={setCurrentPassword}
-              />
-              
-              <TextInput
-                style={styles.modalInput}
-                placeholder="New Password"
-                placeholderTextColor="#666"
-                value={newPassword}
-                secureTextEntry
-                onChangeText={setNewPassword}
-              />
-              
-              <TextInput
-                style={styles.modalInput}
-                placeholder="Confirm New Password"
-                placeholderTextColor="#666"
-                value={confirmNewPassword}
-                secureTextEntry
-                onChangeText={setConfirmNewPassword}
-              />
+              // In Change Password Modal:
+<TextInput
+  style={styles.modalInput}
+  placeholder="Current Password"
+  placeholderTextColor="#666"
+  value={currentPassword}
+  secureTextEntry
+  onChangeText={(text) => {
+    setCurrentPassword(text);
+    setErrors({
+      ...errors,
+      password: {
+        ...errors.password,
+        current: ''
+      }
+    });
+  }}
+/>
+{errors.password.current ? <Text style={styles.errorText}>{errors.password.current}</Text> : null}
+
+<TextInput
+  style={styles.modalInput}
+  placeholder="New Password"
+  placeholderTextColor="#666"
+  value={newPassword}
+  secureTextEntry
+  onChangeText={(text) => {
+    setNewPassword(text);
+    setErrors({
+      ...errors,
+      password: {
+        ...errors.password,
+        new: ''
+      }
+    });
+  }}
+/>
+{errors.password.new ? <Text style={styles.errorText}>{errors.password.new}</Text> : null}
+
+<TextInput
+  style={styles.modalInput}
+  placeholder="Confirm New Password"
+  placeholderTextColor="#666"
+  value={confirmNewPassword}
+  secureTextEntry
+  onChangeText={(text) => {
+    setConfirmNewPassword(text);
+    setErrors({
+      ...errors,
+      password: {
+        ...errors.password,
+        confirm: ''
+      }
+    });
+  }}
+/>
+{errors.password.confirm ? <Text style={styles.errorText}>{errors.password.confirm}</Text> : null}
               
               <View style={styles.modalButtons}>
                 <TouchableOpacity 
@@ -782,6 +1081,16 @@ const styles = StyleSheet.create({
     color: '#666',
     fontStyle: 'italic',
     marginBottom: 15,
+  },
+  errorText: {
+    color: '#F44336',
+    fontSize: 12,
+    marginTop: -10,
+    marginBottom: 10,
+    marginLeft: 5,
+  },
+  disabledButton: {
+    opacity: 0.6,
   },
 });
 

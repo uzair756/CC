@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, StyleSheet, Alert, TouchableOpacity ,ScrollView} from 'react-native';
+import { View, Text, TextInput, StyleSheet, Alert, TouchableOpacity, ScrollView } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Modal from 'react-native-modal';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -14,12 +14,14 @@ export const CoordinatorLandingPage = ({ navigation }) => {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  const [errors, setErrors] = useState({});
+  const [passwordErrors, setPasswordErrors] = useState({});
 
   useEffect(() => {
     const fetchProfile = async () => {
       try {
         const token = await AsyncStorage.getItem('token');
-        const response = await fetch('http://192.168.100.4:3002/coordinatorlandingpage', {
+        const response = await fetch('http://192.168.1.21:3002/coordinatorlandingpage', {
           method: 'GET',
           headers: { 'Authorization': `Bearer ${token}` },
         });
@@ -42,12 +44,68 @@ export const CoordinatorLandingPage = ({ navigation }) => {
 
   const handleSignOut = async () => {
     await AsyncStorage.removeItem('token');
-    navigation.navigate('IndexPage');
+    navigation.replace('IndexPage');
+  };
+
+  const validateRepForm = () => {
+    const newErrors = {};
+    
+    if (!repUsername.trim()) {
+      newErrors.username = 'Username is required';
+    } else if (repUsername.length < 4) {
+      newErrors.username = 'Username must be at least 4 characters';
+    }
+    
+    if (!repEmail.trim()) {
+      newErrors.email = 'Email is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(repEmail)) {
+      newErrors.email = 'Please enter a valid email address';
+    }
+    
+    if (!repPassword) {
+      newErrors.password = 'Password is required';
+    } else if (repPassword.length < 8) {
+      newErrors.password = 'Password must be at least 8 characters';
+    } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/.test(repPassword)) {
+      newErrors.password = 'Password must contain uppercase, lowercase, number, and special character';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const validatePasswordForm = () => {
+    const newErrors = {};
+    
+    if (!currentPassword) {
+      newErrors.currentPassword = 'Current password is required';
+    }
+    
+    if (!newPassword) {
+      newErrors.newPassword = 'New password is required';
+    } else if (newPassword.length < 8) {
+      newErrors.newPassword = 'Password must be at least 8 characters';
+    } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/.test(newPassword)) {
+      newErrors.newPassword = 'Password must contain uppercase, lowercase, number, and special character';
+    } else if (newPassword === currentPassword) {
+      newErrors.newPassword = 'New password must be different from current password';
+    }
+    
+    if (!confirmNewPassword) {
+      newErrors.confirmNewPassword = 'Please confirm your new password';
+    } else if (newPassword !== confirmNewPassword) {
+      newErrors.confirmNewPassword = 'Passwords do not match';
+    }
+    
+    setPasswordErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleAddRep = async () => {
+    if (!validateRepForm()) return;
+
     try {
-      const response = await fetch('http://192.168.100.4:3002/studentrepsignup', {
+      const response = await fetch('http://192.168.1.21:3002/studentrepsignup', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -67,6 +125,7 @@ export const CoordinatorLandingPage = ({ navigation }) => {
         setRepUsername('');
         setRepEmail('');
         setRepPassword('');
+        setErrors({});
       } else {
         Alert.alert('Error', data.error || 'Failed to create student rep account');
       }
@@ -77,10 +136,7 @@ export const CoordinatorLandingPage = ({ navigation }) => {
   };
 
   const handleChangePassword = async () => {
-    if (newPassword !== confirmNewPassword) {
-      Alert.alert('Error', 'New password and confirmation do not match');
-      return;
-    }
+    if (!validatePasswordForm()) return;
 
     try {
       const token = await AsyncStorage.getItem('token');
@@ -89,7 +145,7 @@ export const CoordinatorLandingPage = ({ navigation }) => {
         return;
       }
 
-      const response = await fetch('http://192.168.100.4:3002/changepasswordcoordinator', {
+      const response = await fetch('http://192.168.1.21:3002/changepasswordcoordinator', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -106,6 +162,7 @@ export const CoordinatorLandingPage = ({ navigation }) => {
         setCurrentPassword('');
         setNewPassword('');
         setConfirmNewPassword('');
+        setPasswordErrors({});
       } else {
         Alert.alert('Error', data.error || 'Failed to update password');
       }
@@ -129,7 +186,10 @@ export const CoordinatorLandingPage = ({ navigation }) => {
       <View style={styles.card}>
         <TouchableOpacity 
           style={styles.cardButton}
-          onPress={() => setIsModalVisible(true)}
+          onPress={() => {
+            setIsModalVisible(true);
+            setErrors({});
+          }}
         >
           <Icon name="account-plus" size={24} color="#3a7bd5" />
           <Text style={styles.cardButtonText}>Add Student Rep</Text>
@@ -140,7 +200,10 @@ export const CoordinatorLandingPage = ({ navigation }) => {
       <View style={styles.card}>
         <TouchableOpacity 
           style={styles.cardButton}
-          onPress={() => setIsChangePasswordVisible(true)}
+          onPress={() => {
+            setIsChangePasswordVisible(true);
+            setPasswordErrors({});
+          }}
         >
           <Icon name="lock-reset" size={24} color="#3a7bd5" />
           <Text style={styles.cardButtonText}>Change Password</Text>
@@ -170,6 +233,7 @@ export const CoordinatorLandingPage = ({ navigation }) => {
               onChangeText={setRepUsername}
             />
           </View>
+          {errors.username && <Text style={styles.errorText}>{errors.username}</Text>}
 
           <View style={styles.inputContainer}>
             <Icon name="email" size={20} color="#3a7bd5" style={styles.inputIcon} />
@@ -180,8 +244,10 @@ export const CoordinatorLandingPage = ({ navigation }) => {
               value={repEmail}
               onChangeText={setRepEmail}
               keyboardType="email-address"
+              autoCapitalize="none"
             />
           </View>
+          {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
 
           <View style={styles.inputContainer}>
             <Icon name="lock" size={20} color="#3a7bd5" style={styles.inputIcon} />
@@ -194,11 +260,15 @@ export const CoordinatorLandingPage = ({ navigation }) => {
               onChangeText={setRepPassword}
             />
           </View>
+          {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
 
           <View style={styles.modalButtonContainer}>
             <TouchableOpacity 
               style={[styles.modalButton, styles.cancelButton]}
-              onPress={() => setIsModalVisible(false)}
+              onPress={() => {
+                setIsModalVisible(false);
+                setErrors({});
+              }}
             >
               <Text style={styles.cancelButtonText}>Cancel</Text>
             </TouchableOpacity>
@@ -228,6 +298,7 @@ export const CoordinatorLandingPage = ({ navigation }) => {
               onChangeText={setCurrentPassword}
             />
           </View>
+          {passwordErrors.currentPassword && <Text style={styles.errorText}>{passwordErrors.currentPassword}</Text>}
 
           <View style={styles.inputContainer}>
             <Icon name="lock-plus" size={20} color="#3a7bd5" style={styles.inputIcon} />
@@ -240,6 +311,7 @@ export const CoordinatorLandingPage = ({ navigation }) => {
               onChangeText={setNewPassword}
             />
           </View>
+          {passwordErrors.newPassword && <Text style={styles.errorText}>{passwordErrors.newPassword}</Text>}
 
           <View style={styles.inputContainer}>
             <Icon name="lock-check" size={20} color="#3a7bd5" style={styles.inputIcon} />
@@ -252,11 +324,15 @@ export const CoordinatorLandingPage = ({ navigation }) => {
               onChangeText={setConfirmNewPassword}
             />
           </View>
+          {passwordErrors.confirmNewPassword && <Text style={styles.errorText}>{passwordErrors.confirmNewPassword}</Text>}
 
           <View style={styles.modalButtonContainer}>
             <TouchableOpacity 
               style={[styles.modalButton, styles.cancelButton]}
-              onPress={() => setIsChangePasswordVisible(false)}
+              onPress={() => {
+                setIsChangePasswordVisible(false);
+                setPasswordErrors({});
+              }}
             >
               <Text style={styles.cancelButtonText}>Cancel</Text>
             </TouchableOpacity>
@@ -321,26 +397,24 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     paddingVertical: 12,
     paddingHorizontal: 30,
-    backgroundColor: '#e74c3c', // A bold red background
-    borderRadius: 30, // Rounded corners
-    elevation: 5, // Shadow effect (Android)
-    shadowColor: '#000', // Shadow color (iOS)
-    shadowOffset: { width: 0, height: 2 }, // Shadow offset (iOS)
-    shadowOpacity: 0.3, // Shadow opacity (iOS)
-    shadowRadius: 4, // Shadow radius (iOS)
-    justifyContent: 'center', // Center the text vertically
-    alignItems: 'center', // Center the text horizontally
+    backgroundColor: '#e74c3c',
+    borderRadius: 30,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  
   logoutButtonText: {
-    color: '#fff', // White text for contrast
+    color: '#fff',
     fontWeight: 'bold',
     fontSize: 16,
-    textAlign: 'center', // Center the text
-    textTransform: 'uppercase', // Capitalize the text for style
-    letterSpacing: 1.5, // Add space between letters for a sleek look
+    textAlign: 'center',
+    textTransform: 'uppercase',
+    letterSpacing: 1.5,
   },
-
   modalContainer: {
     backgroundColor: '#fff',
     borderRadius: 10,
@@ -356,7 +430,7 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 15,
+    marginBottom: 5,
     borderBottomWidth: 1,
     borderBottomColor: '#3a7bd5',
     paddingVertical: 5,
@@ -397,7 +471,12 @@ const styles = StyleSheet.create({
     color: '#333',
     fontWeight: 'bold',
   },
+  errorText: {
+    color: '#e74c3c',
+    fontSize: 12,
+    marginBottom: 10,
+    marginLeft: 30,
+  },
 });
 
 export default CoordinatorLandingPage;
-

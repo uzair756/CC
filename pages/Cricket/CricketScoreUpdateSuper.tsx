@@ -13,9 +13,9 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useNavigation, useRoute} from '@react-navigation/native';
 
-export const CricketSuperOver = () => {
+export const CricketSuperOver = ({navigation}) => {
   const route = useRoute();
-  const navigation = useNavigation();
+  // const navigation = useNavigation();
   const {match} = route.params || {};
   const [matchDetails, setMatchDetails] = useState(null);
   const [battingTeam, setBattingTeam] = useState([]);
@@ -48,7 +48,7 @@ export const CricketSuperOver = () => {
       try {
         const token = await AsyncStorage.getItem('token');
         const response = await fetch(
-          `http://192.168.100.4:3002/match/${match.sport}/${match._id}`,
+          `http://192.168.1.21:3002/match/${match.sport}/${match._id}`,
           {
             headers: {Authorization: `Bearer ${token}`},
           },
@@ -116,7 +116,7 @@ export const CricketSuperOver = () => {
 
     try {
       const token = await AsyncStorage.getItem('token');
-      const response = await fetch('http://192.168.100.4:3002/startSuperOver', {
+      const response = await fetch('http://192.168.1.21:3002/startSuperOver', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -193,7 +193,7 @@ export const CricketSuperOver = () => {
     try {
       const token = await AsyncStorage.getItem('token');
       const response = await fetch(
-        'http://192.168.100.4:3002/updateSuperOverScore',
+        'http://192.168.1.21:3002/updateSuperOverScore',
         {
           method: 'POST',
           headers: {
@@ -251,7 +251,7 @@ export const CricketSuperOver = () => {
     try {
       const token = await AsyncStorage.getItem('token');
       const response = await fetch(
-        'http://192.168.100.4:3002/prepareSuperOverSecondInning',
+        'http://192.168.1.21:3002/prepareSuperOverSecondInning',
         {
           method: 'POST',
           headers: {
@@ -334,7 +334,7 @@ export const CricketSuperOver = () => {
     try {
       const token = await AsyncStorage.getItem('token');
       const response = await fetch(
-        'http://192.168.100.4:3002/updateSuperOverWicket',
+        'http://192.168.1.21:3002/updateSuperOverWicket',
         {
           method: 'POST',
           headers: {
@@ -419,23 +419,29 @@ export const CricketSuperOver = () => {
       // If still tied after super over
       winner = 'Match Tied';
     }
-
+  
     Alert.alert('Super Over Result', `Winner: ${winner}`, [
       {
         text: 'OK',
         onPress: () => {
           // Update match result in backend
           updateMatchResult(winner);
-          navigation.navigate('RefLandingPage');
+  
+          // Check if match pool value is "final"
+          if (match.pool === 'final') {
+            navigation.replace('BestCricketerPage', { refresh: true });
+          } else {
+            navigation.replace('RefLandingPage', { refresh: true });
+          }
         },
       },
     ]);
   };
-
+  
   const updateMatchResult = async winner => {
     try {
       const token = await AsyncStorage.getItem('token');
-      await fetch('http://192.168.100.4:3002/completeSuperOver', {
+      await fetch('http://192.168.1.21:3002/completeSuperOver', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -454,7 +460,7 @@ export const CricketSuperOver = () => {
       console.error('Error updating match result:', error);
     }
   };
-
+  
   const handleByesIncrement = async (team, byes) => {
     if (!isSuperOverStarted || isSuperOverComplete) {
       Alert.alert('Super Over Not Started', 'Start the Super Over first.');
@@ -482,7 +488,7 @@ export const CricketSuperOver = () => {
     try {
       const token = await AsyncStorage.getItem('token');
       const response = await fetch(
-        'http://192.168.100.4:3002/updateSuperOverByes',
+        'http://192.168.1.21:3002/updateSuperOverByes',
         {
           method: 'POST',
           headers: {
@@ -553,7 +559,7 @@ export const CricketSuperOver = () => {
     try {
       const token = await AsyncStorage.getItem('token');
       const response = await fetch(
-        'http://192.168.100.4:3002/updateSuperOverExtras',
+        'http://192.168.1.21:3002/updateSuperOverExtras',
         {
           method: 'POST',
           headers: {
@@ -1275,4 +1281,5 @@ const styles = StyleSheet.create({
     color: 'white',
     textAlign: 'center',
   },
+  
 });

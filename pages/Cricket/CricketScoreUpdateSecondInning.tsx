@@ -158,12 +158,12 @@ export const CricketScoreUpdateSecondInning = ({route, navigation}) => {
         [
           {
             text: 'No',
-            onPress: () => navigation.navigate('RefLandingPage'),
+            onPress: () => navigation.replace('RefLandingPage',{refresh:true}),
             style: 'cancel',
           },
           {
             text: 'Yes',
-            onPress: () => navigation.navigate('CricketSuperOver', {match}),
+            onPress: () => navigation.replace('CricketSuperOver', {match}),
           },
         ],
       );
@@ -180,7 +180,7 @@ export const CricketScoreUpdateSecondInning = ({route, navigation}) => {
         }
 
         const response = await fetch(
-          `http://192.168.100.4:3002/match/${match.sport}/${match._id}`,
+          `http://192.168.1.21:3002/match/${match.sport}/${match._id}`,
           {
             method: 'GET',
             headers: {Authorization: `Bearer ${token}`},
@@ -340,7 +340,7 @@ export const CricketScoreUpdateSecondInning = ({route, navigation}) => {
       }
 
       const response = await fetch(
-        'http://192.168.100.4:3002/updateScoreCricket',
+        'http://192.168.1.21:3002/updateScoreCricket',
         {
           method: 'POST',
           headers: {
@@ -384,14 +384,14 @@ export const CricketScoreUpdateSecondInning = ({route, navigation}) => {
       }
 
       const response = await fetch(
-        'http://192.168.100.4:3002/stopmatchcricket',
+        'http://192.168.1.21:3002/stopmatchcricket',
         {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({matchId}),
+          body: JSON.stringify({matchId, matchyear: matchDetails?.year}),
         },
       );
 
@@ -410,7 +410,7 @@ export const CricketScoreUpdateSecondInning = ({route, navigation}) => {
           {
             text: 'OK',
             onPress: () => {
-              navigation.navigate(nextPage, {refresh: true});
+              navigation.replace(nextPage, {refresh: true});
             },
           },
         ]);
@@ -436,7 +436,7 @@ export const CricketScoreUpdateSecondInning = ({route, navigation}) => {
     try {
       const token = await AsyncStorage.getItem('token');
       const response = await fetch(
-        'http://192.168.100.4:3002/swapPlayerscricket2ndInning',
+        'http://192.168.1.21:3002/swapPlayerscricket2ndInning',
         {
           method: 'POST',
           headers: {
@@ -472,7 +472,7 @@ export const CricketScoreUpdateSecondInning = ({route, navigation}) => {
     try {
       const token = await AsyncStorage.getItem('token');
       const response = await fetch(
-        'http://192.168.100.4:3002/swapbowlercricket2ndInning',
+        'http://192.168.1.21:3002/swapbowlercricket2ndInning',
         {
           method: 'POST',
           headers: {
@@ -514,7 +514,7 @@ export const CricketScoreUpdateSecondInning = ({route, navigation}) => {
       }
 
       const response = await fetch(
-        'http://192.168.100.4:3002/updateByesCricket2ndInning',
+        'http://192.168.1.21:3002/updateByesCricket2ndInning',
         {
           method: 'POST',
           headers: {
@@ -573,7 +573,7 @@ export const CricketScoreUpdateSecondInning = ({route, navigation}) => {
       }
 
       const response = await fetch(
-        'http://192.168.100.4:3002/updateExtrasCricket2ndInning',
+        'http://192.168.1.21:3002/updateExtrasCricket2ndInning',
         {
           method: 'POST',
           headers: {
@@ -629,7 +629,7 @@ export const CricketScoreUpdateSecondInning = ({route, navigation}) => {
       }
 
       const response = await fetch(
-        'http://192.168.100.4:3002/handlealloutinning2',
+        'http://192.168.1.21:3002/handlealloutinning2',
         {
           method: 'POST',
           headers: {
@@ -638,6 +638,7 @@ export const CricketScoreUpdateSecondInning = ({route, navigation}) => {
           },
           body: JSON.stringify({
             matchId: matchDetails?._id,
+            matchyear: matchDetails?.year,
             outgoingBatsmanId: outgoingBatsman._id,
           }),
         },
@@ -661,7 +662,7 @@ export const CricketScoreUpdateSecondInning = ({route, navigation}) => {
             {
               text: 'OK',
               onPress: () => {
-                navigation.navigate(nextPage, {refresh: true});
+                navigation.replace(nextPage, {refresh: true});
               },
             },
           ],
@@ -764,7 +765,7 @@ export const CricketScoreUpdateSecondInning = ({route, navigation}) => {
           {confirmByesScore !== null ? (
             <TouchableOpacity
               key={'confirm'}
-              style={styles.scoreButton1}
+              style={styles.scoreButton2}
               onPress={() => handleConfirmByes()}>
               <Text style={styles.scoreButtonText1}>Confirm</Text>
             </TouchableOpacity>
@@ -854,7 +855,7 @@ export const CricketScoreUpdateSecondInning = ({route, navigation}) => {
                 {confirmBatScore[index] !== null ? (
                   <TouchableOpacity
                     key={'confirm'}
-                    style={styles.scoreButton1}
+                    style={styles.scoreButton2}
                     onPress={() => handleConfirmScoreIncrement(index)}>
                     <Text style={styles.scoreButtonText1}>Confirm</Text>
                   </TouchableOpacity>
@@ -1166,6 +1167,14 @@ const styles = StyleSheet.create({
   },
   scoreButton1: {
     backgroundColor: '#007AFF',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 5,
+    marginHorizontal: 2,
+    elevation: 3,
+  },
+  scoreButton2: {
+    backgroundColor: 'green',
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 5,

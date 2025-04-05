@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import axios from 'axios';
 // import { API_BASE_URL } from '../config';
-const API_BASE_URL = 'http://192.168.100.4:3002';
+const API_BASE_URL = 'http://192.168.1.21:3002';
 
 export const CricketMatchDetailScreen = ({route}) => {
   const {matchId} = route.params;
@@ -233,6 +233,45 @@ export const CricketMatchDetailScreen = ({route}) => {
                 </Text>
               </View>
             )}
+
+            {/* Team Players (Only show when the match status is "Upcoming") */}
+    {match.basicInfo.status === 'upcoming' && (
+      <View style={styles.infoCard}>
+        <Text style={styles.sectionTitle}>Team Players</Text>
+
+        <View style={styles.teamPlayersContainer}>
+          {/* Team 1 Players */}
+          <Text style={styles.sectionTitle}>{match.basicInfo.team1} Players</Text>
+          {match.players.team1.length > 0 ? (
+            match.players.team1.map((player, index) => (
+              <View key={index} style={styles.playerRow}>
+                <Text style={styles.playerName}>
+                  {player.name} ({player.shirtNo})
+                </Text>
+              </View>
+            ))
+          ) : (
+            <Text style={styles.noDataText}>No players data available</Text>
+          )}
+        </View>
+
+        <View style={styles.teamPlayersContainer}>
+          {/* Team 2 Players */}
+          <Text style={styles.sectionTitle}>{match.basicInfo.team2} Players</Text>
+          {match.players.team2.length > 0 ? (
+            match.players.team2.map((player, index) => (
+              <View key={index} style={styles.playerRow}>
+                <Text style={styles.playerName}>
+                  {player.name} ({player.shirtNo})
+                </Text>
+              </View>
+            ))
+          ) : (
+            <Text style={styles.noDataText}>No players data available</Text>
+          )}
+        </View>
+      </View>
+    )}
 
             {/* Current Innings */}
             {match.innings.currentInning > 0 && (
@@ -665,4 +704,8 @@ const styles = StyleSheet.create({
     color: '#333',
     textAlign: 'center',
   },
+  teamPlayersContainer: {
+    marginVertical: 10,
+  },
+  
 });

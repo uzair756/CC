@@ -189,7 +189,7 @@ export const CricketScoreUpdate = ({route, navigation}) => {
         }
 
         const response = await fetch(
-          `http://192.168.100.4:3002/match/${match.sport}/${match._id}`,
+          `http://192.168.1.21:3002/match/${match.sport}/${match._id}`,
           {
             method: 'GET',
             headers: {Authorization: `Bearer ${token}`},
@@ -300,7 +300,7 @@ export const CricketScoreUpdate = ({route, navigation}) => {
       }
 
       const response = await fetch(
-        'http://192.168.100.4:3002/startmatchcricket',
+        'http://192.168.1.21:3002/startmatchcricket',
         {
           method: 'POST',
           headers: {
@@ -343,7 +343,7 @@ export const CricketScoreUpdate = ({route, navigation}) => {
       }
 
       const response = await fetch(
-        'http://192.168.100.4:3002/updateScoreCricket',
+        'http://192.168.1.21:3002/updateScoreCricket',
         {
           method: 'POST',
           headers: {
@@ -408,7 +408,7 @@ export const CricketScoreUpdate = ({route, navigation}) => {
         }
 
         const response = await fetch(
-          'http://192.168.100.4:3002/updateFirstInningcricket',
+          'http://192.168.1.21:3002/updateFirstInningcricket',
           {
             method: 'POST',
             headers: {
@@ -448,7 +448,7 @@ export const CricketScoreUpdate = ({route, navigation}) => {
     try {
       const token = await AsyncStorage.getItem('token');
       const response = await fetch(
-        'http://192.168.100.4:3002/swapPlayerscricket',
+        'http://192.168.1.21:3002/swapPlayerscricket',
         {
           method: 'POST',
           headers: {
@@ -491,7 +491,7 @@ export const CricketScoreUpdate = ({route, navigation}) => {
       }
 
       const response = await fetch(
-        'http://192.168.100.4:3002/handlealloutinning1',
+        'http://192.168.1.21:3002/handlealloutinning1',
         {
           method: 'POST',
           headers: {
@@ -517,7 +517,7 @@ export const CricketScoreUpdate = ({route, navigation}) => {
                 setIsWicketModalVisible(false);
                 setIsTimerRunning(false);
                 setActiveMatchId(null);
-                navigation.navigate('CricketStartingPlayers2ndInnings', {
+                navigation.replace('CricketStartingPlayers2ndInnings', {
                   match,
                 });
               },
@@ -543,7 +543,7 @@ export const CricketScoreUpdate = ({route, navigation}) => {
     try {
       const token = await AsyncStorage.getItem('token');
       const response = await fetch(
-        'http://192.168.100.4:3002/swapbowlercricket',
+        'http://192.168.1.21:3002/swapbowlercricket',
         {
           method: 'POST',
           headers: {
@@ -584,7 +584,7 @@ export const CricketScoreUpdate = ({route, navigation}) => {
       }
 
       const response = await fetch(
-        'http://192.168.100.4:3002/updateByesCricket',
+        'http://192.168.1.21:3002/updateByesCricket',
         {
           method: 'POST',
           headers: {
@@ -644,7 +644,7 @@ export const CricketScoreUpdate = ({route, navigation}) => {
       }
 
       const response = await fetch(
-        'http://192.168.100.4:3002/updateExtrasCricket',
+        'http://192.168.1.21:3002/updateExtrasCricket',
         {
           method: 'POST',
           headers: {
@@ -770,7 +770,7 @@ export const CricketScoreUpdate = ({route, navigation}) => {
           {confirmByesScore !== null ? (
             <TouchableOpacity
               key={'confirm'}
-              style={styles.scoreButton1}
+              style={styles.scoreButton2}
               onPress={() => handleConfirmByes()}>
               <Text style={styles.scoreButtonText1}>Confirm</Text>
             </TouchableOpacity>
@@ -858,7 +858,7 @@ export const CricketScoreUpdate = ({route, navigation}) => {
                 {confirmBatScore[index] !== null ? (
                   <TouchableOpacity
                     key={'confirm'}
-                    style={styles.scoreButton1}
+                    style={styles.scoreButton2}
                     onPress={() => handleConfirmScoreIncrement(index)}>
                     <Text style={styles.scoreButtonText1}>Confirm</Text>
                   </TouchableOpacity>
@@ -1323,5 +1323,13 @@ const styles = StyleSheet.create({
   revertButtonText: {
     color: 'white',
     fontWeight: 'bold',
+  },
+  scoreButton2: {
+    backgroundColor: 'green',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 5,
+    marginHorizontal: 2,
+    elevation: 3,
   },
 });

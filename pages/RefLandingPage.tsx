@@ -19,7 +19,7 @@ export const RefLandingPage = ({ navigation }) => {
     const fetchProfileAndMatches = async () => {
       try {
         const token = await AsyncStorage.getItem('token');
-        const response = await fetch('http://192.168.100.4:3002/reflandingpage', {
+        const response = await fetch('http://192.168.1.21:3002/reflandingpage', {
           method: 'GET',
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -41,7 +41,7 @@ export const RefLandingPage = ({ navigation }) => {
   const fetchMatches = async (sportCategory) => {
     try {
       const token = await AsyncStorage.getItem('token');
-      const response = await fetch(`http://192.168.100.4:3002/refmatches`, {
+      const response = await fetch(`http://192.168.1.21:3002/refmatches`, {
         method: 'GET',
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -60,7 +60,7 @@ export const RefLandingPage = ({ navigation }) => {
 
   const handleSignOut = async () => {
     await AsyncStorage.removeItem('token');
-    navigation.navigate('IndexPage');
+    navigation.replace('IndexPage');
   };
 
   const handleMatchPress = (match) => {
@@ -72,10 +72,10 @@ export const RefLandingPage = ({ navigation }) => {
       Alert.alert('Error', 'Please fill all fields');
       return;
     }
-
+  
     try {
       const token = await AsyncStorage.getItem('token');
-      const response = await fetch('http://192.168.100.4:3002/createSemiFinalMatch', {
+      const response = await fetch('http://192.168.1.21:3002/createSemiFinalMatch', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -89,20 +89,31 @@ export const RefLandingPage = ({ navigation }) => {
           sportscategory: user?.sportscategory
         }),
       });
-
+  
       const data = await response.json();
+  
       if (data.success) {
         Alert.alert('Success', 'Match created successfully');
         setIsModalVisible(false);
         fetchMatches(user?.sportscategory);
       } else {
-        Alert.alert('Error', data.error || 'Failed to create match');
+        // Custom handling for known backend messages
+        if (data.message === "Final match already exists for this sport and year.") {
+          Alert.alert('Error', 'A final match is already present for this year and sport.');
+        } else if (data.message === "Maximum of 2 semi-final matches already exist for this sport and year.") {
+          Alert.alert('Error', 'Two semi-final matches already exist for this year and sport.');
+        } else if (data.message === "This semi-final match already exists.") {
+          Alert.alert('Error', 'This semi-final match has already been created.');
+        } else {
+          Alert.alert('Error', data.message || 'Failed to create match');
+        }
       }
     } catch (error) {
       console.error('Error creating match:', error);
       Alert.alert('Error', 'An error occurred while creating match');
     }
   };
+  
 
   return (
     <SafeAreaView style={styles.safeArea}>

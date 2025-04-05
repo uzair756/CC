@@ -77,7 +77,7 @@ export const LandingScreen = ({ navigation }) => {
 
         {/* User Icon - Only show if the token is empty */}
         {token === null && (
-          <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+          <TouchableOpacity onPress={() => navigation.replace('Login')}>
             <Image style={styles.rightIcon} source={UserIcon} />
           </TouchableOpacity>
         )}

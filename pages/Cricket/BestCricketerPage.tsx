@@ -19,7 +19,7 @@ export const BestCricketerPage = ({navigation}) => {
                 return;
             }
 
-            const response = await fetch("http://192.168.100.4:3002/bestcricketer", {
+            const response = await fetch("http://192.168.1.21:3002/bestcricketer", {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
@@ -43,7 +43,7 @@ export const BestCricketerPage = ({navigation}) => {
     };
 
     const handleOkPress = () => {
-        navigation.navigate('RefLandingPage', { refresh: true });
+        navigation.replace('RefLandingPage', { refresh: true });
     };
 
     return (
