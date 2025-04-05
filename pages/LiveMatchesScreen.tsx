@@ -6,12 +6,14 @@ import {
   ScrollView,
   Image,
   TouchableOpacity,
-  TouchableHighlight,
+  FlatList,
   ActivityIndicator,
-  ImageBackground,
+  Dimensions,
 } from 'react-native';
-
 import {useNavigation} from '@react-navigation/native';
+
+const {width} = Dimensions.get('window');
+
 const sportsCategories = [
   {name: 'Football', icon: require('../assets/football.png')},
   {name: 'Cricket', icon: require('../assets/cricket.png')},
@@ -34,7 +36,8 @@ export const LiveMatchesScreen = () => {
   const [matches, setMatches] = useState([]);
   const [reloadKey, setReloadKey] = useState(0);
 
-  const navigation = useNavigation(); // Get navigation instance
+  const navigation = useNavigation();
+
   useEffect(() => {
     const fetchLiveMatches = async () => {
       setLoading(true);
@@ -66,8 +69,9 @@ export const LiveMatchesScreen = () => {
   }, []);
 
   const getWinner = result => {
-    return result ? `${result} won` : 'Winner not announced yet';
+    return result ? `${result} won` : 'Live';
   };
+
   const formatBowlerOvers = ballsBowled => {
     const legalDeliveries = ballsBowled.filter(
       ball => ball !== 'WD' && ball !== 'NB',
@@ -77,261 +81,218 @@ export const LiveMatchesScreen = () => {
     return `${overs}.${balls}`;
   };
 
-  return (
-    <View style={styles.container}>
-      {/* Category Selection */}
-      <View style={styles.categoryWrapper}>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.categoryScroll}>
-          {sportsCategories.map(category => (
-            <TouchableOpacity
-              key={category.name}
-              style={[
-                styles.categoryItem,
-                selectedSport === category.name && styles.selectedCategory,
-              ]}
-              onPress={() => setSelectedSport(category.name)}>
-              <Image source={category.icon} style={styles.categoryIcon} />
-              <Text style={styles.categoryText}>{category.name}</Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
+  const renderMatchItem = ({item}) => (
+    <TouchableOpacity
+      style={styles.matchCard}
+      onPress={() => {
+        navigation.navigate('CricketMatchDetailScreen', {
+          matchId: item._id,
+        });
+      }}
+      activeOpacity={0.9}>
+      {/* Match Header */}
+      <View style={styles.matchHeader}>
+        <Text style={styles.poolText}>{item.pool}</Text>
+        <View style={styles.liveBadge}>
+          <View style={styles.liveDot} />
+          <Text style={styles.liveText}>{getWinner(item.result)}</Text>
+        </View>
       </View>
 
-      {/* Matches List */}
-      <View style={styles.matchesContainer}>
-        <ScrollView>
-          {loading && matches.length === 0 ? (
-            <ActivityIndicator size="large" color="#007BFF" />
-          ) : matches.length === 0 ? (
-            <Text>No matches available.</Text>
-          ) : (
-            matches.map(match => (
-              <TouchableHighlight
-                key={match._id}
-                onPress={() => {
-                  navigation.navigate('CricketMatchDetailScreen', {
-                    matchId: match._id,
-                  });
-                }}
-                underlayColor="#e0e0e0"
-                style={styles.matchContainer}>
-                <View style={styles.matchCard}>
-                  {/* Pool Display (Centered Top) */}
-                  <Text style={styles.poolText}>Pool: {match.pool}</Text>
-                  {selectedSport === 'Cricket' && (
-                    <Text style={styles.inningText}>
-                      {match.inning === 1
-                        ? '1st Inning'
-                        : match.inning === 2
-                        ? '2nd Inning'
-                        : match.inning}
-                    </Text>
-                  )}
-                  <View style={styles.teamContainer}>
-                    <Text style={styles.teamName}>{match.team1}</Text>
+      {/* Teams and Score */}
+      <View style={styles.teamsContainer}>
+        <View style={styles.teamColumn}>
+          <Text style={styles.teamName} numberOfLines={1}>
+            {item.team1}
+          </Text>
+          <Text style={styles.teamScore}>
+            {selectedSport === 'Cricket'
+              ? `${item.scoreT1}/${item.T1wickets}`
+              : item.scoreT1}
+          </Text>
+        </View>
 
-                    {selectedSport === 'Cricket' ? (
-                      <>
-                        <Text style={styles.score}>
-                          {match.scoreT1}/{match.T1wickets} - {match.scoreT2}/
-                          {match.T2wickets}
-                        </Text>
-                      </>
-                    ) : (
-                      <Text style={styles.score}>
-                        {match.scoreT1} - {match.scoreT2}
-                      </Text>
-                    )}
+        <View style={styles.vsContainer}>
+          <Text style={styles.vsText}>vs</Text>
+        </View>
 
-                    <Text style={styles.teamName}>{match.team2}</Text>
+        <View style={styles.teamColumn}>
+          <Text style={styles.teamName} numberOfLines={1}>
+            {item.team2}
+          </Text>
+          <Text style={styles.teamScore}>
+            {selectedSport === 'Cricket'
+              ? `${item.scoreT2}/${item.T2wickets}`
+              : item.scoreT2}
+          </Text>
+        </View>
+      </View>
+
+      {/* Cricket Specific Details */}
+      {selectedSport === 'Cricket' && (
+        <>
+          <View style={styles.inningContainer}>
+            <Text style={styles.inningText}>
+              {item.inning === 1
+                ? '1st Inning'
+                : item.inning === 2
+                ? '2nd Inning'
+                : ''}
+            </Text>
+            <Text style={styles.oversText}>
+              {item.inning === 1 ? item.oversInning1 : item.oversInning2} overs
+            </Text>
+          </View>
+
+          {/* Recent Runs */}
+          <View style={styles.recentRunsContainer}>
+            <Text style={styles.sectionTitle}>Recent Runs</Text>
+            <View style={styles.runsRow}>
+              {(item.inning === 1 ? item.runsInning1 : item.runsInning2)
+                .slice(-6)
+                .map((run, idx) => (
+                  <View key={idx} style={styles.runPill}>
+                    <Text style={styles.runText}>{run}</Text>
                   </View>
-                  {selectedSport === 'Cricket' && (
-                    <View>
-                      <Text style={styles.oversText}>
-                        Overs:{' '}
-                        {match.inning === 1
-                          ? match.oversInning1
-                          : match.oversInning2}
-                      </Text>
+                ))}
+            </View>
+          </View>
 
-                      <View style={styles.runsContainer}>
-                        {(match.inning === 1
-                          ? match.runsInning1
-                          : match.runsInning2
-                        )
-                          .slice(-6) // Get last 6 runs
-                          .map((run, idx) => (
-                            <View key={idx} style={styles.runBox}>
-                              <Text style={styles.runText}>{run}</Text>
-                            </View>
-                          ))}
+          {/* Player Stats */}
+          {item.nominationsT1 && item.nominationsT2 && (
+            <View style={styles.playersContainer}>
+              {/* Batsmen */}
+              <View style={styles.playerSection}>
+                <Text style={styles.sectionTitle}>
+                  Batsmen ({item.inning === 1 ? item.FirstInningBattingTeam : item.SecondInningBattingTeam})
+                </Text>
+                {[...item.nominationsT1, ...item.nominationsT2]
+                  .filter(player => player.playingStatus === 'ActiveBatsman')
+                  .map((player, index) => (
+                    <View key={index} style={styles.playerRow}>
+                      <View style={styles.playerInfo}>
+                        <View style={styles.shirtBadge}>
+                          <Text style={styles.shirtText}>{player.shirtNo}</Text>
+                        </View>
+                        <Text style={styles.playerName}>{player.name}</Text>
+                      </View>
+                      <View style={styles.playerStats}>
+                        <Text style={styles.statText}>
+                          {player.runsScored} ({player.ballsFaced.length})
+                        </Text>
+                        <Text style={styles.statText}>
+                          SR: {((player.runsScored / player.ballsFaced.length) * 100 || 0).toFixed(2)}
+                        </Text>
+                      </View>
+                      <View style={styles.recentBalls}>
+                        {player.ballsFaced.slice(-5).map((ball, idx) => (
+                          <View key={idx} style={styles.ballPill}>
+                            <Text style={styles.ballText}>{ball}</Text>
+                          </View>
+                        ))}
                       </View>
                     </View>
-                  )}
+                  ))}
+              </View>
 
-                  {selectedSport === 'Cricket' &&
-                    match.nominationsT1 &&
-                    match.nominationsT2 && (
-                      <>
-                        {/* Active Batsmen */}
-                        {/* Active Batsmen */}
-                        {/* Active Bowler */}
-                        <Text style={styles.playerText}>
-                          Active Batsman of{' '}
-                          {match?.inning === 1
-                            ? match.FirstInningBattingTeam
-                            : match.SecondInningBattingTeam}
+              {/* Bowler */}
+              <View style={styles.playerSection}>
+                <Text style={styles.sectionTitle}>
+                  Bowler ({item.inning === 1 ? item.FirstInningBowlingTeam : item.SecondInningBowlingTeam})
+                </Text>
+                {[...item.nominationsT1, ...item.nominationsT2]
+                  .filter(player => player.playingStatus === 'ActiveBowler')
+                  .map((player, index) => (
+                    <View key={index} style={styles.playerRow}>
+                      <View style={styles.playerInfo}>
+                        <View style={styles.shirtBadge}>
+                          <Text style={styles.shirtText}>{player.shirtNo}</Text>
+                        </View>
+                        <Text style={styles.playerName}>{player.name}</Text>
+                      </View>
+                      <View style={styles.playerStats}>
+                        <Text style={styles.statText}>
+                          {formatBowlerOvers(player.ballsBowled)} ov
                         </Text>
-                        {[...match.nominationsT1, ...match.nominationsT2]
-                          .filter(
-                            player => player.playingStatus === 'ActiveBatsman',
-                          )
-                          .map((player, index) => (
-                            <View key={index} style={styles.playerRow}>
-                              <View style={styles.leftContainer}>
-                                <ImageBackground
-                                  source={require('../assets/shirt.png')}
-                                  style={styles.shirtIcon}>
-                                  <Text style={styles.shirtText}>
-                                    {player.shirtNo}
-                                  </Text>
-                                </ImageBackground>
-                              </View>
-
-                              <View style={styles.rightContainer}>
-                                <Text style={styles.playerName}>
-                                  {player.name}
-                                </Text>
-                                <Text style={styles.goalsText}>
-                                  Runs Scored: {player.runsScored}
-                                </Text>
-                                <Text style={styles.goalsText}>
-                                  Balls Faced: {player.ballsFaced.length}
-                                </Text>
-                                <Text style={styles.goalsText}>
-                                  Strike Rate:{' '}
-                                  {(
-                                    (player.runsScored /
-                                      player.ballsFaced.length) *
-                                      100 || 0
-                                  ).toFixed(2)}
-                                </Text>
-
-                                <View style={styles.ballsContainer}>
-                                  {player.ballsFaced
-                                    .slice(-6)
-                                    .map((ball, idx) => (
-                                      <View key={idx} style={styles.ballBox}>
-                                        <Text style={styles.ballText}>
-                                          {ball}
-                                        </Text>
-                                      </View>
-                                    ))}
-                                </View>
-                              </View>
-                            </View>
-                          ))}
-
-                        {/* Active Bowler */}
-                        <Text style={styles.playerText}>
-                          Active Bowler of{' '}
-                          {match?.inning === 1
-                            ? match.FirstInningBowlingTeam
-                            : match.SecondInningBowlingTeam}
+                        <Text style={styles.statText}>
+                          {player.wicketsTaken} wkts
                         </Text>
-
-                        {[...match.nominationsT1, ...match.nominationsT2]
-                          .filter(
-                            player => player.playingStatus === 'ActiveBowler',
-                          )
-                          .map((player, index) => (
-                            <View style={styles.playerRow}>
-                              <View style={styles.leftContainer}>
-                                <ImageBackground
-                                  source={require('../assets/shirt.png')}
-                                  style={styles.shirtIcon}>
-                                  <Text style={styles.shirtText}>
-                                    {player.shirtNo}
-                                  </Text>
-                                </ImageBackground>
-                              </View>
-
-                              <View style={styles.rightContainer}>
-                                <Text style={styles.playerName}>
-                                  {player.name}
-                                </Text>
-                                <Text style={styles.goalsText}>
-                                  Wickets Taken: {player.wicketsTaken}
-                                </Text>
-                                <Text style={styles.goalsText}>
-                                  Overs: {formatBowlerOvers(player.ballsBowled)}
-                                </Text>
-                                <Text style={styles.goalsText}>
-                                  Runs Conceded:{' '}
-                                  {player.ballsBowled.reduce(
-                                    (acc, val) =>
-                                      val === 'W' || val.endsWith('B')
-                                        ? acc
-                                        : acc +
-                                          (['NB', 'WD'].includes(val)
-                                            ? 1
-                                            : Number(val) || 0),
-                                    0,
-                                  )}
-                                </Text>
-
-                                <Text style={styles.goalsText}>
-                                  Economy Rate:{' '}
-                                  {(
-                                    player.ballsBowled.reduce(
-                                      (acc, val) =>
-                                        acc +
-                                        (['W', 'NB', 'WD'].includes(val) ||
-                                        val.endsWith('B')
-                                          ? 0
-                                          : Number(val)),
-                                      0,
-                                    ) /
-                                      (player.ballsBowled.filter(
-                                        ball =>
-                                          !['NB', 'WD'].includes(ball) &&
-                                          !ball.endsWith('B'),
-                                      ).length /
-                                        6) || 0
-                                  ).toFixed(2)}
-                                </Text>
-
-                                <View style={styles.ballsContainer}>
-                                  {player.ballsBowled
-                                    .slice(-6)
-                                    .map((ball, idx) => (
-                                      <View key={idx} style={styles.ballBox}>
-                                        <Text style={styles.ballText}>
-                                          {ball}
-                                        </Text>
-                                      </View>
-                                    ))}
-                                </View>
-                              </View>
-                            </View>
-                          ))}
-                      </>
-                    )}
-
-                  <Text style={styles.winnerText}>
-                    {getWinner(match.result)}
-                  </Text>
-                </View>
-              </TouchableHighlight>
-            ))
+                        <Text style={styles.statText}>
+                          {player.ballsBowled.reduce(
+                            (acc, val) =>
+                              val === 'W' || val.endsWith('B')
+                                ? acc
+                                : acc +
+                                  (['NB', 'WD'].includes(val)
+                                    ? 1
+                                    : Number(val) || 0),
+                            0,
+                          )} runs
+                        </Text>
+                      </View>
+                      <View style={styles.recentBalls}>
+                        {player.ballsBowled.slice(-5).map((ball, idx) => (
+                          <View key={idx} style={styles.ballPill}>
+                            <Text style={styles.ballText}>{ball}</Text>
+                          </View>
+                        ))}
+                      </View>
+                    </View>
+                  ))}
+              </View>
+            </View>
           )}
-          <View style={{height: 300}}></View>
-        </ScrollView>
-        {loading && matches.length > 0 && (
-          <ActivityIndicator size="small" color="#007BFF" />
+        </>
+      )}
+    </TouchableOpacity>
+  );
+
+  return (
+   <View style={styles.container}>
+         {/* Category Selection */}
+         <View style={styles.categoryWrapper}>
+           <ScrollView
+             horizontal
+             showsHorizontalScrollIndicator={false}
+             style={styles.categoryScroll}>
+             {sportsCategories.map(category => (
+               <TouchableOpacity
+                 key={category.name}
+                 style={[
+                   styles.categoryItem,
+                   selectedSport === category.name && styles.selectedCategory,
+                 ]}
+                 onPress={() => setSelectedSport(category.name)}>
+                 <Image source={category.icon} style={styles.categoryIcon} />
+                 <Text style={styles.categoryText}>{category.name}</Text>
+               </TouchableOpacity>
+             ))}
+           </ScrollView>
+         </View>
+
+      {/* Matches List */}
+      <View style={styles.matchesList}>
+        {loading && matches.length === 0 ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#6573EA" />
+          </View>
+        ) : matches.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <Image
+              
+              style={styles.emptyImage}
+            />
+            <Text style={styles.emptyText}>No live matches available</Text>
+          </View>
+        ) : (
+          <FlatList
+            data={matches}
+            renderItem={renderMatchItem}
+            keyExtractor={item => item._id}
+            contentContainerStyle={styles.listContent}
+            showsVerticalScrollIndicator={false}
+            ListFooterComponent={<View style={{height: 30}} />}
+          />
         )}
       </View>
     </View>
@@ -365,176 +326,233 @@ const styles = StyleSheet.create({
     backgroundColor: '#007BFF',
   },
   categoryIcon: {
-    width: 35,
-    height: 35,
-    marginBottom: 5,
+    width: 32,
+    height: 32,
+    marginBottom: 6,
+    tintColor: '#334155',
+  },
+  selectedCategoryIcon: {
+    tintColor: 'white',
   },
   categoryText: {
     fontSize: 12,
-    fontWeight: 'bold',
-    color: '#333',
+    fontWeight: '500',
+    color: '#334155',
+    textAlign: 'center',
   },
-  matchesContainer: {
-    padding: 15,
+  selectedCategoryText: {
+    color: 'white',
   },
-  matchContainer: {
-    backgroundColor: '#3498db',
-    borderRadius: 10,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
-    marginBottom: 15,
-    padding: 10,
+  matchesList: {
+    flex: 1,
+    paddingHorizontal: 16,
   },
-  matchCard: {
-    flexDirection: 'column',
+  loadingContainer: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  poolText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#fff',
-    textAlign: 'center',
-    marginBottom: 5,
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingBottom: 100,
   },
-  teamContainer: {
+  emptyImage: {
+    width: 150,
+    height: 150,
+    opacity: 0.6,
+    marginBottom: 16,
+  },
+  emptyText: {
+    fontSize: 16,
+    color: '#64748B',
+    textAlign: 'center',
+  },
+  listContent: {
+    paddingTop: 16,
+    paddingBottom: 32,
+  },
+  matchCard: {
+    backgroundColor: 'white',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  matchHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    width: '100%',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  poolText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#64748B',
+    textTransform: 'uppercase',
+  },
+  liveBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FEE2E2',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  liveDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#DC2626',
+    marginRight: 6,
+  },
+  liveText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#DC2626',
+  },
+  teamsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  teamColumn: {
+    flex: 1,
     alignItems: 'center',
   },
   teamName: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#fff',
-  },
-  score: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#fff',
-    textAlign: 'center',
-  },
-  inningOvers: {
     fontSize: 16,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginVertical: 5,
+    fontWeight: '600',
+    color: '#1E293B',
+    marginBottom: 4,
     textAlign: 'center',
   },
-  winnerText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginTop: 10,
-    textAlign: 'center',
+  teamScore: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#1E293B',
   },
-  oversText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#FFD700', // Gold color for highlight
-    textAlign: 'center',
-    marginTop: 5,
+  vsContainer: {
+    paddingHorizontal: 12,
+  },
+  vsText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#64748B',
+  },
+  inningContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    backgroundColor: '#F1F5F9',
+    borderRadius: 8,
   },
   inningText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#FFD700', // Gold color for highlight
-    textAlign: 'center',
-    marginTop: 5,
-    marginBottom: 5,
-  },
-
-  ballsText: {
     fontSize: 14,
-    color: '#666',
-    marginTop: 3,
+    fontWeight: '600',
+    color: '#334155',
   },
-
-  playerText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginVertical: 5,
-    color: 'white',
-  },
-  playerName: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#444',
-  },
-  ballsContainer: {
-    flexDirection: 'row',
-    marginTop: 5,
-  },
-  ballBox: {
-    width: 30,
-    height: 30,
-    backgroundColor: 'white',
-    borderRadius: 5,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginHorizontal: 3,
-    borderWidth: 1,
-    borderColor: '#ccc',
-  },
-  ballText: {
+  oversText: {
     fontSize: 14,
-    fontWeight: 'bold',
-    color: '#000',
+    fontWeight: '600',
+    color: '#007BFF',
   },
-  shirtContainer: {
-    alignItems: 'center',
-    marginBottom: 5,
+  recentRunsContainer: {
+    marginBottom: 16,
   },
-
-  playerRow: {
-    flexDirection: 'row', // Ensures items are aligned horizontally
-    alignItems: 'center', // Aligns items vertically at the center
-    marginBottom: 10,
-    padding: 10,
-    backgroundColor: '#f7f7f7',
-    borderRadius: 8,
-    width: 300,
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#64748B',
+    marginBottom: 8,
   },
-
-  leftContainer: {
-    marginRight: 10, // Adds space between the shirt icon and player name
-  },
-
-  rightContainer: {
-    flex: 1, // Ensures the player name and balls are properly aligned
-  },
-
-  shirtIcon: {
-    width: 30,
-    height: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-
-  shirtText: {
-    fontSize: 11,
-    fontWeight: 'bold',
-    color: 'white',
-    textAlign: 'center',
-  },
-  runsContainer: {
+  runsRow: {
     flexDirection: 'row',
-    marginTop: 5,
   },
-  runBox: {
-    width: 30,
-    height: 30,
-    backgroundColor: '#ddd', // Light grey background
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 5,
-    borderRadius: 5,
+  runPill: {
+    backgroundColor: '#E0E7FF',
+    borderRadius: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    marginRight: 8,
   },
   runText: {
     fontSize: 14,
-    fontWeight: 'bold',
+    fontWeight: '600',
+    color: '#007BFF',
+  },
+  playersContainer: {
+    marginTop: 8,
+  },
+  playerSection: {
+    marginBottom: 16,
+  },
+  playerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
+  },
+  playerInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 2,
+  },
+  shirtBadge: {
+    backgroundColor: '#6573EA',
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 8,
+  },
+  shirtText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: 'white',
+  },
+  playerName: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#334155',
+  },
+  playerStats: {
+    flex: 1,
+    alignItems: 'flex-end',
+  },
+  statText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#64748B',
+  },
+  recentBalls: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+  },
+  ballPill: {
+    backgroundColor: '#E2E8F0',
+    borderRadius: 10,
+    width: 20,
+    height: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 4,
+  },
+  ballText: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: '#334155',
   },
 });

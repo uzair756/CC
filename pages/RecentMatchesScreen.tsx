@@ -6,12 +6,14 @@ import {
   ScrollView,
   Image,
   TouchableOpacity,
-  TouchableHighlight,
+  FlatList,
   ActivityIndicator,
-  ImageBackground,
+  Dimensions,
 } from 'react-native';
-
 import {useNavigation} from '@react-navigation/native';
+
+const {width} = Dimensions.get('window');
+
 const sportsCategories = [
   {name: 'Football', icon: require('../assets/football.png')},
   {name: 'Cricket', icon: require('../assets/cricket.png')},
@@ -32,11 +34,11 @@ export const RecentMatchesScreen = () => {
   const [selectedSport, setSelectedSport] = useState('Football');
   const [loading, setLoading] = useState(false);
   const [matches, setMatches] = useState([]);
-  const [reloadKey, setReloadKey] = useState(0);
 
-  const navigation = useNavigation(); // Get navigation instance
+  const navigation = useNavigation();
+
   useEffect(() => {
-    const fetchLiveMatches = async () => {
+    const fetchRecentMatches = async () => {
       setLoading(true);
       try {
         const response = await fetch(
@@ -54,25 +56,73 @@ export const RecentMatchesScreen = () => {
       }
     };
 
-    fetchLiveMatches();
-  }, [selectedSport, reloadKey]);
+    fetchRecentMatches();
+  }, [selectedSport]);
 
+  const renderMatchItem = ({item}) => (
+    <TouchableOpacity
+      style={styles.matchCard}
+      onPress={() => {
+        navigation.navigate('CricketMatchDetailScreen', {
+          matchId: item._id,
+        });
+      }}
+      activeOpacity={0.9}>
+      {/* Match Header */}
+      <View style={styles.matchHeader}>
+        <Text style={styles.poolText}>{item.pool}</Text>
+        <View style={[
+          styles.resultBadge,
+          item.result ? styles.completedBadge : styles.liveBadge
+        ]}>
+          <Text style={styles.resultText}>
+            {item.result ? 'Completed' : 'Live'}
+          </Text>
+        </View>
+      </View>
 
-  const getWinner = result => {
-    return result ? `${result} won` : 'Winner not announced yet';
-  };
-  const formatBowlerOvers = ballsBowled => {
-    const legalDeliveries = ballsBowled.filter(
-      ball => ball !== 'WD' && ball !== 'NB',
-    ).length;
-    const overs = Math.floor(legalDeliveries / 6);
-    const balls = legalDeliveries % 6;
-    return `${overs}.${balls}`;
-  };
+      {/* Teams and Score */}
+      <View style={styles.teamsContainer}>
+        <View style={styles.teamColumn}>
+          <Text style={styles.teamName} numberOfLines={1}>
+            {item.team1}
+          </Text>
+          <Text style={styles.teamScore}>
+            {selectedSport === 'Cricket'
+              ? `${item.scoreT1}/${item.T1wickets}`
+              : item.scoreT1}
+          </Text>
+        </View>
+
+        <View style={styles.vsContainer}>
+          <Text style={styles.vsText}>vs</Text>
+        </View>
+
+        <View style={styles.teamColumn}>
+          <Text style={styles.teamName} numberOfLines={1}>
+            {item.team2}
+          </Text>
+          <Text style={styles.teamScore}>
+            {selectedSport === 'Cricket'
+              ? `${item.scoreT2}/${item.T2wickets}`
+              : item.scoreT2}
+          </Text>
+        </View>
+      </View>
+
+      {/* Winner Display */}
+      {item.result && (
+        <View style={styles.winnerContainer}>
+          <Text style={styles.winnerLabel}>Winner:</Text>
+          <Text style={styles.winnerTeam}>{item.result}</Text>
+        </View>
+      )}
+    </TouchableOpacity>
+  );
 
   return (
     <View style={styles.container}>
-      {/* Category Selection */}
+      {/* Categories - Keeping the same as before */}
       <View style={styles.categoryWrapper}>
         <ScrollView
           horizontal
@@ -94,57 +144,28 @@ export const RecentMatchesScreen = () => {
       </View>
 
       {/* Matches List */}
-      <View style={styles.matchesContainer}>
-        <ScrollView>
-          {loading && matches.length === 0 ? (
-            <ActivityIndicator size="large" color="#007BFF" />
-          ) : matches.length === 0 ? (
-            <Text>No matches available.</Text>
-          ) : (
-            matches.map(match => (
-              <TouchableHighlight
-                key={match._id}
-                onPress={() => {
-                  navigation.navigate('CricketMatchDetailScreen', {
-                    matchId: match._id,
-                  });
-                }}
-                underlayColor="#e0e0e0"
-                style={styles.matchContainer}>
-                <View style={styles.matchCard}>
-                  {/* Pool Display (Centered Top) */}
-                  <Text style={styles.poolText}>Pool: {match.pool}</Text>
-                  <View style={styles.teamContainer}>
-                    <Text style={styles.teamName}>{match.team1}</Text>
-
-                    {selectedSport === 'Cricket' ? (
-                      <>
-                        <Text style={styles.score}>
-                          {match.scoreT1}/{match.T1wickets} - {match.scoreT2}/
-                          {match.T2wickets}
-                        </Text>
-                      </>
-                    ) : (
-                      <Text style={styles.score}>
-                        {match.scoreT1} - {match.scoreT2}
-                      </Text>
-                    )}
-
-                    <Text style={styles.teamName}>{match.team2}</Text>
-                  </View>
-              
-
-                  <Text style={styles.winnerText}>
-                    {getWinner(match.result)}
-                  </Text>
-                </View>
-              </TouchableHighlight>
-            ))
-          )}
-          <View style={{height: 300}}></View>
-        </ScrollView>
-        {loading && matches.length > 0 && (
-          <ActivityIndicator size="small" color="#007BFF" />
+      <View style={styles.matchesList}>
+        {loading && matches.length === 0 ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#6573EA" />
+          </View>
+        ) : matches.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <Image
+              // source={require('../assets/no-matches.png')}
+              style={styles.emptyImage}
+            />
+            <Text style={styles.emptyText}>No recent matches available</Text>
+          </View>
+        ) : (
+          <FlatList
+            data={matches}
+            renderItem={renderMatchItem}
+            keyExtractor={item => item._id}
+            contentContainerStyle={styles.listContent}
+            showsVerticalScrollIndicator={false}
+            ListFooterComponent={<View style={{height: 30}} />}
+          />
         )}
       </View>
     </View>
@@ -178,176 +199,145 @@ const styles = StyleSheet.create({
     backgroundColor: '#007BFF',
   },
   categoryIcon: {
-    width: 35,
-    height: 35,
-    marginBottom: 5,
+    width: 32,
+    height: 32,
+    marginBottom: 6,
+    tintColor: '#334155',
+  },
+  selectedCategoryIcon: {
+    tintColor: 'white',
   },
   categoryText: {
     fontSize: 12,
-    fontWeight: 'bold',
-    color: '#333',
+    fontWeight: '500',
+    color: '#334155',
+    textAlign: 'center',
   },
-  matchesContainer: {
-    padding: 15,
+  selectedCategoryText: {
+    color: 'white',
   },
-  matchContainer: {
-    backgroundColor: '#3498db',
-    borderRadius: 10,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
-    marginBottom: 15,
-    padding: 10,
+  matchesList: {
+    flex: 1,
+    paddingHorizontal: 16,
   },
-  matchCard: {
-    flexDirection: 'column',
+  loadingContainer: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  poolText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#fff',
-    textAlign: 'center',
-    marginBottom: 5,
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingBottom: 100,
   },
-  teamContainer: {
+  emptyImage: {
+    width: 150,
+    height: 150,
+    opacity: 0.6,
+    marginBottom: 16,
+  },
+  emptyText: {
+    fontSize: 16,
+    color: '#64748B',
+    textAlign: 'center',
+  },
+  listContent: {
+    paddingTop: 16,
+    paddingBottom: 32,
+  },
+  matchCard: {
+    backgroundColor: 'white',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  matchHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    width: '100%',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  poolText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#64748B',
+    textTransform: 'uppercase',
+  },
+  resultBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  completedBadge: {
+    backgroundColor: '#D1FAE5',
+  },
+  liveBadge: {
+    backgroundColor: '#FEE2E2',
+  },
+  resultText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  completedText: {
+    color: '#065F46',
+  },
+  liveText: {
+    color: '#DC2626',
+  },
+  teamsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  teamColumn: {
+    flex: 1,
     alignItems: 'center',
   },
   teamName: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#fff',
-  },
-  score: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#fff',
-    textAlign: 'center',
-  },
-  inningOvers: {
     fontSize: 16,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginVertical: 5,
+    fontWeight: '600',
+    color: '#1E293B',
+    marginBottom: 4,
     textAlign: 'center',
   },
-  winnerText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginTop: 10,
-    textAlign: 'center',
+  teamScore: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#1E293B',
   },
-  oversText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#FFD700', // Gold color for highlight
-    textAlign: 'center',
-    marginTop: 5,
+  vsContainer: {
+    paddingHorizontal: 12,
   },
-  inningText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#FFD700', // Gold color for highlight
-    textAlign: 'center',
-    marginTop: 5,
-    marginBottom: 5,
-  },
-
-  ballsText: {
+  vsText: {
     fontSize: 14,
-    color: '#666',
-    marginTop: 3,
+    fontWeight: '600',
+    color: '#64748B',
   },
-
-  playerText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginVertical: 5,
-    color: 'white',
-  },
-  playerName: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#444',
-  },
-  ballsContainer: {
+  winnerContainer: {
     flexDirection: 'row',
-    marginTop: 5,
-  },
-  ballBox: {
-    width: 30,
-    height: 30,
-    backgroundColor: 'white',
-    borderRadius: 5,
     justifyContent: 'center',
     alignItems: 'center',
-    marginHorizontal: 3,
-    borderWidth: 1,
-    borderColor: '#ccc',
-  },
-  ballText: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#000',
-  },
-  shirtContainer: {
-    alignItems: 'center',
-    marginBottom: 5,
-  },
-
-  playerRow: {
-    flexDirection: 'row', // Ensures items are aligned horizontally
-    alignItems: 'center', // Aligns items vertically at the center
-    marginBottom: 10,
-    padding: 10,
-    backgroundColor: '#f7f7f7',
+    marginTop: 8,
+    padding: 8,
+    backgroundColor: '#F1F5F9',
     borderRadius: 8,
-    width: 300,
   },
-
-  leftContainer: {
-    marginRight: 10, // Adds space between the shirt icon and player name
-  },
-
-  rightContainer: {
-    flex: 1, // Ensures the player name and balls are properly aligned
-  },
-
-  shirtIcon: {
-    width: 30,
-    height: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-
-  shirtText: {
-    fontSize: 11,
-    fontWeight: 'bold',
-    color: 'white',
-    textAlign: 'center',
-  },
-  runsContainer: {
-    flexDirection: 'row',
-    marginTop: 5,
-  },
-  runBox: {
-    width: 30,
-    height: 30,
-    backgroundColor: '#ddd', // Light grey background
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 5,
-    borderRadius: 5,
-  },
-  runText: {
+  winnerLabel: {
     fontSize: 14,
-    fontWeight: 'bold',
+    fontWeight: '600',
+    color: '#64748B',
+    marginRight: 6,
+  },
+  winnerTeam: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#4F46E5',
   },
 });

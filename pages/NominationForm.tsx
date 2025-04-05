@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, Button, Alert, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, TextInput, Button, Alert, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const NominationForm = ({ route }) => {
@@ -8,14 +8,28 @@ export const NominationForm = ({ route }) => {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [nominationData, setNominationData] = useState(null);
   const [lastUpdated, setLastUpdated] = useState(null);
-  const currentYear = new Date().getFullYear().toString(); // Get current year as string
+  const [activeIndex, setActiveIndex] = useState(0);
+  const currentYear = new Date().getFullYear().toString();
 
-  const playerLimit = sport === 'Football' ? 16 : sport === 'Futsal' ? 10 : sport === 'Volleyball' ? 12 : sport === 'Basketball' ? 10 : sport === 'Table Tennis (M)' ? 3 : sport === 'Table Tennis (F)' ? 3 : sport === 'Snooker' ? 3 : sport === 'Tug of War (M)' ? 10 : sport === 'Tug of War (F)' ? 10 : sport === 'Tennis' ? 3 : sport === 'Cricket' ? 15 : sport === 'Badminton (M)' ? 3 : sport === 'Badminton (F)' ? 3 : 0;
+  const playerLimit = {
+    'Football': 16,
+    'Futsal': 10,
+    'Volleyball': 12,
+    'Basketball': 10,
+    'Table Tennis (M)': 3,
+    'Table Tennis (F)': 3,
+    'Snooker': 3,
+    'Tug of War (M)': 10,
+    'Tug of War (F)': 10,
+    'Tennis': 3,
+    'Cricket': 15,
+    'Badminton (M)': 3,
+    'Badminton (F)': 3
+  }[sport] || 0;
 
   useEffect(() => {
     const fetchNominationData = async () => {
       const token = await AsyncStorage.getItem('token');
-      const currentYear = new Date().getFullYear().toString();
       
       try {
         const response = await fetch(`http://192.168.1.21:3002/getNominationForm/${sport}`, {
@@ -29,27 +43,27 @@ export const NominationForm = ({ route }) => {
         if (data.success && data.data) {
           setNominationData(data.data);
           const nominations = data.data.nominations || 
-            new Array(playerLimit).fill({ 
+            Array(playerLimit).fill().map(() => ({ 
               shirtNo: "", 
               regNo: "", 
               name: "", 
               cnic: "", 
               section: "" 
-            });
+            }));
           setNominations(nominations);
           setIsSubmitted(true);
           setLastUpdated(
-            `Last updated by ${data.data.lastUpdatedBy} at ${data.data.lastUpdatedAt}`
+            `Last updated by ${data.data.lastUpdatedBy} at ${new Date(data.data.lastUpdatedAt).toLocaleString()}`
           );
         } else {
           setNominations(
-            new Array(playerLimit).fill({ 
+            Array(playerLimit).fill().map(() => ({ 
               shirtNo: "", 
               regNo: "", 
               name: "", 
               cnic: "", 
               section: "" 
-            })
+            }))
           );
         }
       } catch (error) {
@@ -62,7 +76,7 @@ export const NominationForm = ({ route }) => {
 
   const handleSubmit = async () => {
     if (!isFormComplete()) {
-      Alert.alert('Error', 'Please fill all the entries');
+      Alert.alert('Error', 'Please fill all required fields for at least one player');
       return;
     }
 
@@ -70,14 +84,14 @@ export const NominationForm = ({ route }) => {
     const currentDateTime = new Date().toISOString();
 
     const dataToSubmit = {
-      nominations,
+      nominations: nominations.filter(p => p.name && p.regNo), // Only submit filled players
       repId,
       repName,
       repEmail,
       repDepartment,
       lastUpdatedBy: repName,
       lastUpdatedAt: currentDateTime,
-      year: currentYear, // Add current year to submission
+      year: currentYear,
     };
 
     try {
@@ -106,7 +120,7 @@ export const NominationForm = ({ route }) => {
       if (data.success) {
         Alert.alert('Success', nominationData && nominationData._id ? 'Nomination updated successfully' : 'Nomination submitted successfully');
         setIsSubmitted(true);
-        setLastUpdated(`Last updated by ${repName} at ${currentDateTime}`);
+        setLastUpdated(`Last updated by ${repName} at ${new Date(currentDateTime).toLocaleString()}`);
       } else {
         Alert.alert('Error', data.error || 'Failed to submit nominations');
       }
@@ -126,107 +140,206 @@ export const NominationForm = ({ route }) => {
   };
 
   const isFormComplete = () => {
-    return nominations.some(player => player.shirtNo && player.regNo && player.name && player.cnic && player.section);
+    return nominations.some(player => 
+      player.shirtNo && player.regNo && player.name && player.cnic && player.section
+    );
   };
 
-  const renderPlayerFields = () => {
-    const fields = [];
-    for (let i = 0; i < playerLimit; i++) {
-      const playerLabel = i === 0 ? "Captain" : `Player ${i + 1}`;
+  const renderPlayerSelector = () => {
+    return (
+      <View style={styles.playerSelector}>
+        {nominations.map((_, index) => (
+          <TouchableOpacity
+            key={index}
+            style={[
+              styles.playerTab,
+              activeIndex === index && styles.activePlayerTab
+            ]}
+            onPress={() => setActiveIndex(index)}
+          >
+            <Text style={styles.playerTabText}>
+              {index === 0 ? 'Captain' : `Player ${index + 1}`}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+    );
+  };
 
-      fields.push(
-        <View key={i} style={styles.row}>
-          <Text style={styles.playerLabel}>{playerLabel}</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Shirt No"
-            placeholderTextColor={'black'}
-            value={nominations[i]?.shirtNo || ''}
-            onChangeText={(text) => handleInputChange(i, 'shirtNo', text)}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Reg No"
-            placeholderTextColor={'black'}
-            value={nominations[i]?.regNo || ''}
-            onChangeText={(text) => handleInputChange(i, 'regNo', text)}
-            editable={i === 0 || Boolean(nominations[i - 1]?.name)}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder={`${playerLabel} Name`}
-            placeholderTextColor={'black'}
-            value={nominations[i]?.name || ''}
-            onChangeText={(text) => handleInputChange(i, 'name', text)}
-            editable={i === 0 || Boolean(nominations[i - 1]?.regNo)}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="CNIC"
-            placeholderTextColor={'black'}
-            value={nominations[i]?.cnic || ''}
-            onChangeText={(text) => handleInputChange(i, 'cnic', text)}
-            editable={i === 0 || Boolean(nominations[i - 1]?.name)}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Section"
-            placeholderTextColor={'black'}
-            value={nominations[i]?.section || ''}
-            onChangeText={(text) => handleInputChange(i, 'section', text)}
-            editable={i === 0 || Boolean(nominations[i - 1]?.name)}
-          />
-        </View>
-      );
-    }
-    return fields;
+  const renderPlayerForm = (index) => {
+    const playerLabel = index === 0 ? "Captain" : `Player ${index + 1}`;
+    
+    return (
+      <View style={styles.playerForm}>
+        <Text style={styles.playerHeader}>{playerLabel}</Text>
+        
+        <Text style={styles.label}>Shirt Number</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="e.g. 10"
+          placeholderTextColor="#999"
+          value={nominations[index]?.shirtNo || ''}
+          onChangeText={(text) => handleInputChange(index, 'shirtNo', text)}
+          keyboardType="numeric"
+        />
+
+        <Text style={styles.label}>Registration Number</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="e.g. 220324245"
+          placeholderTextColor="#999"
+          value={nominations[index]?.regNo || ''}
+          onChangeText={(text) => handleInputChange(index, 'regNo', text)}
+        />
+
+        <Text style={styles.label}>Full Name</Text>
+        <TextInput
+          style={styles.input}
+          placeholder={`${playerLabel}'s full name`}
+          placeholderTextColor="#999"
+          value={nominations[index]?.name || ''}
+          onChangeText={(text) => handleInputChange(index, 'name', text)}
+        />
+
+        <Text style={styles.label}>CNIC</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="e.g. 12345-6789012-3"
+          placeholderTextColor="#999"
+          value={nominations[index]?.cnic || ''}
+          onChangeText={(text) => handleInputChange(index, 'cnic', text)}
+          keyboardType="numeric"
+        />
+
+        <Text style={styles.label}>Section</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="e.g. ME-20-A"
+          placeholderTextColor="#999"
+          value={nominations[index]?.section || ''}
+          onChangeText={(text) => handleInputChange(index, 'section', text)}
+        />
+      </View>
+    );
   };
 
   return (
-    <ScrollView style={styles.container}>
+    <View style={styles.container}>
       <Text style={styles.title}>{sport} Nomination Form</Text>
-      {renderPlayerFields()}
-      {lastUpdated && <Text style={styles.lastUpdated}>{lastUpdated}</Text>}
-      <Button
-        title={isSubmitted ? 'Update' : 'Submit'}
+      
+      {renderPlayerSelector()}
+      
+      <ScrollView style={styles.formContainer}>
+        {renderPlayerForm(activeIndex)}
+      </ScrollView>
+
+      {lastUpdated && (
+        <Text style={styles.lastUpdated}>
+          {lastUpdated}
+        </Text>
+      )}
+
+      <TouchableOpacity
+        style={styles.submitButton}
         onPress={handleSubmit}
         disabled={!isFormComplete()}
-      />
-    </ScrollView>
+      >
+        <Text style={styles.submitButtonText}>
+          {isSubmitted ? 'UPDATE NOMINATION' : 'SUBMIT NOMINATION'}
+        </Text>
+      </TouchableOpacity>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    padding: 20,
+    flex: 1,
+    padding: 15,
+    backgroundColor: '#f5f5f5',
   },
   title: {
-    fontSize: 24,
+    fontSize: 22,
+    fontWeight: 'bold',
     marginBottom: 20,
     textAlign: 'center',
+    color: '#333',
   },
-  row: {
+  playerSelector: {
     flexDirection: 'row',
-    marginBottom: 10,
+    flexWrap: 'wrap',
+    marginBottom: 15,
+    justifyContent: 'center',
+  },
+  playerTab: {
+    padding: 10,
+    margin: 5,
+    backgroundColor: '#e0e0e0',
+    borderRadius: 5,
+    minWidth: 80,
     alignItems: 'center',
   },
-  playerLabel: {
-    width: 80,
-    fontSize: 16,
+  activePlayerTab: {
+    backgroundColor: '#4a90e2',
+  },
+  playerTabText: {
+    fontSize: 14,
+    color: '#333',
+  },
+  activePlayerTabText: {
+    color: 'white',
+  },
+  formContainer: {
+    flex: 1,
+    marginBottom: 15,
+  },
+  playerForm: {
+    backgroundColor: 'white',
+    padding: 20,
+    borderRadius: 10,
+    marginBottom: 15,
+    elevation: 3,
+  },
+  playerHeader: {
+    fontSize: 18,
     fontWeight: 'bold',
+    marginBottom: 15,
+    color: '#333',
+    textAlign: 'center',
+  },
+  label: {
+    fontSize: 14,
+    marginBottom: 5,
+    color: '#555',
+    fontWeight: '500',
   },
   input: {
-    flex: 1,
-    height: 40,
-    borderColor: '#ccc',
+    height: 50,
+    borderColor: '#ddd',
     borderWidth: 1,
-    marginRight: 5,
-    paddingLeft: 8,
+    borderRadius: 5,
+    paddingHorizontal: 15,
+    marginBottom: 15,
+    fontSize: 16,
+    backgroundColor: '#f9f9f9',
   },
   lastUpdated: {
-    marginTop: 20,
-    fontSize: 16,
-    fontStyle: 'italic',
+    fontSize: 12,
+    color: '#777',
     textAlign: 'center',
+    marginBottom: 10,
+    fontStyle: 'italic',
+  },
+  submitButton: {
+    backgroundColor: '#4a90e2',
+    padding: 15,
+    borderRadius: 5,
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  submitButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });

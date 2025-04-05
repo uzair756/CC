@@ -31,26 +31,24 @@ export const MenuScreen = ({ navigation }) => {
   };
 
   useEffect(() => {
-    // Fetch user immediately when component mounts
     fetchUser();
-
-    // Add focus listener to refresh when screen comes into focus
     const unsubscribe = navigation.addListener('focus', fetchUser);
-
     return unsubscribe;
   }, [navigation]);
 
-  // Show loading indicator while checking user auth state
   if (loading) {
     return (
       <View style={[styles.container, styles.loadingContainer]}>
-        <ActivityIndicator size="large" color="#6573EA" />
-        <Text style={styles.loadingText}>Loading...</Text>
+        <View style={styles.loadingContent}>
+          <Image 
+            style={styles.loadingImage}
+          />
+          <Text style={styles.loadingText}>Authenticating...</Text>
+        </View>
       </View>
     );
   }
 
-  // Redirect based on user role
   if (user) {
     switch(user.loggedin) {
       case 'admin':
@@ -72,14 +70,19 @@ export const MenuScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <Image source={require('../assets/user1.png')} style={styles.icon} />
-      <Text style={styles.text}>Not Logged In. Login to access features</Text>
-      <TouchableOpacity
-        style={styles.loginButton}
-        onPress={() => navigation.navigate('Login')}
-      >
-        <Text style={styles.buttonText}>Login</Text>
-      </TouchableOpacity>
+      <View style={styles.content}>
+        <Text style={styles.title}>Welcome to CampusPlay</Text>
+        <Text style={styles.subtitle}>Please login to access all features</Text>
+        
+        <TouchableOpacity
+          style={[styles.button, styles.primaryButton]}
+          onPress={() => navigation.navigate('Login')}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.buttonText}>Login Now</Text>
+        </TouchableOpacity>
+      
+      </View>
     </View>
   );
 };
@@ -87,40 +90,78 @@ export const MenuScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#F8FAFC',
+  },
+  content: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'white',
-    padding: 20,
+    padding: 24,
   },
   loadingContainer: {
-    justifyContent: 'center',
+    backgroundColor: '#F8FAFC',
+  },
+  loadingContent: {
     alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loadingImage: {
+    width: 120,
+    height: 120,
+    marginBottom: 20,
   },
   loadingText: {
-    marginTop: 10,
     fontSize: 16,
     color: '#6573EA',
+    fontFamily: 'Inter-Medium',
   },
-  icon: {
-    width: 80,
-    height: 80,
-    marginBottom: 20,
+  illustration: {
+    width: 240,
+    height: 240,
+    marginBottom: 32,
   },
-  text: {
+  title: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#1E293B',
+    marginBottom: 8,
+    fontFamily: 'Inter-Bold',
+  },
+  subtitle: {
     fontSize: 16,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 20,
+    color: '#64748B',
+    marginBottom: 32,
+    textAlign: 'center',
+    fontFamily: 'Inter-Regular',
   },
-  loginButton: {
+  button: {
+    width: '100%',
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+    shadowColor: '#6573EA',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  primaryButton: {
     backgroundColor: '#6573EA',
-    paddingVertical: 10,
-    paddingHorizontal: 40,
-    borderRadius: 15,
+  },
+  secondaryButton: {
+    backgroundColor: 'white',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
   },
   buttonText: {
-    fontSize: 18,
+    fontSize: 16,
+    fontWeight: '600',
     color: 'white',
-    fontWeight: 'bold',
+    fontFamily: 'Inter-SemiBold',
+  },
+  secondaryButtonText: {
+    color: '#6573EA',
   },
 });
