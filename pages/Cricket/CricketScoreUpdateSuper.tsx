@@ -622,139 +622,166 @@ export const CricketSuperOver = ({navigation}) => {
   }
 
   return (
-    <ScrollView style={styles.container}>
-      <Text style={styles.header}>Super Over</Text>
-
-      <View style={styles.scoreSummary}>
-        <Text style={styles.status}>
-          {currentInning === 1 ? '1st Super Over' : '2nd Super Over'}
+    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+    {/* Match Header Section */}
+    <View style={styles.headerContainer}>
+      <View style={styles.teamsContainer}>
+        <Text style={styles.teamName}>{matchDetails?.team1}</Text>
+        <Text style={styles.scoreText}>
+          {superOverRuns.team1}/{superOverWickets.team1}
         </Text>
-        <Text style={styles.header}>
-          {battingTeamName} {superOverRuns.team1}/{superOverWickets.team1} -{' '}
-          {superOverRuns.team2}/{superOverWickets.team2} {bowlingTeamName}
-        </Text>
-        {isSuperOverStarted && (
-          <>
-            <Text style={styles.status}>
-              Balls remaining: {6 - ballsBowled}
-            </Text>
-            <Text style={styles.status}>
-              Current Inning:{' '}
-              {currentInning === 1
-                ? `${battingTeamName} batting`
-                : `${bowlingTeamName} batting`}
-            </Text>
-
-            {/* Ball-by-ball breakdown */}
-            <View style={styles.scoreRow}>
-              {[...Array(6)].map((_, i) => (
-                <View
-                  key={i}
-                  style={[
-                    styles.ballBox,
-                    i < ballsBowled ? styles.ballBoxActive : {},
-                  ]}>
-                  <Text style={styles.ballText}>
-                    {i < ballsBowled ? i + 1 : ''}
-                  </Text>
-                </View>
-              ))}
-            </View>
-          </>
-        )}
-
-        {isSuperOverComplete && (
-          <Text style={styles.resultText}>Super Over Complete!</Text>
-        )}
       </View>
 
-      {!isSuperOverStarted ? (
-        <>
-          <Text style={styles.teamHeader}>Select Players for Super Over</Text>
+      <View style={styles.vsContainer}>
+        <Text style={styles.vsText}>vs</Text>
+        <View style={styles.matchStatusContainer}>
+          <View style={[
+            styles.statusIndicator, 
+            isSuperOverStarted ? styles.liveIndicator : styles.upcomingIndicator
+          ]}>
+            <Text style={styles.statusIndicatorText}>
+              {isSuperOverStarted ? 'LIVE' : 'UPCOMING'}
+            </Text>
+          </View>
+          <Text style={styles.inningsText}>
+            SUPER OVER
+          </Text>
+        </View>
+      </View>
 
+      <View style={styles.teamsContainer}>
+        <Text style={styles.teamName}>{matchDetails?.team2}</Text>
+        <Text style={styles.scoreText}>
+          {superOverRuns.team2}/{superOverWickets.team2}
+        </Text>
+      </View>
+    </View>
+
+    {/* Match Info Bar */}
+    <View style={styles.infoBar}>
+      <View style={styles.infoItem}>
+        <Text style={styles.infoLabel}>Balls</Text>
+        <Text style={styles.infoValue}>{ballsBowled}/6</Text>
+      </View>
+      <View style={styles.infoItem}>
+        <Text style={styles.infoLabel}>Inning</Text>
+        <Text style={styles.infoValue}>
+          {currentInning === 1 ? '1st' : '2nd'}
+        </Text>
+      </View>
+      <View style={styles.infoItem}>
+        <Text style={styles.infoLabel}>Batting</Text>
+        <Text style={styles.infoValue}>
+          {currentInning === 1 ? battingTeamName : bowlingTeamName}
+        </Text>
+      </View>
+    </View>
+
+    {/* Target Display for Second Inning */}
+    {currentInning === 2 && (
+      <View style={styles.targetContainer}>
+        <Text style={styles.targetText}>
+          Target: {superOverRuns.team1 + 1} runs
+        </Text>
+        <Text style={styles.requiredRunRate}>
+          Need {superOverRuns.team1 + 1 - superOverRuns.team2} runs from {6 - ballsBowled} balls
+        </Text>
+      </View>
+    )}
+
+    {/* Recent Balls */}
+    <View style={styles.recentBallsContainer}>
+      <Text style={styles.sectionTitle}>Recent Balls</Text>
+      <View style={styles.ballsRow}>
+        {[...Array(6)].map((_, i) => (
+          <View
+            key={i}
+            style={[
+              styles.ballCircle,
+              i < ballsBowled ? styles.ballBowled : styles.ballPending
+            ]}>
+            <Text style={styles.ballText}>
+              {i < ballsBowled ? (i + 1) : ''}
+            </Text>
+          </View>
+        ))}
+      </View>
+    </View>
+
+    {!isSuperOverStarted ? (
+      <>
+        {/* Player Selection Section */}
+        <View style={styles.teamSection}>
+          <Text style={styles.sectionTitle}>Select Players for Super Over</Text>
+          
+          {/* Batting Team Selection */}
           <View style={styles.teamCard}>
-            <Text style={styles.teamHeader}>{battingTeamName} - Batsmen</Text>
-            <View style={styles.pickerContainer}>
-              <Text style={styles.subHeader}>First Batsman:</Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                <View style={styles.playerButtonsRow}>
-                  {battingTeam.map(player => (
-                    <TouchableOpacity
-                      key={`batsman1-${player._id}`}
-                      style={[
-                        styles.playerButton,
-                        selectedBatsman1 === player._id &&
-                          styles.selectedPlayer,
-                      ]}
-                      onPress={() => setSelectedBatsman1(player._id)}>
-                      <View style={styles.leftContainer}>
-                        <ImageBackground
-                          source={require('../../assets/shirt.png')}
-                          style={styles.shirtIcon}>
-                          <Text style={styles.shirtText}>
-                            {player.shirtNo || '00'}
-                          </Text>
-                        </ImageBackground>
-                      </View>
-                      <Text style={styles.playerButtonText}>{player.name}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </ScrollView>
-            </View>
+            <Text style={styles.teamTitle}>{battingTeamName} - Batsmen</Text>
+            
+            <Text style={styles.subHeader}>First Batsman:</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              <View style={styles.playerSelectionRow}>
+                {battingTeam.map(player => (
+                  <TouchableOpacity
+                    key={`batsman1-${player._id}`}
+                    style={[
+                      styles.playerOption,
+                      selectedBatsman1 === player._id && styles.selectedPlayer
+                    ]}
+                    onPress={() => setSelectedBatsman1(player._id)}>
+                    <ImageBackground
+                      source={require('../../assets/shirt.png')}
+                      style={styles.shirtIcon}>
+                      <Text style={styles.shirtText}>{player.shirtNo || '00'}</Text>
+                    </ImageBackground>
+                    <Text style={styles.playerName}>{player.name}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </ScrollView>
 
-            <View style={styles.pickerContainer}>
-              <Text style={styles.subHeader}>Second Batsman:</Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                <View style={styles.playerButtonsRow}>
-                  {battingTeam.map(player => (
-                    <TouchableOpacity
-                      key={`batsman2-${player._id}`}
-                      style={[
-                        styles.playerButton,
-                        selectedBatsman2 === player._id &&
-                          styles.selectedPlayer,
-                      ]}
-                      onPress={() => setSelectedBatsman2(player._id)}>
-                      <View style={styles.leftContainer}>
-                        <ImageBackground
-                          source={require('../../assets/shirt.png')}
-                          style={styles.shirtIcon}>
-                          <Text style={styles.shirtText}>
-                            {player.shirtNo || '00'}
-                          </Text>
-                        </ImageBackground>
-                      </View>
-                      <Text style={styles.playerButtonText}>{player.name}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </ScrollView>
-            </View>
+            <Text style={styles.subHeader}>Second Batsman:</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              <View style={styles.playerSelectionRow}>
+                {battingTeam.map(player => (
+                  <TouchableOpacity
+                    key={`batsman2-${player._id}`}
+                    style={[
+                      styles.playerOption,
+                      selectedBatsman2 === player._id && styles.selectedPlayer
+                    ]}
+                    onPress={() => setSelectedBatsman2(player._id)}>
+                    <ImageBackground
+                      source={require('../../assets/shirt.png')}
+                      style={styles.shirtIcon}>
+                      <Text style={styles.shirtText}>{player.shirtNo || '00'}</Text>
+                    </ImageBackground>
+                    <Text style={styles.playerName}>{player.name}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </ScrollView>
           </View>
 
+          {/* Bowling Team Selection */}
           <View style={styles.teamCard}>
-            <Text style={styles.teamHeader}>{bowlingTeamName} - Bowler</Text>
+            <Text style={styles.teamTitle}>{bowlingTeamName} - Bowler</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              <View style={styles.playerButtonsRow}>
+              <View style={styles.playerSelectionRow}>
                 {bowlingTeam.map(player => (
                   <TouchableOpacity
                     key={`bowler-${player._id}`}
                     style={[
-                      styles.playerButton,
-                      selectedBowler === player._id && styles.selectedPlayer,
+                      styles.playerOption,
+                      selectedBowler === player._id && styles.selectedPlayer
                     ]}
                     onPress={() => setSelectedBowler(player._id)}>
-                    <View style={styles.leftContainer}>
-                      <ImageBackground
-                        source={require('../../assets/shirt.png')}
-                        style={styles.shirtIcon}>
-                        <Text style={styles.shirtText}>
-                          {player.shirtNo || '00'}
-                        </Text>
-                      </ImageBackground>
-                    </View>
-                    <Text style={styles.playerButtonText}>{player.name}</Text>
+                    <ImageBackground
+                      source={require('../../assets/shirt.png')}
+                      style={styles.shirtIcon}>
+                      <Text style={styles.shirtText}>{player.shirtNo || '00'}</Text>
+                    </ImageBackground>
+                    <Text style={styles.playerName}>{player.name}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
@@ -762,524 +789,718 @@ export const CricketSuperOver = ({navigation}) => {
           </View>
 
           <TouchableOpacity
-            style={styles.actionButton}
-            onPress={handleStartSuperOver}>
-            <Text style={styles.actionButtonText}>Start Super Over</Text>
+            style={[styles.controlButton, styles.startButton]}
+            onPress={handleStartSuperOver}
+            disabled={!selectedBatsman1 || !selectedBatsman2 || !selectedBowler}>
+            <Text style={styles.controlButtonText}>Start Super Over</Text>
           </TouchableOpacity>
-        </>
-      ) : (
-        <>
-          {/* Extras Section */}
-          <View style={styles.extrasSection}>
-            <Text style={styles.teamHeader1}>Byes Buttons</Text>
-            <View style={styles.buttonRow1}>
-              <View style={styles.scoreButtonsContainer1}>
-                {[1, 2, 3, 4, 5, 6].map(value => (
-                  <TouchableOpacity
-                    key={value}
-                    style={styles.scoreButton1}
-                    onPress={() =>
-                      handleByesIncrement(
-                        currentInning === 1 ? battingTeamName : bowlingTeamName,
-                        value,
-                      )
-                    }>
-                    <Text style={styles.scoreButtonText1}>+{value}B</Text>
-                  </TouchableOpacity>
-                ))}
-                {confirmByesScore !== null && (
-                  <TouchableOpacity
-                    style={styles.scoreButton1}
-                    onPress={handleConfirmByes}>
-                    <Text style={styles.scoreButtonText1}>Confirm</Text>
-                  </TouchableOpacity>
-                )}
-              </View>
-            </View>
-
-            <Text style={styles.teamHeader1}>Extras Buttons</Text>
-            <View style={styles.buttonRow1}>
-              <View style={styles.scoreButtonsContainer1}>
+        </View>
+      </>
+    ) : (
+      <>
+        {/* Quick Scoring Section */}
+        <View style={styles.quickScoreSection}>
+          <Text style={styles.sectionTitle}>Quick Scoring</Text>
+          
+          {/* Byes Buttons */}
+          <View style={styles.quickScoreRow}>
+            <Text style={styles.quickScoreLabel}>Byes:</Text>
+            <View style={styles.quickScoreButtons}>
+              {[1, 2, 3, 4, 5, 6].map(value => (
                 <TouchableOpacity
-                  style={styles.scoreButton1}
-                  onPress={() => handleExtras('Wide')}>
-                  <Text style={styles.scoreButtonText1}>Wide</Text>
+                  key={`byes-${value}`}
+                  style={[
+                    styles.quickScoreButton,
+                    confirmByesScore === value && styles.activeQuickScoreButton
+                  ]}
+                  onPress={() => handleByesIncrement(
+                    currentInning === 1 ? battingTeamName : bowlingTeamName,
+                    value
+                  )}>
+                  <Text style={styles.quickScoreButtonText}>+{value}B</Text>
                 </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.scoreButton1}
-                  onPress={() => handleExtras('NB')}>
-                  <Text style={styles.scoreButtonText1}>No Ball</Text>
-                </TouchableOpacity>
-              </View>
+              ))}
             </View>
           </View>
 
-          {/* Active Batsmen Section */}
-          <View style={styles.teamCard}>
-            <Text style={styles.teamHeader}>
-              {currentInning === 1 ? battingTeamName : bowlingTeamName}{' '}
-              (Batting)
-            </Text>
-            {activeBattingTeam.map((batsman, index) => (
-              <View key={batsman._id} style={styles.playerRow}>
-                <Text style={styles.playerName}>
-                  <View style={styles.leftContainer}>
-                    <ImageBackground
-                      source={require('../../assets/shirt.png')}
-                      style={styles.shirtIcon}>
-                      <Text style={styles.shirtText}>
-                        {batsman.shirtNo || '00'}
-                      </Text>
-                    </ImageBackground>
-                  </View>{' '}
-                  {batsman.name}
-                </Text>
-                <Text style={styles.goalsText}>
-                  Runs Scored: {batsman.runsScored || 0}
-                </Text>
-                <Text style={styles.goalsText}>
-                  Balls Faced: {batsman.ballsFaced?.length || 0}
-                </Text>
-                <Text style={styles.goalsText}>
-                  Strike Rate:{' '}
-                  {(
-                    ((batsman.runsScored || 0) /
-                      (batsman.ballsFaced?.length || 1)) *
-                    100
-                  ).toFixed(2)}
-                </Text>
+          {/* Extras Buttons */}
+          <View style={styles.quickScoreRow}>
+            <Text style={styles.quickScoreLabel}>Extras:</Text>
+            <View style={styles.quickScoreButtons}>
+              <TouchableOpacity
+                style={styles.quickScoreButton}
+                onPress={() => handleExtras('Wide')}>
+                <Text style={styles.quickScoreButtonText}>Wide</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.quickScoreButton}
+                onPress={() => handleExtras('NB')}>
+                <Text style={styles.quickScoreButtonText}>No Ball</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
 
-                {/* Wicket Button */}
+          {confirmByesScore !== null && (
+            <TouchableOpacity
+              style={[styles.controlButton, styles.confirmButton]}
+              onPress={handleConfirmByes}>
+              <Text style={styles.controlButtonText}>Confirm Byes</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+
+        {/* Batting Team Section */}
+        <View style={styles.teamSection}>
+          <View style={styles.teamHeaderContainer}>
+            <Text style={styles.teamTitle}>
+              {currentInning === 1 ? battingTeamName : bowlingTeamName} Batting
+            </Text>
+            <View style={styles.teamStats}>
+              <Text style={styles.teamStatText}>
+                {currentInning === 1 ? superOverRuns.team1 : superOverRuns.team2}/
+                {currentInning === 1 ? superOverWickets.team1 : superOverWickets.team2}
+              </Text>
+              <Text style={styles.teamStatText}>
+                {ballsBowled}/6 balls
+              </Text>
+            </View>
+          </View>
+
+          {activeBattingTeam.map((batsman, index) => (
+            <View key={batsman._id} style={styles.playerCard}>
+              <View style={styles.playerHeader}>
+                <View style={styles.playerInfo}>
+                  <ImageBackground
+                    source={require('../../assets/shirt.png')}
+                    style={styles.shirtIcon}>
+                    <Text style={styles.shirtText}>{batsman.shirtNo || '00'}</Text>
+                  </ImageBackground>
+                  <Text style={styles.playerName}>{batsman.name}</Text>
+                </View>
                 <TouchableOpacity
                   style={styles.wicketButton}
                   onPress={() => handleWicket(batsman)}>
-                  <Text style={styles.wicketButtonText}>Wicket</Text>
+                  <Text style={styles.wicketButtonText}>OUT</Text>
                 </TouchableOpacity>
+              </View>
 
-                {/* Ball-by-ball breakdown */}
-                <View style={styles.ballRow}>
-                  {batsman.ballsFaced && batsman.ballsFaced.length > 0 ? (
-                    batsman.ballsFaced.slice(-6).map((ball, i) => (
-                      <View key={i} style={styles.ballBox}>
-                        <Text style={styles.ballText}>{ball}</Text>
-                      </View>
-                    ))
-                  ) : (
-                    <Text style={styles.status}>No balls faced yet</Text>
-                  )}
+              <View style={styles.playerStatsRow}>
+                <View style={styles.playerStat}>
+                  <Text style={styles.statLabel}>Runs</Text>
+                  <Text style={styles.statValue}>{batsman.runsScored || 0}</Text>
                 </View>
+                <View style={styles.playerStat}>
+                  <Text style={styles.statLabel}>Balls</Text>
+                  <Text style={styles.statValue}>{batsman.ballsFaced?.length || 0}</Text>
+                </View>
+                <View style={styles.playerStat}>
+                  <Text style={styles.statLabel}>SR</Text>
+                  <Text style={styles.statValue}>
+                    {(
+                      ((batsman.runsScored || 0) / 
+                      (batsman.ballsFaced?.length || 1)) * 100 || 0
+                    ).toFixed(2)}
+                  </Text>
+                </View>
+              </View>
 
-                {/* Score Increment Buttons */}
-                <View style={styles.buttonRow}>
-                  <View style={styles.scoreButtonsContainer}>
-                    {[0, 1, 2, 3, 4, 5, 6].map(value => (
-                      <TouchableOpacity
-                        key={value}
-                        style={styles.scoreButton}
-                        onPress={() => handleScoreIncrement(index, value)}>
-                        <Text style={styles.scoreButtonText}>+{value}</Text>
-                      </TouchableOpacity>
+              <View style={styles.recentBallsContainer}>
+                {batsman.ballsFaced && batsman.ballsFaced.length > 0 ? (
+                  <View style={styles.ballsRow}>
+                    {batsman.ballsFaced.slice(-6).map((ball, i) => (
+                      <View key={i} style={[
+                        styles.smallBallCircle,
+                        ball === 'W' ? styles.wicketBall :
+                        ball === 'WD' ? styles.wideBall :
+                        ball === 'NB' ? styles.noBall :
+                        styles.normalBall
+                      ]}>
+                        <Text style={styles.smallBallText}>{ball}</Text>
+                      </View>
                     ))}
-                    {confirmBatScore[index] !== null && (
-                      <TouchableOpacity
-                        style={styles.confirmButton}
-                        onPress={() => handleConfirmScoreIncrement(index)}>
-                        <Text style={styles.confirmButtonText}>
-                          Confirm {confirmBatScore[index]}
-                        </Text>
-                      </TouchableOpacity>
-                    )}
                   </View>
-                </View>
+                ) : (
+                  <Text style={styles.noDataTextSmall}>No balls faced</Text>
+                )}
               </View>
-            ))}
-          </View>
 
-          {/* Active Bowler Section */}
-          <View style={styles.teamCard}>
-            <Text style={styles.teamHeader}>
-              {currentInning === 1 ? bowlingTeamName : battingTeamName}{' '}
-              (Bowling)
-            </Text>
-            {activeBowlingTeam.map((bowler, index) => (
-              <View key={bowler._id} style={styles.playerRow}>
-                <Text style={styles.playerName}>
-                  <View style={styles.leftContainer}>
-                    <ImageBackground
-                      source={require('../../assets/shirt.png')}
-                      style={styles.shirtIcon}>
-                      <Text style={styles.shirtText}>
-                        {bowler.shirtNo || '00'}
-                      </Text>
-                    </ImageBackground>
-                  </View>{' '}
-                  {bowler.name}
-                </Text>
-                <Text style={styles.goalsText}>
-                  Wickets Taken: {bowler.wicketsTaken || 0}
-                </Text>
-                <Text style={styles.goalsText}>
-                  Overs: {Math.floor((bowler.ballsBowled?.length || 0) / 6)}.
-                  {(bowler.ballsBowled?.length || 0) % 6}
-                </Text>
-                <Text style={styles.goalsText}>
-                  Runs Conceded: {bowler.runsConceded || 0}
-                </Text>
-                <Text style={styles.goalsText}>
-                  Economy Rate:{' '}
-                  {(
-                    (bowler.runsConceded || 0) /
-                    ((bowler.ballsBowled?.length || 6) / 6)
-                  ).toFixed(2)}
-                </Text>
-
-                {/* Ball-by-ball breakdown */}
-                <View style={styles.ballRow}>
-                  {bowler.ballsBowled && bowler.ballsBowled.length > 0 ? (
-                    bowler.ballsBowled.slice(-6).map((ball, i) => (
-                      <View key={i} style={styles.ballBox}>
-                        <Text style={styles.ballText}>{ball}</Text>
-                      </View>
-                    ))
-                  ) : (
-                    <Text style={styles.status}>No balls bowled yet</Text>
-                  )}
-                </View>
-              </View>
-            ))}
-          </View>
-        </>
-      )}
-
-      {/* Wicket Selection Modal */}
-      <Modal visible={isWicketModalVisible} transparent animationType="slide">
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalHeader}>Select New Batsman</Text>
-            <ScrollView>
-              {(currentInning === 1 ? battingTeam : bowlingTeam)
-                .filter(
-                  player =>
-                    !activeBattingTeam.some(
-                      batsman => batsman._id === player._id,
-                    ),
-                )
-                .map(player => (
+              <View style={styles.scoringButtons}>
+                {[0, 1, 2, 3, 4, 5, 6].map(value => (
                   <TouchableOpacity
-                    key={player._id}
-                    style={styles.playerButton}
-                    onPress={() => handleWicketSelection(player)}>
-                    <View style={styles.leftContainer}>
-                      <ImageBackground
-                        source={require('../../assets/shirt.png')}
-                        style={styles.shirtIcon}>
-                        <Text style={styles.shirtText}>
-                          {player.shirtNo || '00'}
-                        </Text>
-                      </ImageBackground>
-                    </View>
-                    <Text style={styles.playerText}>{player.name}</Text>
+                    key={`score-${value}`}
+                    style={[
+                      styles.scoringButton,
+                      confirmBatScore[index] === value && styles.activeScoringButton
+                    ]}
+                    onPress={() => handleScoreIncrement(index, value)}>
+                    <Text style={styles.scoringButtonText}>+{value}</Text>
                   </TouchableOpacity>
                 ))}
-            </ScrollView>
-            <TouchableOpacity
-              style={styles.closeButton}
-              onPress={() => setIsWicketModalVisible(false)}>
-              <Text style={styles.closeButtonText}>Cancel</Text>
-            </TouchableOpacity>
-          </View>
+              </View>
+
+              {confirmBatScore[index] !== null && (
+                <TouchableOpacity
+                  style={[styles.controlButton, styles.confirmButton, styles.playerConfirmButton]}
+                  onPress={() => handleConfirmScoreIncrement(index)}>
+                  <Text style={styles.controlButtonText}>Confirm {confirmBatScore[index]} runs</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          ))}
         </View>
-      </Modal>
-    </ScrollView>
+
+        {/* Bowling Team Section */}
+        <View style={styles.teamSection}>
+          <View style={styles.teamHeaderContainer}>
+            <Text style={styles.teamTitle}>
+              {currentInning === 1 ? bowlingTeamName : battingTeamName} Bowling
+            </Text>
+            <View style={styles.teamStats}>
+              <Text style={styles.teamStatText}>
+                {currentInning === 1 ? superOverRuns.team1 : superOverRuns.team2}/
+                {currentInning === 1 ? superOverWickets.team1 : superOverWickets.team2}
+              </Text>
+              <Text style={styles.teamStatText}>
+                {ballsBowled}/6 balls
+              </Text>
+            </View>
+          </View>
+
+          {activeBowlingTeam.map((bowler, index) => (
+            <View key={bowler._id} style={styles.playerCard}>
+              <View style={styles.playerHeader}>
+                <View style={styles.playerInfo}>
+                  <ImageBackground
+                    source={require('../../assets/shirt.png')}
+                    style={styles.shirtIcon}>
+                    <Text style={styles.shirtText}>{bowler.shirtNo || '00'}</Text>
+                  </ImageBackground>
+                  <Text style={styles.playerName}>{bowler.name}</Text>
+                </View>
+              </View>
+
+              <View style={styles.playerStatsRow}>
+                <View style={styles.playerStat}>
+                  <Text style={styles.statLabel}>Overs</Text>
+                  <Text style={styles.statValue}>
+                    {Math.floor((bowler.ballsBowled?.length || 0) / 6)}.
+                    {(bowler.ballsBowled?.length || 0) % 6}
+                  </Text>
+                </View>
+                <View style={styles.playerStat}>
+                  <Text style={styles.statLabel}>Wkts</Text>
+                  <Text style={styles.statValue}>{bowler.wicketsTaken || 0}</Text>
+                </View>
+                <View style={styles.playerStat}>
+                  <Text style={styles.statLabel}>Runs</Text>
+                  <Text style={styles.statValue}>{bowler.runsConceded || 0}</Text>
+                </View>
+                <View style={styles.playerStat}>
+                  <Text style={styles.statLabel}>Econ</Text>
+                  <Text style={styles.statValue}>
+                    {(
+                      (bowler.runsConceded || 0) / 
+                      ((bowler.ballsBowled?.length || 6) / 6) || 0
+                    ).toFixed(2)}
+                  </Text>
+                </View>
+              </View>
+
+              <View style={styles.recentBallsContainer}>
+                {bowler.ballsBowled && bowler.ballsBowled.length > 0 ? (
+                  <View style={styles.ballsRow}>
+                    {bowler.ballsBowled.slice(-6).map((ball, i) => (
+                      <View key={i} style={[
+                        styles.smallBallCircle,
+                        ball === 'W' ? styles.wicketBall :
+                        ball === 'WD' ? styles.wideBall :
+                        ball === 'NB' ? styles.noBall :
+                        styles.normalBall
+                      ]}>
+                        <Text style={styles.smallBallText}>{ball}</Text>
+                      </View>
+                    ))}
+                  </View>
+                ) : (
+                  <Text style={styles.noDataTextSmall}>No balls bowled</Text>
+                )}
+              </View>
+            </View>
+          ))}
+        </View>
+      </>
+    )}
+
+    {/* Wicket Modal */}
+    <Modal visible={isWicketModalVisible} transparent animationType="slide">
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalContainer}>
+          <Text style={styles.modalTitle}>Select New Batsman</Text>
+          
+          <ScrollView style={styles.modalScrollView}>
+            {(currentInning === 1 ? battingTeam : bowlingTeam)
+              .filter(
+                player =>
+                  !activeBattingTeam.some(
+                    batsman => batsman._id === player._id,
+                  ),
+              )
+              .map(player => (
+                <TouchableOpacity
+                  key={player._id}
+                  style={styles.modalOption}
+                  onPress={() => handleWicketSelection(player)}>
+                  <ImageBackground
+                    source={require('../../assets/shirt.png')}
+                    style={styles.shirtIcon}>
+                    <Text style={styles.shirtText}>{player.shirtNo || '00'}</Text>
+                  </ImageBackground>
+                  <Text style={styles.modalOptionText}>{player.name}</Text>
+                </TouchableOpacity>
+              ))}
+          </ScrollView>
+
+          <TouchableOpacity
+            style={styles.modalCloseButton}
+            onPress={() => setIsWicketModalVisible(false)}>
+            <Text style={styles.modalCloseButtonText}>Cancel</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </Modal>
+  </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 5,
-    backgroundColor: '#f4f4f4',
+    backgroundColor: '#f8f9fa',
   },
-  loadingContainer: {
+  contentContainer: {
+    paddingBottom: 30,
+  },
+  headerContainer: {
+    backgroundColor: '#ffffff',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  teamsContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  loadingText: {
-    marginTop: 10,
-    fontSize: 16,
-    textAlign: 'center',
-    color: '#555',
-  },
-  header: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginVertical: 10,
-    color: '#333',
-  },
-  scoreSummary: {
-    marginBottom: 20,
     alignItems: 'center',
   },
-  status: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#007bff',
-    textAlign: 'center',
-    marginBottom: 10,
-  },
-  resultText: {
+  teamName: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: 'green',
-    marginTop: 10,
-  },
-  teamCard: {
-    backgroundColor: '#fff',
-    padding: 10,
-    marginVertical: 10,
-    borderRadius: 10,
-    elevation: 3,
-  },
-  subHeader: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 10,
-    color: '#444',
-  },
-  teamHeader: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginBottom: 10,
     color: '#333',
+    marginBottom: 4,
   },
-  teamHeader1: {
-    fontSize: 18,
+  scoreText: {
+    fontSize: 24,
     fontWeight: 'bold',
-    textAlign: 'center',
-    marginBottom: 5,
-    marginTop: 10,
+    color: '#2c3e50',
   },
-  pickerContainer: {
-    marginBottom: 15,
-  },
-  playerButtonsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    padding: 5,
-  },
-  playerButton: {
-    flexDirection: 'row',
+  vsContainer: {
     alignItems: 'center',
-    padding: 10,
-    backgroundColor: '#f0f0f0',
-    borderRadius: 8,
-    marginRight: 10,
-    marginBottom: 10,
-    minWidth: 120,
-  },
-  playerButtonText: {
-    fontSize: 16,
-    color: '#333',
-    marginLeft: 5,
-  },
-  selectedPlayer: {
-    backgroundColor: '#c0e0ff',
-    borderWidth: 1,
-    borderColor: '#007bff',
-  },
-  actionButton: {
-    backgroundColor: '#007AFF',
-    padding: 15,
-    borderRadius: 10,
-    alignItems: 'center',
-    margin: 15,
-    elevation: 3,
-  },
-  actionButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-  playerRow: {
-    backgroundColor: '#f7f7f7',
-    padding: 10,
-    marginVertical: 5,
-    borderRadius: 8,
-  },
-  playerName: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 5,
-  },
-  goalsText: {
-    fontSize: 14,
-    color: '#333',
-    marginBottom: 5,
-  },
-  wicketButton: {
-    backgroundColor: 'red',
-    paddingVertical: 5,
     paddingHorizontal: 10,
-    borderRadius: 5,
-    width: 70,
-    marginBottom: 10,
-    alignItems: 'center',
   },
-  wicketButtonText: {
-    color: 'white',
+  vsText: {
+    fontSize: 16,
+    color: '#7f8c8d',
     fontWeight: 'bold',
-    textAlign: 'center',
   },
-  ballRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginTop: 5,
-  },
-  scoreRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginTop: 5,
-    marginBottom: 10,
-  },
-  ballBox: {
-    width: 30,
-    height: 30,
-    borderRadius: 5,
-    backgroundColor: '#e0e0e0',
+  matchStatusContainer: {
     alignItems: 'center',
-    justifyContent: 'center',
-    margin: 2,
+    marginTop: 4,
   },
-  ballBoxActive: {
-    backgroundColor: '#b8e0ff',
+  statusIndicator: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
+    marginBottom: 4,
+  },
+  liveIndicator: {
+    backgroundColor: '#e74c3c',
+  },
+  upcomingIndicator: {
+    backgroundColor: '#3498db',
+  },
+  statusIndicatorText: {
+    color: 'white',
+    fontSize: 10,
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
+  },
+  inningsText: {
+    fontSize: 12,
+    color: '#7f8c8d',
+  },
+  infoBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    backgroundColor: '#ffffff',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+  },
+  infoItem: {
+    alignItems: 'center',
+  },
+  infoLabel: {
+    fontSize: 12,
+    color: '#7f8c8d',
+    marginBottom: 4,
+  },
+  infoValue: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#2c3e50',
+  },
+  targetContainer: {
+    backgroundColor: '#ffffff',
+    padding: 16,
+    marginTop: 8,
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+  },
+  targetText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#e74c3c',
+    marginBottom: 4,
+  },
+  requiredRunRate: {
+    fontSize: 14,
+    color: '#7f8c8d',
+  },
+  recentBallsContainer: {
+    backgroundColor: '#ffffff',
+    padding: 16,
+    marginTop: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#2c3e50',
+    marginBottom: 12,
+  },
+  ballsRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+  },
+  ballCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginHorizontal: 4,
+  },
+  ballBowled: {
+    backgroundColor: '#3498db',
+  },
+  ballPending: {
+    backgroundColor: '#e0e0e0',
+  },
+  smallBallCircle: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginHorizontal: 3,
+  },
+  normalBall: {
+    backgroundColor: '#3498db',
+  },
+  wicketBall: {
+    backgroundColor: '#e74c3c',
+  },
+  wideBall: {
+    backgroundColor: '#f39c12',
+  },
+  noBall: {
+    backgroundColor: '#9b59b6',
   },
   ballText: {
-    fontSize: 16,
+    color: 'white',
     fontWeight: 'bold',
-  },
-  buttonRow: {
-    marginTop: 10,
-  },
-  buttonRow1: {
-    marginTop: 10,
-    alignItems: 'center',
-  },
-  scoreButtonsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  scoreButtonsContainer1: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  scoreButton: {
-    backgroundColor: '#007AFF',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 5,
-    margin: 3,
-    minWidth: 40,
-    alignItems: 'center',
-  },
-  scoreButton1: {
-    backgroundColor: '#007AFF',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 5,
-    margin: 3,
-    minWidth: 50,
-    alignItems: 'center',
-  },
-  scoreButtonText: {
-    color: '#fff',
     fontSize: 14,
-    fontWeight: 'bold',
   },
-  scoreButtonText1: {
-    color: '#fff',
-    fontSize: 14,
+  smallBallText: {
+    color: 'white',
     fontWeight: 'bold',
+    fontSize: 12,
+  },
+  noDataTextSmall: {
+    color: '#7f8c8d',
+    textAlign: 'center',
+    fontStyle: 'italic',
+    fontSize: 12,
+  },
+  controlsContainer: {
+    padding: 16,
+    backgroundColor: '#ffffff',
+    marginTop: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+  },
+  controlButton: {
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  startButton: {
+    backgroundColor: '#2ecc71',
+    margin: 16,
   },
   confirmButton: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#3498db',
+    marginTop: 8,
+  },
+  controlButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  teamSection: {
+    backgroundColor: '#ffffff',
+    marginTop: 16,
+    padding: 16,
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: '#e0e0e0',
+  },
+  teamHeaderContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  teamTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#2c3e50',
+  },
+  teamStats: {
+    flexDirection: 'row',
+  },
+  teamStatText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#7f8c8d',
+    marginLeft: 12,
+  },
+  playerSelectionRow: {
+    flexDirection: 'row',
     paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 5,
-    margin: 3,
+  },
+  playerOption: {
+    flexDirection: 'row',
     alignItems: 'center',
-  },
-  confirmButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
-  },
-  extrasSection: {
-    backgroundColor: '#fff',
+    backgroundColor: '#ecf0f1',
     padding: 10,
-    marginVertical: 10,
-    borderRadius: 10,
-    elevation: 3,
-  },
-  modalContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.5)',
-  },
-  modalContent: {
-    width: '80%',
-    backgroundColor: 'white',
-    borderRadius: 10,
-    padding: 20,
-    maxHeight: '80%',
-  },
-  modalHeader: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 15,
-    textAlign: 'center',
-    color: '#333',
-  },
-  playerText: {
-    fontSize: 16,
-    color: '#333',
-    fontWeight: '600',
-    marginLeft: 10,
-  },
-  closeButton: {
-    marginTop: 15,
-    backgroundColor: '#d9534f',
-    padding: 12,
     borderRadius: 8,
-    width: '100%',
+    marginRight: 10,
+    minWidth: 150,
+  },
+  selectedPlayer: {
+    backgroundColor: '#b8e0ff',
+    borderWidth: 1,
+    borderColor: '#3498db',
+  },
+  playerCard: {
+    backgroundColor: '#f8f9fa',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+  },
+  playerHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
+    marginBottom: 8,
   },
-  closeButtonText: {
-    fontSize: 16,
-    color: 'white',
-    fontWeight: 'bold',
-  },
-  leftContainer: {
-    marginRight: 5,
+  playerInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   shirtIcon: {
     width: 30,
     height: 30,
     justifyContent: 'center',
     alignItems: 'center',
+    marginRight: 8,
   },
   shirtText: {
     fontSize: 11,
     fontWeight: 'bold',
     color: 'white',
     textAlign: 'center',
+  },
+  playerName: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#2c3e50',
+  },
+  wicketButton: {
+    backgroundColor: '#e74c3c',
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 4,
+  },
+  wicketButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 12,
+  },
+  playerStatsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  playerStat: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  statLabel: {
+    fontSize: 12,
+    color: '#7f8c8d',
+    marginBottom: 2,
+  },
+  statValue: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#2c3e50',
+  },
+  quickScoreSection: {
+    backgroundColor: '#ffffff',
+    padding: 16,
+    marginTop: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+  },
+  quickScoreRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  quickScoreLabel: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#2c3e50',
+    width: 70,
+  },
+  quickScoreButtons: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    flex: 1,
+  },
+  quickScoreButton: {
+    backgroundColor: '#ecf0f1',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 6,
+    margin: 4,
+  },
+  activeQuickScoreButton: {
+    backgroundColor: '#3498db',
+  },
+  quickScoreButtonText: {
+    color: '#2c3e50',
+    fontWeight: 'bold',
+    fontSize: 14,
+  },
+  scoringButtons: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    marginTop: 8,
+  },
+  scoringButton: {
+    backgroundColor: '#ecf0f1',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    margin: 4,
+  },
+  activeScoringButton: {
+    backgroundColor: '#3498db',
+  },
+  scoringButtonText: {
+    color: '#2c3e50',
+    fontWeight: 'bold',
+    fontSize: 14,
+  },
+  playerConfirmButton: {
+    marginTop: 12,
+    paddingVertical: 8,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContainer: {
+    backgroundColor: 'white',
+    borderRadius: 12,
+    width: '85%',
+    maxHeight: '70%',
+    padding: 16,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#2c3e50',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  modalScrollView: {
+    maxHeight: '60%',
+  },
+  modalOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+  },
+  modalOptionText: {
+    fontSize: 16,
+    color: '#2c3e50',
+    marginLeft: 10,
+  },
+  modalCloseButton: {
+    backgroundColor: '#ecf0f1',
+    paddingVertical: 12,
+    borderRadius: 8,
+    marginTop: 16,
+  },
+  modalCloseButtonText: {
+    color: '#2c3e50',
+    fontWeight: 'bold',
+    fontSize: 16,
+    textAlign: 'center',
+  },
+  subHeader: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#555',
+    marginBottom: 8,
   },
   
 });
