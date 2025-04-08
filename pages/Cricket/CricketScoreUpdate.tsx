@@ -196,7 +196,7 @@ const [confirmExtraTeam, setConfirmExtraTeam] = useState<string | null>(null);
         }
 
         const response = await fetch(
-          `http://192.168.1.21:3002/match/${match.sport}/${match._id}`,
+          `http://3.0.218.176:3002/match/${match.sport}/${match._id}`,
           {
             method: 'GET',
             headers: {Authorization: `Bearer ${token}`},
@@ -307,7 +307,7 @@ const [confirmExtraTeam, setConfirmExtraTeam] = useState<string | null>(null);
       }
 
       const response = await fetch(
-        'http://192.168.1.21:3002/startmatchcricket',
+        'http://3.0.218.176:3002/startmatchcricket',
         {
           method: 'POST',
           headers: {
@@ -350,7 +350,7 @@ const [confirmExtraTeam, setConfirmExtraTeam] = useState<string | null>(null);
       }
 
       const response = await fetch(
-        'http://192.168.1.21:3002/updateScoreCricket',
+        'http://3.0.218.176:3002/updateScoreCricket',
         {
           method: 'POST',
           headers: {
@@ -415,7 +415,7 @@ const [confirmExtraTeam, setConfirmExtraTeam] = useState<string | null>(null);
         }
 
         const response = await fetch(
-          'http://192.168.1.21:3002/updateFirstInningcricket',
+          'http://3.0.218.176:3002/updateFirstInningcricket',
           {
             method: 'POST',
             headers: {
@@ -455,7 +455,7 @@ const [confirmExtraTeam, setConfirmExtraTeam] = useState<string | null>(null);
     try {
       const token = await AsyncStorage.getItem('token');
       const response = await fetch(
-        'http://192.168.1.21:3002/swapPlayerscricket',
+        'http://3.0.218.176:3002/swapPlayerscricket',
         {
           method: 'POST',
           headers: {
@@ -498,7 +498,7 @@ const [confirmExtraTeam, setConfirmExtraTeam] = useState<string | null>(null);
       }
 
       const response = await fetch(
-        'http://192.168.1.21:3002/handlealloutinning1',
+        'http://3.0.218.176:3002/handlealloutinning1',
         {
           method: 'POST',
           headers: {
@@ -550,7 +550,7 @@ const [confirmExtraTeam, setConfirmExtraTeam] = useState<string | null>(null);
     try {
       const token = await AsyncStorage.getItem('token');
       const response = await fetch(
-        'http://192.168.1.21:3002/swapbowlercricket',
+        'http://3.0.218.176:3002/swapbowlercricket',
         {
           method: 'POST',
           headers: {
@@ -591,7 +591,7 @@ const [confirmExtraTeam, setConfirmExtraTeam] = useState<string | null>(null);
       }
 
       const response = await fetch(
-        'http://192.168.1.21:3002/updateByesCricket',
+        'http://3.0.218.176:3002/updateByesCricket',
         {
           method: 'POST',
           headers: {
@@ -662,7 +662,7 @@ const [confirmExtraTeam, setConfirmExtraTeam] = useState<string | null>(null);
       }
   
       const response = await fetch(
-        'http://192.168.1.21:3002/updateExtrasCricket',
+        'http://3.0.218.176:3002/updateExtrasCricket',
         {
           method: 'POST',
           headers: {
@@ -716,7 +716,7 @@ const [confirmExtraTeam, setConfirmExtraTeam] = useState<string | null>(null);
       }
   
       const response = await fetch(
-        'http://192.168.1.21:3002/handleRunOutWithRuns',
+        'http://3.0.218.176:3002/handleRunOutWithRuns',
         {
           method: 'POST',
           headers: {
@@ -756,7 +756,7 @@ const [confirmExtraTeam, setConfirmExtraTeam] = useState<string | null>(null);
   
       const token = await AsyncStorage.getItem('token');
       const response = await fetch(
-        'http://192.168.1.21:3002/handleAllOutWithRuns',
+        'http://3.0.218.176:3002/handleAllOutWithRuns',
         {
           method: 'POST',
           headers: {

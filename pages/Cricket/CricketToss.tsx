@@ -35,7 +35,7 @@ export const CricketToss = ({ route, navigation }) => {
 
         try {
             const token = await AsyncStorage.getItem("token");
-            const response = await fetch("http://192.168.1.21:3002/updateToss", {
+            const response = await fetch("http://3.0.218.176:3002/updateToss", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

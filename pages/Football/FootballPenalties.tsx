@@ -45,7 +45,7 @@ const FootballPenalties = ({ route,navigation }) => {
     try {
         const token = await AsyncStorage.getItem("token"); // Retrieve stored JWT token
 
-        const response = await fetch("http://192.168.1.21:3002/updatePenaltyFootball", {
+        const response = await fetch("http://3.0.218.176:3002/updatePenaltyFootball", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

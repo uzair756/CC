@@ -57,7 +57,7 @@ export const AdminLandingPage = ({ navigation }) => {
     try {
       setRefreshing(true);
       const token = await AsyncStorage.getItem('token');
-      const response = await fetch('http://192.168.1.21:3002/dsalandingpage', {
+      const response = await fetch('http://3.0.218.176:3002/dsalandingpage', {
         method: 'GET',
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -137,7 +137,7 @@ const handleAddCoach = async () => {
   }
 
   try {
-    const response = await fetch('http://192.168.1.21:3002/dsasportscoachuser', {
+    const response = await fetch('http://3.0.218.176:3002/dsasportscoachuser', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -200,7 +200,7 @@ const handleAddAnnouncement = async () => {
       return;
     }
 
-    const response = await fetch('http://192.168.1.21:3002/adminpost', {
+    const response = await fetch('http://3.0.218.176:3002/adminpost', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -246,7 +246,7 @@ const handleAddAnnouncement = async () => {
         return;
       }
 
-      const response = await fetch(`http://192.168.1.21:3002/adminpost/${selectedPost._id}`, {
+      const response = await fetch(`http://3.0.218.176:3002/adminpost/${selectedPost._id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -327,7 +327,7 @@ const handleChangePassword = async () => {
       return;
     }
 
-    const response = await fetch('http://192.168.1.21:3002/changepasswordadmin', {
+    const response = await fetch('http://3.0.218.176:3002/changepasswordadmin', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

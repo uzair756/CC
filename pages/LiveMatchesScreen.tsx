@@ -43,7 +43,7 @@ export const LiveMatchesScreen = () => {
       setLoading(true);
       try {
         const response = await fetch(
-          `http://192.168.1.21:3002/livematches?sportCategory=${selectedSport}`,
+          `http://3.0.218.176:3002/livematches?sportCategory=${selectedSport}`,
         );
         const data = await response.json();
 

@@ -44,7 +44,7 @@ export const TopPerformersScreen = () => {
 
       try {
         if (selectedSport === "Cricket") {
-          const response = await fetch(`http://192.168.1.21:3002/bestcricketertp/${selectedYear}`, {
+          const response = await fetch(`http://3.0.218.176:3002/bestcricketertp/${selectedYear}`, {
             headers: {
               "Content-Type": "application/json",
             },

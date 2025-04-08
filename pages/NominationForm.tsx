@@ -32,7 +32,7 @@ export const NominationForm = ({ route }) => {
       const token = await AsyncStorage.getItem('token');
       
       try {
-        const response = await fetch(`http://192.168.1.21:3002/getNominationForm/${sport}`, {
+        const response = await fetch(`http://3.0.218.176:3002/getNominationForm/${sport}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -97,7 +97,7 @@ export const NominationForm = ({ route }) => {
     try {
       let response;
       if (nominationData && nominationData._id) {
-        response = await fetch(`http://192.168.1.21:3002/updateNominationForm/${sport}`, {
+        response = await fetch(`http://3.0.218.176:3002/updateNominationForm/${sport}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -106,7 +106,7 @@ export const NominationForm = ({ route }) => {
           body: JSON.stringify({ ...dataToSubmit, id: nominationData._id }),
         });
       } else {
-        response = await fetch(`http://192.168.1.21:3002/submitNominationForm/${sport}`, {
+        response = await fetch(`http://3.0.218.176:3002/submitNominationForm/${sport}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

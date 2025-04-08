@@ -29,7 +29,7 @@ export const TrialsConfirmation = ({ navigation }) => {
       setIsLoading(true);
       try {
         const token = await AsyncStorage.getItem('token');
-        const response = await fetch('http://192.168.1.21:3002/getMyTrialEvents', {
+        const response = await fetch('http://3.0.218.176:3002/getMyTrialEvents', {
           method: 'GET',
           headers: { 'Authorization': `Bearer ${token}` },
         });
@@ -60,7 +60,7 @@ export const TrialsConfirmation = ({ navigation }) => {
     setIsCreating(true);
     try {
       const token = await AsyncStorage.getItem('token');
-      const response = await fetch('http://192.168.1.21:3002/createTrialEvent', {
+      const response = await fetch('http://3.0.218.176:3002/createTrialEvent', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -109,7 +109,7 @@ export const TrialsConfirmation = ({ navigation }) => {
           onPress: async () => {
             try {
               const token = await AsyncStorage.getItem('token');
-              const response = await fetch(`http://192.168.1.21:3002/deleteTrialEvent/${id}`, {
+              const response = await fetch(`http://3.0.218.176:3002/deleteTrialEvent/${id}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` },
               });
