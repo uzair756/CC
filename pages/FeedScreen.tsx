@@ -1,6 +1,14 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, Image, ActivityIndicator } from 'react-native';
+import React, {useEffect, useState} from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  Image,
+  ActivityIndicator,
+} from 'react-native';
 
+import {Log} from 'react-native';
 export const FeedScreen = () => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true); // Add a loading state
@@ -9,6 +17,7 @@ export const FeedScreen = () => {
     const fetchPosts = async () => {
       try {
         const response = await fetch('http://3.0.218.176:3002/getadminposts');
+        console.log(response);
         const data = await response.json();
         if (data.success) {
           setPosts(data.posts || []);
@@ -17,6 +26,8 @@ export const FeedScreen = () => {
         }
       } catch (error) {
         console.error('Error fetching posts:', error);
+        Log.e('Error', error);
+        console.error(error);
       }
       setLoading(false); // Set loading to false once posts are fetched
     };
@@ -25,7 +36,7 @@ export const FeedScreen = () => {
   }, []);
 
   // Helper function to format the date in a user-friendly format
-  const formatDate = (dateString) => {
+  const formatDate = dateString => {
     const date = new Date(dateString);
     return date.toLocaleString('en-US', {
       weekday: 'short', // "Mon"
@@ -39,13 +50,18 @@ export const FeedScreen = () => {
     });
   };
 
-  const renderPost = ({ item }) => {
+  const renderPost = ({item}) => {
     return (
       <View style={styles.postContainer}>
         <View style={styles.postHeader}>
-          <Image source={require('../assets/user1.png')} style={styles.profileImage} />
+          <Image
+            source={require('../assets/user1.png')}
+            style={styles.profileImage}
+          />
           <View style={styles.usernameContainer}>
-            <Text style={styles.username}>{item.adminpostusername || 'Username'}</Text>
+            <Text style={styles.username}>
+              {item.adminpostusername || 'Username'}
+            </Text>
             <Text style={styles.postDate}>
               {item.postedAt ? formatDate(item.postedAt) : 'Date & Time'}
             </Text>
@@ -53,7 +69,7 @@ export const FeedScreen = () => {
         </View>
         <Text style={styles.postDescription}>{item.adminpostdescription}</Text>
         {item.adminimagepost && (
-          <Image source={{ uri: item.adminimagepost }} style={styles.postImage} />
+          <Image source={{uri: item.adminimagepost}} style={styles.postImage} />
         )}
       </View>
     );
@@ -63,9 +79,11 @@ export const FeedScreen = () => {
     <FlatList
       data={posts}
       renderItem={renderPost}
-      keyExtractor={(item) => item._id}
+      keyExtractor={item => item._id}
       showsVerticalScrollIndicator={false}
-      ListEmptyComponent={<Text style={styles.noPostsText}>No posts available.</Text>}
+      ListEmptyComponent={
+        <Text style={styles.noPostsText}>No posts available.</Text>
+      }
       ListHeaderComponent={
         loading && (
           <View style={styles.loaderContainer}>
@@ -98,7 +116,7 @@ const styles = StyleSheet.create({
     marginTop: 18,
     marginBottom: 18,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
+    shadowOffset: {width: 0, height: 3},
     shadowOpacity: 0.15,
     shadowRadius: 8,
     elevation: 5,
