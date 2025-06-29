@@ -9,7 +9,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+// import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 
 const sportsCategories = [
@@ -39,7 +39,7 @@ export const HistoryScreen = () => {
       setLoading(true);
       try {
         const response = await fetch(
-          `http://3.0.218.176:3002/finalwinner?sportCategory=${encodeURIComponent(
+          `http://192.168.1.24:3002/finalwinner?sportCategory=${encodeURIComponent(
             selectedSport
           )}&year=${selectedYear}`
         );
@@ -86,7 +86,7 @@ export const HistoryScreen = () => {
   {/* Year Selection - Elegant Gradient Card */}
   <View style={styles.yearSelectionContainer}>
     <View style={styles.gradientCard}>
-      <Icon name="calendar-month" size={30} color="#fff" style={styles.calendarIcon} />
+      {/* <Icon name="calendar-month" size={30} color="#fff" style={styles.calendarIcon} /> */}
       <Text style={styles.yearSelectionTitle}>Select Year</Text>
       <View style={styles.pickerWrapper}>
         <Picker
@@ -111,9 +111,9 @@ export const HistoryScreen = () => {
         <ActivityIndicator size="large" color="#6a11cb" />
       ) : (
         <>
-          <View style={styles.trophyContainer}>
+          {/* <View style={styles.trophyContainer}>
             <Icon name="trophy-award" size={40} color="#FFD700" />
-          </View>
+          </View> */}
           <Text style={styles.winnerText}>
             {departmentWinner
               ? `${departmentWinner} won ${selectedSport} in ${selectedYear}`

@@ -1,11 +1,9 @@
-// BestCricketerPage.js
 import React, { useState, useEffect } from "react";
 import {
     View,
     Text,
     TouchableOpacity,
     ActivityIndicator,
-    Alert,
     StyleSheet,
     ScrollView,
     RefreshControl,
@@ -17,9 +15,8 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import LinearGradient from 'react-native-linear-gradient';
 import { useFocusEffect } from '@react-navigation/native';
 
-export const BestCricketerPage = ({ navigation }) => {
-    const [bestBatsman, setBestBatsman] = useState(null);
-    const [bestBowler, setBestBowler] = useState(null);
+export const BestFootballPlayerPage = ({ navigation }) => {
+    const [bestFootballer, setBestFootballer] = useState(null);
     const [loading, setLoading] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
     const [error, setError] = useState(null);
@@ -43,13 +40,13 @@ export const BestCricketerPage = ({ navigation }) => {
 
     useFocusEffect(
         React.useCallback(() => {
-            setBestBatsman(null);
-            setBestBowler(null);
+            setBestFootballer(null);
             setError(null);
+            fetchBestFootballer();
         }, [])
     );
 
-    const fetchBestCricketers = async () => {
+    const fetchBestFootballer = async () => {
         setLoading(true);
         setError(null);
         try {
@@ -59,7 +56,7 @@ export const BestCricketerPage = ({ navigation }) => {
                 return;
             }
 
-            const response = await fetch("http://192.168.1.24:3002/bestcricketer", {
+            const response = await fetch("http://192.168.1.24:3002/bestfootballer", {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
@@ -74,14 +71,13 @@ export const BestCricketerPage = ({ navigation }) => {
             }
 
             if (data.success) {
-                setBestBatsman(data.bestBatsman);
-                setBestBowler(data.bestBowler);
+                setBestFootballer(data.bestFootballer);
             } else {
-                setError(data.message || 'Unknown error occurred');
+                setError(data.message || 'No top scorer data available');
             }
         } catch (error) {
-            console.error("Error fetching best cricketers:", error);
-            setError(error.message || "Failed to fetch best cricketers");
+            console.error("Error fetching best footballer:", error);
+            setError(error.message || "Failed to fetch best footballer");
         } finally {
             setLoading(false);
             setRefreshing(false);
@@ -90,14 +86,14 @@ export const BestCricketerPage = ({ navigation }) => {
 
     const onRefresh = () => {
         setRefreshing(true);
-        fetchBestCricketers();
+        fetchBestFootballer();
     };
 
     const handleOkPress = () => {
         navigation.replace('RefLandingPage', { refresh: Date.now() });
     };
 
-    const renderPlayerCard = (player, title, icon) => (
+    const renderPlayerCard = (player) => (
         <Animated.View
             style={[
                 styles.card,
@@ -108,40 +104,37 @@ export const BestCricketerPage = ({ navigation }) => {
             ]}
         >
             <View style={styles.cardHeader}>
-                {/* <Icon name={icon} size={24} color="#00BFFF" /> */}
-                <Text style={styles.cardTitle}>{title}</Text>
+                <Icon name="sports-soccer" size={24} color="#00BFFF" />
+                <Text style={styles.cardTitle}>Top Scorer</Text>
             </View>
 
             <View style={styles.playerInfo}>
-                
-
+                <Image 
+                    source={require('../../assets/user1.png')} 
+                    style={styles.playerImage} 
+                />
                 <View style={styles.playerDetails}>
                     <Text style={styles.playerName}>{player.name}</Text>
                     <Text style={styles.playerRegNo}>Reg No: {player.regNo}</Text>
+                    <Text style={styles.playerRegNo}>Section: {player.section}</Text>
                 </View>
             </View>
 
             <View style={styles.statsContainer}>
                 <View style={styles.statItem}>
-                    <Text style={styles.statLabel}>
-                        {title.includes('Batsman') ? 'Runs' : 'Wickets'}
-                    </Text>
-                    <Text style={styles.statValue}>
-                        {title.includes('Batsman') ? player.runs : player.wickets}
-                    </Text>
+                    <Text style={styles.statLabel}>Goals</Text>
+                    <Text style={styles.statValue}>{player.goals}</Text>
+                </View>
+
+                <View style={styles.statItem}>
+                    <Text style={styles.statLabel}>Shirt No</Text>
+                    <Text style={styles.statValue}>{player.shirtNo}</Text>
                 </View>
 
                 <View style={styles.statItem}>
                     <Text style={styles.statLabel}>Matches</Text>
                     <Text style={styles.statValue}>{player.matches || 'N/A'}</Text>
                 </View>
-
-                {player.average && (
-                    <View style={styles.statItem}>
-                        <Text style={styles.statLabel}>Average</Text>
-                        <Text style={styles.statValue}>{player.average}</Text>
-                    </View>
-                )}
             </View>
         </Animated.View>
     );
@@ -160,15 +153,15 @@ export const BestCricketerPage = ({ navigation }) => {
                 }
             >
                 <View style={styles.header}>
-                    <Text style={styles.heading}>Best Cricketers</Text>
-                    <Text style={styles.subHeading}>Top performers of the tournament</Text>
+                    <Text style={styles.heading}>Best Footballer</Text>
+                    <Text style={styles.subHeading}>Top scorer of the tournament</Text>
                 </View>
 
                 {error && (
                     <View style={styles.errorContainer}>
-                        {/* <Icon name="error-outline" size={24} color="#FF5252" /> */}
+                        <Icon name="error-outline" size={24} color="#FF5252" />
                         <Text style={styles.errorText}>{error}</Text>
-                        <TouchableOpacity onPress={fetchBestCricketers} style={styles.retryButton}>
+                        <TouchableOpacity onPress={fetchBestFootballer} style={styles.retryButton}>
                             <Text style={styles.retryButtonText}>Retry</Text>
                         </TouchableOpacity>
                     </View>
@@ -177,34 +170,33 @@ export const BestCricketerPage = ({ navigation }) => {
                 {loading && !refreshing && (
                     <View style={styles.loadingContainer}>
                         <ActivityIndicator size="large" color="#00BFFF" />
-                        <Text style={styles.loadingText}>Finding the Best Players...</Text>
+                        <Text style={styles.loadingText}>Finding the Top Scorer...</Text>
                     </View>
                 )}
 
-                {!loading && !bestBatsman && !bestBowler && !error && (
+                {!loading && !bestFootballer && !error && (
                     <View style={styles.emptyState}>
-                        {/* <Icon name="sports-cricket" size={60} color="#4CAF50" /> */}
+                        <Icon name="sports-soccer" size={60} color="#4CAF50" />
                         <Text style={styles.emptyStateText}>No data available</Text>
-                        <Text style={styles.emptyStateSubText}>Tap the button below to find the best players</Text>
+                        <Text style={styles.emptyStateSubText}>Pull to refresh or tap below to find the top scorer</Text>
                     </View>
                 )}
 
-                {bestBatsman && renderPlayerCard(bestBatsman, "Best Batsman", "sports-baseball")}
-                {bestBowler && renderPlayerCard(bestBowler, "Best Bowler", "sports-handball")}
+                {bestFootballer && renderPlayerCard(bestFootballer)}
 
-                {!loading && (!bestBatsman || !bestBowler) && !error && (
-                    <TouchableOpacity onPress={fetchBestCricketers} style={styles.button} activeOpacity={0.7}>
+                {!loading && !bestFootballer && !error && (
+                    <TouchableOpacity onPress={fetchBestFootballer} style={styles.button} activeOpacity={0.7}>
                         <LinearGradient colors={['#4CAF50', '#2E7D32']} style={styles.buttonGradient}>
-                            {/* <Icon name="search" size={20} color="white" /> */}
-                            <Text style={styles.buttonText}>Find Best Players</Text>
+                            <Icon name="search" size={20} color="white" />
+                            <Text style={styles.buttonText}>Find Top Scorer</Text>
                         </LinearGradient>
                     </TouchableOpacity>
                 )}
 
-                {(bestBatsman || bestBowler) && (
+                {bestFootballer && (
                     <TouchableOpacity onPress={handleOkPress} style={styles.okButton} activeOpacity={0.7}>
                         <Text style={styles.okButtonText}>Continue</Text>
-                        {/* <Icon name="arrow-forward" size={20} color="white" /> */}
+                        <Icon name="arrow-forward" size={20} color="white" />
                     </TouchableOpacity>
                 )}
             </ScrollView>

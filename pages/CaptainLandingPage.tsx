@@ -21,7 +21,7 @@ export const CaptainLandingPage = ({ navigation }) => {
     const fetchProfile = async () => {
       try {
         const token = await AsyncStorage.getItem('token');
-        const response = await fetch('http://3.0.218.176:3002/captainlandingpage', {
+        const response = await fetch('http://192.168.1.24:3002/captainlandingpage', {
           method: 'GET',
           headers: { 'Authorization': `Bearer ${token}` },
         });
@@ -98,7 +98,7 @@ export const CaptainLandingPage = ({ navigation }) => {
         return;
       }
   
-      const response = await fetch('http://3.0.218.176:3002/changepasswordcaptain', {
+      const response = await fetch('http://192.168.1.24:3002/changepasswordcaptain', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -132,7 +132,7 @@ export const CaptainLandingPage = ({ navigation }) => {
   const handleEventConfirmation = async (eventId) => {
     try {
       const token = await AsyncStorage.getItem('token');
-      const response = await fetch(`http://3.0.218.176:3002/confirmtrial/${eventId}`, {
+      const response = await fetch(`http://192.168.1.24:3002/confirmtrial/${eventId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -162,23 +162,23 @@ export const CaptainLandingPage = ({ navigation }) => {
           Welcome, {user?.username}!
         </Text>
         <Text style={styles.departmentText}>
-          {user?.department} Team Captain
+          {user?.department} {user?.category} Team Captain
         </Text>
       </View>
 
       <View style={styles.profileCard}>
         <View style={styles.profileInfo}>
-          <Icon name="account-details" size={20} color="#3a7bd5" />
+          {/* <Icon name="account-details" size={20} color="#3a7bd5" /> */}
           <Text style={styles.profileLabel}>Name:</Text>
           <Text style={styles.profileValue}>{user?.username}</Text>
         </View>
         <View style={styles.profileInfo}>
-          <Icon name="office-building" size={20} color="#3a7bd5" />
+          {/* <Icon name="office-building" size={20} color="#3a7bd5" /> */}
           <Text style={styles.profileLabel}>Department:</Text>
           <Text style={styles.profileValue}>{user?.department}</Text>
         </View>
         <View style={styles.profileInfo}>
-          <Icon name="soccer" size={20} color="#3a7bd5" />
+          {/* <Icon name="soccer" size={20} color="#3a7bd5" /> */}
           <Text style={styles.profileLabel}>Category:</Text>
           <Text style={styles.profileValue}>{user?.category}</Text>
         </View>
@@ -189,9 +189,9 @@ export const CaptainLandingPage = ({ navigation }) => {
           style={styles.cardButton}
           onPress={() => setIsChangePasswordVisible(true)}
         >
-          <Icon name="lock-reset" size={24} color="#3a7bd5" />
+          {/* <Icon name="lock-reset" size={24} color="#3a7bd5" /> */}
           <Text style={styles.cardButtonText}>Change Password</Text>
-          <Icon name="chevron-right" size={24} color="#3a7bd5" />
+          {/* <Icon name="chevron-right" size={24} color="#3a7bd5" /> */}
         </TouchableOpacity>
       </View>
 
@@ -217,23 +217,23 @@ export const CaptainLandingPage = ({ navigation }) => {
                   onPress={() => handleEventConfirmation(item._id)}
                 >
                   <Text style={styles.confirmationButtonText}>
-                    {item.isConfirmed ? 'Confirmed' : 'Confirm'}
+                    {item.isConfirmed ? '✔' : 'Confirm'}
                   </Text>
                 </TouchableOpacity>
               </View>
               
               <View style={styles.eventDetail}>
-                <Icon name="calendar" size={16} color="#666" />
+                {/* <Icon name="calendar" size={16} color="#666" /> */}
                 <Text style={styles.eventText}>{item.date}</Text>
               </View>
               
               <View style={styles.eventDetail}>
-                <Icon name="clock" size={16} color="#666" />
+                {/* <Icon name="clock" size={16} color="#666" /> */}
                 <Text style={styles.eventText}>{item.hour}:{item.minute} {item.time}</Text>
               </View>
               
               <View style={styles.eventDetail}>
-                <Icon name="account" size={16} color="#666" />
+                {/* <Icon name="account" size={16} color="#666" /> */}
                 <Text style={styles.eventText}>Organized by: {item.repName}</Text>
               </View>
             </View>
@@ -241,7 +241,7 @@ export const CaptainLandingPage = ({ navigation }) => {
         />
       ) : (
         <View style={styles.emptyState}>
-          <Icon name="calendar-remove" size={40} color="#ccc" />
+          {/* <Icon name="calendar-remove" size={40} color="#ccc" /> */}
           <Text style={styles.emptyStateText}>No upcoming trials scheduled</Text>
         </View>
       )}
@@ -251,7 +251,7 @@ export const CaptainLandingPage = ({ navigation }) => {
         onPress={handleSignOut}
       >
         <Text style={styles.logoutButtonText}>Sign Out</Text>
-        <Icon name="logout" size={20} color="#fff" />
+        {/* <Icon name="logout" size={20} color="#fff" /> */}
       </TouchableOpacity>
 
       <Modal isVisible={isChangePasswordVisible}>
@@ -259,7 +259,7 @@ export const CaptainLandingPage = ({ navigation }) => {
     <Text style={styles.modalTitle}>Change Password</Text>
     
     <View style={styles.inputContainer}>
-      <Icon name="lock" size={20} color="#3a7bd5" style={styles.inputIcon} />
+      {/* <Icon name="lock" size={20} color="#3a7bd5" style={styles.inputIcon} /> */}
       <TextInput
         style={styles.modalInput}
         placeholder="Current Password"
@@ -275,7 +275,7 @@ export const CaptainLandingPage = ({ navigation }) => {
     {errors.currentPassword ? <Text style={styles.errorText}>{errors.currentPassword}</Text> : null}
 
     <View style={styles.inputContainer}>
-      <Icon name="lock-plus" size={20} color="#3a7bd5" style={styles.inputIcon} />
+      {/* <Icon name="lock-plus" size={20} color="#3a7bd5" style={styles.inputIcon} /> */}
       <TextInput
         style={styles.modalInput}
         placeholder="New Password"
@@ -291,7 +291,7 @@ export const CaptainLandingPage = ({ navigation }) => {
     {errors.newPassword ? <Text style={styles.errorText}>{errors.newPassword}</Text> : null}
 
     <View style={styles.inputContainer}>
-      <Icon name="lock-check" size={20} color="#3a7bd5" style={styles.inputIcon} />
+      {/* <Icon name="lock-check" size={20} color="#3a7bd5" style={styles.inputIcon} /> */}
       <TextInput
         style={styles.modalInput}
         placeholder="Confirm New Password"
@@ -357,10 +357,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#fff',
     marginBottom: 5,
+    textAlign: 'center',  // <-- added this
   },
   departmentText: {
     fontSize: 16,
     color: 'rgba(255,255,255,0.9)',
+    textAlign: 'center',  // <-- added this
   },
   profileCard: {
     backgroundColor: '#fff',
@@ -389,7 +391,7 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: '#3a7bd5',
     borderRadius: 10,
     marginBottom: 20,
     elevation: 2,
@@ -403,13 +405,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 18,
+
   },
   cardButtonText: {
     flex: 1,
-    marginLeft: 15,
     fontSize: 16,
-    color: '#333',
-    fontWeight: '500',
+    color: 'white',
+    fontWeight: 'bold',
+    textAlign: 'center',  // <-- added this
   },
   sectionTitle: {
     fontSize: 18,

@@ -62,7 +62,7 @@ export const CaptainsAccountCreate = () => {
     
     try {
       const token = await AsyncStorage.getItem('token');
-      const response = await fetch('http://3.0.218.176:3002/captainsignup', {
+      const response = await fetch('http://192.168.1.24:3002/captainsignup', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -116,7 +116,7 @@ export const CaptainsAccountCreate = () => {
           <View style={styles.formContainer}>
             {/* Name Field */}
             <View style={styles.inputContainer}>
-              <Icon name="person" size={20} color="#555" style={styles.icon} />
+              {/* <Icon name="person" size={20} color="#555" style={styles.icon} /> */}
               <TextInput
                 style={styles.input}
                 placeholder="Captain Name"
@@ -129,7 +129,7 @@ export const CaptainsAccountCreate = () => {
 
             {/* Email Field */}
             <View style={styles.inputContainer}>
-              <Icon name="email" size={20} color="#555" style={styles.icon} />
+              {/* <Icon name="email" size={20} color="#555" style={styles.icon} /> */}
               <TextInput
                 style={styles.input}
                 placeholder="Captain Email"
@@ -144,7 +144,7 @@ export const CaptainsAccountCreate = () => {
 
             {/* Password Field */}
             <View style={styles.inputContainer}>
-              <Icon name="lock" size={20} color="#555" style={styles.icon} />
+              {/* <Icon name="lock" size={20} color="#555" style={styles.icon} /> */}
               <TextInput
                 style={styles.input}
                 placeholder="Password"
@@ -157,7 +157,7 @@ export const CaptainsAccountCreate = () => {
             {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
 
             <View style={[styles.inputContainer, styles.pickerContainer]}>
-  <Icon name="sports" size={20} color="#555" style={styles.icon} />
+  {/* <Icon name="sports" size={20} color="#555" style={styles.icon} /> */}
   <Picker
     selectedValue={selectedCategory}
     style={styles.picker}

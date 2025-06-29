@@ -1,6 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import { View, Image, StyleSheet, TouchableOpacity, Text, ScrollView } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import {
+  View,
+  Image,
+  StyleSheet,
+  TouchableOpacity,
+  Text,
+  ScrollView,
+  StatusBar,
+  Animated,
+  Dimensions
+} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+
+// Import your screen components
 import { FeedScreen } from './FeedScreen';
 import { RulesScreen } from './RulesScreen';
 import { LiveMatchesScreen } from './LiveMatchesScreen';
@@ -9,214 +21,273 @@ import { UpcomingMatchesScreen } from './UpcomingMatchesScreen';
 import { HistoryScreen } from './HistoryScreen';
 import { TopPerformersScreen } from './TopPerformersScreen';
 import { MenuScreen } from './MenuScreen';
+import { SettingsScreen } from './SettingsScreen';
 
+// Import your icons
 const CP = require('../assets/iconcp.png');
 const UserIcon = require('../assets/user1.png');
 const homeicon = require('../assets/home.png');
 const menuicon = require('../assets/menus.png');
+const settingicon = require('../assets/settings.png'); // Add this icon asset
 
 export const LandingScreen = ({ navigation }) => {
-  const [selectedOption, setSelectedOption] = useState('Feed'); // Default option is "Feed"
-  const [selectedIcon, setSelectedIcon] = useState('Home'); // Default selected icon is "Home"
-  const [token, setToken] = useState(null); // State for storing the token
+  const [selectedOption, setSelectedOption] = useState('Feed');
+  const [selectedIcon, setSelectedIcon] = useState('Home');
+  const [token, setToken] = useState(null);
+  const scrollX = useRef(new Animated.Value(0)).current;
+  const { width } = Dimensions.get('window');
 
-  // Fetch token from AsyncStorage on component mount
+  // Tab configuration
+  const tabs = [
+    { name: 'Feed', key: 'Feed' },
+    { name: 'Live Matches', key: 'Live Matches' },
+    { name: 'Recent Matches', key: 'Recent Matches' },
+    { name: 'Upcoming Matches', key: 'Upcoming Matches' },
+    { name: 'History', key: 'History' },
+    { name: 'Top Players', key: 'Top Performers' },
+    { name: 'Rules', key: 'Rules' },
+  ];
+
+  // Check for auth token
   useEffect(() => {
     const checkToken = async () => {
       try {
         const storedToken = await AsyncStorage.getItem('token');
-        setToken(storedToken); // Set the token state with the fetched token
+        setToken(storedToken);
       } catch (error) {
         console.error('Error fetching token:', error);
       }
     };
-
     checkToken();
   }, []);
 
-  // Function to change content based on selected option
+  // Render content based on selection
   const renderContent = () => {
-    if (selectedIcon === 'Home') {
-      switch (selectedOption) {
-        case 'Feed':
-          return <FeedScreen />;
-        case 'Live Matches':
-          return <LiveMatchesScreen />;
-        case 'Recent Matches':
-          return <RecentMatchesScreen />;
-        case 'Upcoming Matches':
-          return <UpcomingMatchesScreen />;
-        case 'History':
-          return <HistoryScreen />;
-        case 'Top Performers':
-          return <TopPerformersScreen />;
-        case 'Rules': // For the new option
-          return <RulesScreen />;
-        default:
-          return <Text style={styles.contentText}>Page Not Found.</Text>;
-      }
-    } else if (selectedIcon === 'Menu') {
-      return <MenuScreen navigation={navigation} />;
+    switch (selectedIcon) {
+      case 'Home':
+        switch (selectedOption) {
+          case 'Feed': return <FeedScreen />;
+          case 'Live Matches': return <LiveMatchesScreen />;
+          case 'Recent Matches': return <RecentMatchesScreen />;
+          case 'Upcoming Matches': return <UpcomingMatchesScreen />;
+          case 'History': return <HistoryScreen />;
+          case 'Top Performers': return <TopPerformersScreen />;
+          case 'Rules': return <RulesScreen />;
+          default: return <FeedScreen />;
+        }
+      case 'Menu':
+        return <MenuScreen navigation={navigation} />;
+      case 'Settings':
+        return <SettingsScreen navigation={navigation} />;
+      default:
+        return <FeedScreen />;
     }
   };
 
-  // Function to handle icon click (Home/Menu)
+  // Handle navigation toggle
   const handleIconClick = (icon) => {
     setSelectedIcon(icon);
     if (icon === 'Home') {
-      setSelectedOption('Feed'); // Reset to Feed when Home is selected
+      setSelectedOption('Feed');
     }
+  };
+
+  // Animated tab indicator
+  const TabIndicator = () => {
+    const inputRange = tabs.map((_, i) => i * width);
+    const translateX = scrollX.interpolate({
+      inputRange,
+      outputRange: inputRange.map(range => range / tabs.length),
+    });
+
+    return (
+      <Animated.View
+        style={[
+          styles.tabIndicator,
+          {
+            width: width / tabs.length,
+            transform: [{ translateX }]
+          }
+        ]}
+      />
+    );
   };
 
   return (
     <View style={styles.container}>
-      {/* Top row: Logo and User Icon */}
-      <View style={styles.topRow}>
-        {/* CampusPlay Logo */}
-        <Image source={CP} style={styles.icon} />
-
-        {/* User Icon - Only show if the token is empty */}
+      <StatusBar barStyle="dark-content" backgroundColor="#FFF" />
+      
+      {/* Header */}
+      <View style={styles.header}>
+        <Image source={CP} style={styles.logo} resizeMode="contain" />
+        
         {token === null && (
           <TouchableOpacity onPress={() => navigation.replace('Login')}>
-            <Image style={styles.rightIcon} source={UserIcon} />
+            <Image source={UserIcon} style={styles.userIcon} />
           </TouchableOpacity>
         )}
       </View>
 
-      {/* Second row: Home and Menu icons */}
-      <View style={styles.iconsRow}>
+      {/* Navigation Toggle - Now with 3 options */}
+      <View style={styles.navToggle}>
         <TouchableOpacity
+          style={[
+            styles.navButton,
+            selectedIcon === 'Home' && styles.activeNavButton
+          ]}
           onPress={() => handleIconClick('Home')}
-          style={[styles.iconButton, selectedIcon === 'Home' && styles.selectedIcon]}>
-          <Image style={styles.homeicon} source={homeicon} />
+        >
+          <Image source={homeicon} style={styles.navIcon} />
+          {selectedIcon === 'Home' && <View style={styles.activeDot} />}
         </TouchableOpacity>
+        
         <TouchableOpacity
+          style={[
+            styles.navButton,
+            selectedIcon === 'Menu' && styles.activeNavButton
+          ]}
           onPress={() => handleIconClick('Menu')}
-          style={[styles.iconButton, selectedIcon === 'Menu' && styles.selectedIcon]}>
-          <Image style={styles.menuIcon} source={menuicon} />
+        >
+          <Image source={menuicon} style={styles.navIcon} />
+          {selectedIcon === 'Menu' && <View style={styles.activeDot} />}
+        </TouchableOpacity>
+        
+        <TouchableOpacity
+          style={[
+            styles.navButton,
+            selectedIcon === 'Settings' && styles.activeNavButton
+          ]}
+          onPress={() => handleIconClick('Settings')}
+        >
+          <Image source={settingicon} style={styles.navIcon} />
+          {selectedIcon === 'Settings' && <View style={styles.activeDot} />}
         </TouchableOpacity>
       </View>
 
-      {/* Horizontal Option Buttons with Colored Backgrounds */}
+      {/* Tab Bar - Only shown when Home is selected */}
       {selectedIcon === 'Home' && (
-        <View style={styles.optionsContainer}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.optionsRow}>
-            {['Feed', 'Live Matches', 'Recent Matches', 'Upcoming Matches', 'History', 'Top Performers', 'Rules'].map((option, index) => (
+        <View style={styles.tabBar}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            onScroll={Animated.event(
+              [{ nativeEvent: { contentOffset: { x: scrollX } } }],
+              { useNativeDriver: false }
+            )}
+            scrollEventThrottle={16}
+          >
+            {tabs.map((tab) => (
               <TouchableOpacity
-                key={option}
-                onPress={() => setSelectedOption(option)}
-                style={[styles.optionButton, { backgroundColor: getBackgroundColor(index) }]}>
-                <Text
-                  style={[
-                    styles.optionText,
-                    selectedOption === option && styles.selectedOptionText
-                  ]}>
-                  {option}
+                key={tab.key}
+                style={[
+                  styles.tabButton,
+                  selectedOption === tab.key && styles.activeTabButton
+                ]}
+                onPress={() => setSelectedOption(tab.key)}
+              >
+                <Text style={[
+                  styles.tabText,
+                  selectedOption === tab.key && styles.activeTabText
+                ]}>
+                  {tab.name}
                 </Text>
               </TouchableOpacity>
             ))}
           </ScrollView>
+          <TabIndicator />
         </View>
       )}
 
       {/* Content Area */}
-      <View style={styles.contentArea}>
+      <View style={styles.content}>
         {renderContent()}
       </View>
     </View>
   );
 };
 
-// Function to get a unique background color for each option
-const getBackgroundColor = (index) => {
-  const colors = ['#FF6347', '#1E90FF', '#32CD32', '#FFD700', '#8A2BE2', '#FF4500', '#DC143C']; // Added color for the new option
-  return colors[index % colors.length];
-};
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
-    backgroundColor: 'white',
-    paddingHorizontal: 0, // Removed unnecessary horizontal padding
+    backgroundColor: '#FFF',
   },
-  topRow: {
-    width: '100%',
+  header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 10,
-    marginTop: 10,
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
   },
-  icon: {
-    width: 210,
-    height: 50,
-  },
-  rightIcon: {
-    width: 25,
-    height: 25,
-  },
-  iconsRow: {
-    width: '100%',
-    height: 50,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 10,
-    paddingHorizontal: 30,
-  },
-  iconButton: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  homeicon: {
-    width: 30,
-    height: 30,
-  },
-  menuIcon: {
-    width: 30,
-    height: 30,
-  },
-  selectedIcon: {
-    backgroundColor: '#6573EA', // Background color for the selected icon
-    borderRadius: 15, // Slightly smaller to fit around the icon
-    padding: 8, // Added padding for background around the icon
-  },
-  optionsContainer: {
-    height: 60,  // Adjusted the height for the options row container
-    marginTop: 10,
-  },
-  optionsRow: {
-    flexGrow: 1,
-  },
-  optionButton: {
+  logo: {
+    width: 180,
     height: 40,
-    marginHorizontal: 8,
-    borderRadius: 25,
+  },
+  userIcon: {
+    width: 30,
+    height: 30,
+  },
+  navToggle: {
+    flexDirection: 'row',
+    justifyContent: 'space-around', // Changed to space-around for 3 items
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
+  },
+  navButton: {
+    paddingHorizontal: 25, // Reduced padding to fit 3 items
+    paddingVertical: 8,
+    position: 'relative',
+  },
+  activeNavButton: {
+    backgroundColor: 'rgba(0, 122, 255, 0.1)',
+    borderRadius: 20,
+  },
+  navIcon: {
+    width: 24,
+    height: 24,
+    tintColor: '#333',
+  },
+  activeDot: {
+    position: 'absolute',
+    bottom: 0,
+    alignSelf: 'center',
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#007AFF',
+  },
+  tabBar: {
+    height: 48,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
+  },
+  tabButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 15,
   },
-  optionText: {
-    fontSize: 16,
+  activeTabButton: {
+    backgroundColor: 'rgba(0, 122, 255, 0.1)',
+  },
+  tabText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#666',
+  },
+  activeTabText: {
+    color: '#007AFF',
     fontWeight: 'bold',
-    color: '#fff',  // White text for contrast
-    textAlign: 'center', // Ensure text is centered
   },
-  selectedOptionText: {
-    color: 'black', // Change text color to black when selected
-    fontWeight: 'bold',
+  tabIndicator: {
+    position: 'absolute',
+    bottom: 0,
+    height: 3,
+    backgroundColor: '#007AFF',
   },
-  contentArea: {
+  content: {
     flex: 1,
-    justifyContent: 'flex-start',
-    alignItems: 'center',
-    width: '100%',
-    paddingHorizontal: 0, // Remove any horizontal padding
-    marginTop: 0, // Remove any top margin
   },
-  contentText: {
-    fontSize: 18,
-    textAlign: 'center',
-    color: '#333',
-  },
-});
+}); 

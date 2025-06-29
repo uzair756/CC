@@ -8,3 +8,7 @@
 #   http://developer.android.com/guide/developing/tools/proguard.html
 
 # Add any project specific keep options here:
+-keep class okhttp3. ** {*;}
+-keep class retrofit2.** {*;}
+-keepattributes Signature 
+-keepattributes *Annotation*

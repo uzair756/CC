@@ -50,7 +50,10 @@ import {FutsalPenalties} from './pages/Futsal/FutsalPenalties';
 import {BestCricketerPage} from './pages/Cricket/BestCricketerPage';
 import {CricketMatchDetailScreen} from './pages/Cricket/GameStats';
 import {CricketSuperOver} from './pages/Cricket/CricketScoreUpdateSuper';
-
+import { SettingsScreen } from './pages/SettingsScreen';
+import { BestFootballPlayerPage } from './pages/Football/BestFootballPlayerPage';
+import { BestFutsalPlayerPage } from './pages/Futsal/BestFutsalPlayerPage';
+import { BestBasketballPlayerPage } from './pages/Basketball/BestBasketballPlayerPage';
 const Stack = createNativeStackNavigator();
 
 const MyStack = () => {
@@ -302,6 +305,26 @@ const MyStack = () => {
           <Stack.Screen
             name="BestCricketerPage"
             component={BestCricketerPage}
+            options={{headerShown: false}}
+          />
+          <Stack.Screen
+            name="SettingsScreen"
+            component={SettingsScreen}
+            options={{headerShown: false}}
+          />
+          <Stack.Screen
+            name="BestFootballPlayerPage"
+            component={BestFootballPlayerPage}
+            options={{headerShown: false}}
+          />
+          <Stack.Screen
+            name="BestFutsalPlayerPage"
+            component={BestFutsalPlayerPage}
+            options={{headerShown: false}}
+          />
+          <Stack.Screen
+            name="BestBasketballPlayerPage"
+            component={BestBasketballPlayerPage}
             options={{headerShown: false}}
           />
         </Stack.Navigator>

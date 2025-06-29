@@ -10,7 +10,6 @@ import {
   Alert,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 const sportsCategories = [
   { name: 'Football', icon: require('../assets/football.png') },
@@ -33,58 +32,75 @@ export const TopPerformersScreen = () => {
   const [selectedYear, setSelectedYear] = useState('2025');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [topPerformer, setTopPerformer] = useState('');
+  const [topPerformer, setTopPerformer] = useState(null);
   const [bestBatsman, setBestBatsman] = useState(null);
   const [bestBowler, setBestBowler] = useState(null);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      setError(null);
+  // Update the useEffect hook in TopPerformersScreen
+useEffect(() => {
+  const fetchData = async () => {
+    setLoading(true);
+    setError(null);
+    setBestBatsman(null);
+    setBestBowler(null);
+    setTopPerformer(null);
 
-      try {
-        if (selectedSport === "Cricket") {
-          const response = await fetch(`http://3.0.218.176:3002/bestcricketertp/${selectedYear}`, {
-            headers: {
-              "Content-Type": "application/json",
-            },
-          });
+    try {
+      if (selectedSport === "Cricket") {
+        const response = await fetch(`http://192.168.1.24:3002/bestcricketertp/${selectedYear}`);
+        const data = await response.json();
 
-          if (!response.ok) {
-            // throw new Error(`HTTP error! status: ${response.status}`);
-          }
-
-          const contentType = response.headers.get('content-type');
-          if (!contentType || !contentType.includes('application/json')) {
-            // throw new Error('Response is not JSON');
-          }
-
-          const data = await response.json();
-
-          if (data.success) {
-            setBestBatsman(data.bestBatsman);
-            setBestBowler(data.bestBowler);
-          } else {
-            setBestBatsman(null);
-            setBestBowler(null);
-            setError(data.message || 'No data available');
-          }
+        if (data.success) {
+          setBestBatsman(data.bestBatsman);
+          setBestBowler(data.bestBowler);
         } else {
-          setTopPerformer("Coming soon...");
-          setBestBatsman(null);
-          setBestBowler(null);
+          setError(data.message || 'No cricket data available');
         }
-      } catch (err) {
-        console.error('Fetch error:', err);
-        setError(err.message || 'Failed to fetch data');
-        Alert.alert('Error', 'Unable to fetch top performers. Please try again later.');
-      } finally {
-        setLoading(false);
-      }
-    };
+      } 
+      else if (selectedSport === "Football") {
+        const response = await fetch(`http://192.168.1.24:3002/bestfootballertp/${selectedYear}`);
+        const data = await response.json();
 
-    fetchData();
-  }, [selectedSport, selectedYear]);
+        if (data.success) {
+          setTopPerformer(data.bestFootballer);
+        } else {
+          setError(data.message || 'No football data available');
+        }
+      }
+      else if (selectedSport === "Basketball") {
+        const response = await fetch(`http://192.168.1.24:3002/bestbasketballplayertp/${selectedYear}`);
+        const data = await response.json();
+
+        if (data.success) {
+          setTopPerformer(data.bestFootballer);
+        } else {
+          setError(data.message || 'No basketball data available');
+        }
+      }
+      else if (selectedSport === "Futsal") {
+        const response = await fetch(`http://192.168.1.24:3002/bestfutsalplayertp/${selectedYear}`);
+        const data = await response.json();
+
+        if (data.success) {
+          setTopPerformer(data.bestFutsalPlayer);
+        } else {
+          setError(data.message || 'No futsal data available');
+        }
+      }
+      else {
+        setTopPerformer("Coming soon...");
+      }
+    } catch (err) {
+      console.error('Fetch error:', err);
+      setError(err.message || 'Failed to fetch data');
+      Alert.alert('Error', 'Unable to fetch top performers. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchData();
+}, [selectedSport, selectedYear]);
 
   // Generate years from current year to 5 years back
   const generateYears = () => {
@@ -92,10 +108,34 @@ export const TopPerformersScreen = () => {
     return Array.from({ length: 5 }, (_, i) => String(currentYear - i));
   };
 
+  const renderPerformerCard = (player, role, stats) => {
+    if (!player) return null;
+    
+    return (
+      <View style={styles.performerCard}>
+        <View style={styles.performerHeader}>
+          <Image 
+            source={selectedSport === 'Football' ? require('../assets/football.png') : selectedSport === 'Futsal' ? require('../assets/football.png'):selectedSport === 'Basketball' ? require('../assets/basketball.png'): require('../assets/cricket.png')} 
+            style={styles.sportIcon} 
+          />
+          <Text style={styles.performerRole}>{role}</Text>
+        </View>
+        <View style={styles.performerContent}>
+          <Image source={require('../assets/user1.png')} style={styles.userIcon} />
+          <View style={styles.performerDetails}>
+            <Text style={styles.performerName}>{player.name}</Text>
+            {stats.map((stat, index) => (
+              <Text key={index} style={styles.performerStat}>{stat}</Text>
+            ))}
+          </View>
+        </View>
+      </View>
+    );
+  };
+
   return (
-    <ScrollView>
-    <View style={styles.container}>
-      {/* Sport Category Selection (unchanged) */}
+    <ScrollView style={styles.container}>
+      {/* Sport Category Selection */}
       <View style={styles.categoryWrapper}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryScroll}>
           {sportsCategories.map((category) => (
@@ -119,9 +159,8 @@ export const TopPerformersScreen = () => {
         </ScrollView>
       </View>
 
-      {/* Beautiful Year Selection Card */}
+      {/* Year Selection Card */}
       <View style={styles.yearSelectionCard}>
-        <Icon name="calendar-range" size={30} color="#6a11cb" style={styles.calendarIcon} />
         <Text style={styles.yearSelectionTitle}>Select Year</Text>
         
         <View style={styles.pickerContainer}>
@@ -146,49 +185,40 @@ export const TopPerformersScreen = () => {
           <ActivityIndicator size="large" color="#6a11cb" />
         ) : error ? (
           <View style={styles.errorContainer}>
-            <Icon name="alert-circle" size={24} color="#D32F2F" style={styles.errorIcon} />
             <Text style={styles.errorText}>{error}</Text>
           </View>
-        ) : selectedSport === "Cricket" && bestBatsman && bestBowler ? (
+        ) : selectedSport === "Cricket" ? (
           <>
-            <View style={styles.performerCard}>
-              <View style={styles.performerHeader}>
-                <Icon name="cricket" size={24} color="#FFD700" />
-                <Text style={styles.performerRole}>Best Batsman</Text>
-              </View>
-              <View style={styles.performerContent}>
-                <Image source={require('../assets/user1.png')} style={styles.userIcon} />
-                <View style={styles.performerDetails}>
-                  <Text style={styles.performerName}>{bestBatsman.name}</Text>
-                  <Text style={styles.performerStat}>🏏 Runs: {bestBatsman.runs}</Text>
-                  <Text style={styles.performerStat}>🏏 Balls Faced: {bestBatsman.ballsfaced}</Text>
-                </View>
-              </View>
-            </View>
-
-            <View style={styles.performerCard}>
-              <View style={styles.performerHeader}>
-                <Icon name="cricket" size={24} color="#FFD700" />
-                <Text style={styles.performerRole}>Best Bowler</Text>
-              </View>
-              <View style={styles.performerContent}>
-                <Image source={require('../assets/user1.png')} style={styles.userIcon} />
-                <View style={styles.performerDetails}>
-                  <Text style={styles.performerName}>{bestBowler.name}</Text>
-                  <Text style={styles.performerStat}>🎯 Wickets: {bestBowler.wickets}</Text>
-                  <Text style={styles.performerStat}>🎯 Balls Bowled: {bestBowler.ballsbowled}</Text>
-                </View>
-              </View>
-            </View>
+            {renderPerformerCard(bestBatsman, "Best Batsman", [
+              `🏏 Runs: ${bestBatsman?.runs || 0}`,
+              `🏏 Balls Faced: ${bestBatsman?.ballsfaced || 0}`,
+              `🏏 Average: ${bestBatsman?.average?.toFixed(2) || 0}`
+            ])}
+            {renderPerformerCard(bestBowler, "Best Bowler", [
+              `🎯 Wickets: ${bestBowler?.wickets || 0}`,
+              `🎯 Balls Bowled: ${bestBowler?.ballsbowled || 0}`,
+              `🎯 Economy: ${bestBowler?.economy?.toFixed(2) || 0}`
+            ])}
           </>
-        ) : (
+        ) : (selectedSport === "Football" || selectedSport === "Futsal") && topPerformer ? (
+          renderPerformerCard(topPerformer, "Top Scorer", [
+            `⚽ Goals: ${topPerformer.goals}`,
+            `👕 Shirt No: ${topPerformer.shirtNo}`,
+            `🏫 Section: ${topPerformer.section}`
+          ])
+        ): selectedSport === "Basketball"  && topPerformer ? (
+          renderPerformerCard(topPerformer, "Top Scorer", [
+            `⚽ Points: ${topPerformer.points}`,
+            `👕 Shirt No: ${topPerformer.shirtNo}`,
+            `🏫 Section: ${topPerformer.section}`
+          ])
+        ) 
+        : (
           <View style={styles.comingSoonContainer}>
-            <Icon name="clock-outline" size={30} color="#666" />
-            <Text style={styles.comingSoonText}>{topPerformer}</Text>
+            <Text style={styles.comingSoonText}>{topPerformer || 'No data available'}</Text>
           </View>
         )}
       </View>
-    </View>
     </ScrollView>
   );
 };
@@ -198,7 +228,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f8f9fa',
   },
-  // Category styles (unchanged)
   categoryWrapper: {
     paddingVertical: 10,
     paddingHorizontal: 5,
@@ -233,9 +262,8 @@ const styles = StyleSheet.create({
   selectedCategoryText: {
     color: 'white',
   },
-  // Year Selection Card
   yearSelectionCard: {
-    backgroundColor: '#FF6B6B', // Light red color
+    backgroundColor: '#FF6B6B',
     borderRadius: 15,
     padding: 20,
     marginHorizontal: 20,
@@ -247,29 +275,24 @@ const styles = StyleSheet.create({
     elevation: 5,
     alignItems: 'center',
   },
-  calendarIcon: {
-    marginBottom: 10,
-    color: 'white', // White icon
-  },
   yearSelectionTitle: {
     fontSize: 18,
-    fontWeight: 'bold', // Made bold
-    color: 'white', // White text
+    fontWeight: 'bold',
+    color: 'white',
     marginBottom: 15,
   },
   pickerContainer: {
     borderWidth: 2,
-    borderColor: 'white', // White border
+    borderColor: 'white',
     borderRadius: 25,
     overflow: 'hidden',
     width: '100%',
-    backgroundColor: 'rgba(255, 255, 255, 0.2)', // Slightly transparent white background
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
   },
   yearPicker: {
     height: 50,
-    color: 'white', // White text
+    color: 'white',
   },
-  // Performer Section
   topPerformerWrapper: {
     marginTop: 20,
     padding: 20,
@@ -300,11 +323,15 @@ const styles = StyleSheet.create({
     borderBottomColor: '#eee',
     paddingBottom: 10,
   },
+  sportIcon: {
+    width: 24,
+    height: 24,
+    marginRight: 10,
+  },
   performerRole: {
     fontSize: 16,
     fontWeight: '600',
-    color: 'red',
-    marginLeft: 10,
+    color: '#007BFF',
   },
   performerContent: {
     flexDirection: 'row',
@@ -328,8 +355,8 @@ const styles = StyleSheet.create({
   performerStat: {
     fontSize: 14,
     color: '#666',
+    marginVertical: 2,
   },
-  // Error and Coming Soon
   errorContainer: {
     backgroundColor: '#FFEBEE',
     padding: 15,
@@ -337,9 +364,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  errorIcon: {
-    marginRight: 10,
   },
   errorText: {
     color: '#D32F2F',

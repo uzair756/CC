@@ -42,7 +42,7 @@ export const UpcomingMatchesScreen = () => {
       setLoading(true);
       try {
         const response = await fetch(
-          `http://3.0.218.176:3002/upcomingmatches?sportCategory=${selectedSport}`,
+          `http://192.168.1.24:3002/upcomingmatches?sportCategory=${selectedSport}`,
         );
         const data = await response.json();
 

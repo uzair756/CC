@@ -87,7 +87,7 @@ const validateUsername = (username) => {
       try {
         setRefreshing(true);
         const token = await AsyncStorage.getItem('token');
-        const response = await fetch('http://3.0.218.176:3002/coachlandingpage', {
+        const response = await fetch('http://192.168.1.24:3002/coachlandingpage', {
           method: 'GET',
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -166,7 +166,7 @@ const validateUsername = (username) => {
     }
   
     try {
-      const response = await fetch('http://3.0.218.176:3002/addcoordinator', {
+      const response = await fetch('http://192.168.1.24:3002/addcoordinator', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -259,7 +259,7 @@ const validateUsername = (username) => {
   
     try {
       const token = await AsyncStorage.getItem('token');
-      const response = await fetch('http://3.0.218.176:3002/addref', {
+      const response = await fetch('http://192.168.1.24:3002/addref', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -310,7 +310,7 @@ const validateUsername = (username) => {
 
     try {
       const token = await AsyncStorage.getItem('token');
-      const response = await fetch(`http://3.0.218.176:3002/getrules/${sport.toLowerCase()}`, {
+      const response = await fetch(`http://192.168.1.24:3002/getrules/${sport.toLowerCase()}`, {
         method: 'GET',
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -339,7 +339,7 @@ const validateUsername = (username) => {
         return;
       }
 
-      const response = await fetch(`http://3.0.218.176:3002/updaterules/${selectedSport.toLowerCase()}`, {
+      const response = await fetch(`http://192.168.1.24:3002/updaterules/${selectedSport.toLowerCase()}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -410,7 +410,7 @@ const validateUsername = (username) => {
   
     try {
       const token = await AsyncStorage.getItem('token');
-      const response = await fetch('http://3.0.218.176:3002/changepasswordcoach', {
+      const response = await fetch('http://192.168.1.24:3002/changepasswordcoach', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -473,7 +473,7 @@ const validateUsername = (username) => {
             style={[styles.actionButton, styles.logoutButton]}
             onPress={handleSignOut}
           >
-            <Icon name="logout" size={24} color="white" />
+            {/* <Icon name="logout" size={24} color="white" /> */}
             <Text style={styles.actionButtonText}>Sign Out</Text>
           </TouchableOpacity>
 
@@ -481,7 +481,7 @@ const validateUsername = (username) => {
             style={[styles.actionButton, styles.passwordButton]}
             onPress={() => setIsChangePasswordVisible(true)}
           >
-            <Icon name="lock-reset" size={24} color="white" />
+            {/* <Icon name="lock-reset" size={24} color="white" /> */}
             <Text style={styles.actionButtonText}>Change Password</Text>
           </TouchableOpacity>
 
@@ -489,7 +489,7 @@ const validateUsername = (username) => {
             style={[styles.actionButton, styles.coordinatorButton]}
             onPress={() => setIsCoordinatorModalVisible(true)}
           >
-            <Icon name="account-plus" size={24} color="white" />
+            {/* <Icon name="account-plus" size={24} color="white" /> */}
             <Text style={styles.actionButtonText}>Add Coordinator</Text>
           </TouchableOpacity>
 
@@ -497,7 +497,7 @@ const validateUsername = (username) => {
             style={[styles.actionButton, styles.refereeButton]}
             onPress={() => setIsRefModalVisible(true)}
           >
-            <Icon name="whistle" size={24} color="white" />
+            {/* <Icon name="whistle" size={24} color="white" /> */}
             <Text style={styles.actionButtonText}>Add Referee</Text>
           </TouchableOpacity>
 
@@ -505,7 +505,7 @@ const validateUsername = (username) => {
             style={[styles.actionButton, styles.poolsButton]}
             onPress={() => navigation.navigate('PoolsCreateSchedulingPage')}
           >
-            <Icon name="calendar-plus" size={24} color="white" />
+            {/* <Icon name="calendar-plus" size={24} color="white" /> */}
             <Text style={styles.actionButtonText}>Create {new Date().getFullYear()} Pools</Text>
           </TouchableOpacity>
 
@@ -513,7 +513,7 @@ const validateUsername = (username) => {
             style={[styles.actionButton, styles.historyButton]}
             onPress={() => navigation.navigate('PastYearPoolsAndSchedules')}
           >
-            <Icon name="history" size={24} color="white" />
+            {/* <Icon name="history" size={24} color="white" /> */}
             <Text style={styles.actionButtonText}>View Past Schedules</Text>
           </TouchableOpacity>
         </Animatable.View>
@@ -530,7 +530,7 @@ const validateUsername = (username) => {
             >
               <TouchableOpacity onPress={() => fetchSportRules(sport)}>
                 <Text style={styles.sportText}>{sport}</Text>
-                <Icon name="chevron-right" size={24} color="#6573EA" style={styles.sportIcon} />
+                {/* <Icon name="chevron-right" size={24} color="#6573EA" style={styles.sportIcon} /> */}
               </TouchableOpacity>
             </Animatable.View>
           ))}
@@ -542,7 +542,7 @@ const validateUsername = (username) => {
             <View style={styles.modalCard}>
               <View style={styles.modalHeader}>
                 <Text style={styles.modalTitle}>Add Coordinator</Text>
-                <Icon name="account-plus" size={30} color="#6573EA" />
+                {/* <Icon name="account-plus" size={30} color="#6573EA" /> */}
               </View>
               
               // In Coordinator Modal:
@@ -650,7 +650,7 @@ const validateUsername = (username) => {
             <View style={styles.modalCard}>
               <View style={styles.modalHeader}>
                 <Text style={styles.modalTitle}>Add Referee</Text>
-                <Icon name="whistle" size={30} color="#6573EA" />
+                {/* <Icon name="whistle" size={30} color="#6573EA" /> */}
               </View>
               
               // In Referee Modal:
@@ -758,7 +758,7 @@ const validateUsername = (username) => {
             <View style={styles.modalCard}>
               <View style={styles.modalHeader}>
                 <Text style={styles.modalTitle}>Change Password</Text>
-                <Icon name="lock" size={30} color="#6573EA" />
+                {/* <Icon name="lock" size={30} color="#6573EA" /> */}
               </View>
               
               // In Change Password Modal:
@@ -845,7 +845,7 @@ const validateUsername = (username) => {
               <ScrollView>
                 <View style={styles.modalHeader}>
                   <Text style={styles.modalTitle}>{selectedSport} Rules</Text>
-                  <Icon name="rules" size={30} color="#6573EA" />
+                 ` {/* <Icon name="rules" size={30} color="#6573EA" />` */}
                 </View>
                 
                 {isUpdatingSportRules ? (

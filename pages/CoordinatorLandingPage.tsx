@@ -21,7 +21,7 @@ export const CoordinatorLandingPage = ({ navigation }) => {
     const fetchProfile = async () => {
       try {
         const token = await AsyncStorage.getItem('token');
-        const response = await fetch('http://3.0.218.176:3002/coordinatorlandingpage', {
+        const response = await fetch('http://192.168.1.24:3002/coordinatorlandingpage', {
           method: 'GET',
           headers: { 'Authorization': `Bearer ${token}` },
         });
@@ -105,7 +105,7 @@ export const CoordinatorLandingPage = ({ navigation }) => {
     if (!validateRepForm()) return;
 
     try {
-      const response = await fetch('http://3.0.218.176:3002/studentrepsignup', {
+      const response = await fetch('http://192.168.1.24:3002/studentrepsignup', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -145,7 +145,7 @@ export const CoordinatorLandingPage = ({ navigation }) => {
         return;
       }
 
-      const response = await fetch('http://3.0.218.176:3002/changepasswordcoordinator', {
+      const response = await fetch('http://192.168.1.24:3002/changepasswordcoordinator', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -191,9 +191,9 @@ export const CoordinatorLandingPage = ({ navigation }) => {
             setErrors({});
           }}
         >
-          <Icon name="account-plus" size={24} color="#3a7bd5" />
+          {/* <Icon name="account-plus" size={24} color="#3a7bd5" /> */}
           <Text style={styles.cardButtonText}>Add Student Rep</Text>
-          <Icon name="chevron-right" size={24} color="#3a7bd5" />
+          {/* <Icon name="chevron-right" size={24} color="#3a7bd5" /> */}
         </TouchableOpacity>
       </View>
 
@@ -205,9 +205,9 @@ export const CoordinatorLandingPage = ({ navigation }) => {
             setPasswordErrors({});
           }}
         >
-          <Icon name="lock-reset" size={24} color="#3a7bd5" />
+          {/* <Icon name="lock-reset" size={24} color="#3a7bd5" /> */}
           <Text style={styles.cardButtonText}>Change Password</Text>
-          <Icon name="chevron-right" size={24} color="#3a7bd5" />
+          {/* <Icon name="chevron-right" size={24} color="#3a7bd5" /> */}
         </TouchableOpacity>
       </View>
 
@@ -224,7 +224,7 @@ export const CoordinatorLandingPage = ({ navigation }) => {
           <Text style={styles.modalTitle}>Add Student Representative</Text>
           
           <View style={styles.inputContainer}>
-            <Icon name="account" size={20} color="#3a7bd5" style={styles.inputIcon} />
+            {/* <Icon name="account" size={20} color="#3a7bd5" style={styles.inputIcon} /> */}
             <TextInput
               style={styles.modalInput}
               placeholder="Username"
@@ -236,7 +236,7 @@ export const CoordinatorLandingPage = ({ navigation }) => {
           {errors.username && <Text style={styles.errorText}>{errors.username}</Text>}
 
           <View style={styles.inputContainer}>
-            <Icon name="email" size={20} color="#3a7bd5" style={styles.inputIcon} />
+            {/* <Icon name="email" size={20} color="#3a7bd5" style={styles.inputIcon} /> */}
             <TextInput
               style={styles.modalInput}
               placeholder="Email"
@@ -250,7 +250,7 @@ export const CoordinatorLandingPage = ({ navigation }) => {
           {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
 
           <View style={styles.inputContainer}>
-            <Icon name="lock" size={20} color="#3a7bd5" style={styles.inputIcon} />
+            {/* <Icon name="lock" size={20} color="#3a7bd5" style={styles.inputIcon} /> */}
             <TextInput
               style={styles.modalInput}
               placeholder="Password"
@@ -288,7 +288,7 @@ export const CoordinatorLandingPage = ({ navigation }) => {
           <Text style={styles.modalTitle}>Change Password</Text>
           
           <View style={styles.inputContainer}>
-            <Icon name="lock" size={20} color="#3a7bd5" style={styles.inputIcon} />
+            {/* <Icon name="lock" size={20} color="#3a7bd5" style={styles.inputIcon} /> */}
             <TextInput
               style={styles.modalInput}
               placeholder="Current Password"
@@ -301,7 +301,7 @@ export const CoordinatorLandingPage = ({ navigation }) => {
           {passwordErrors.currentPassword && <Text style={styles.errorText}>{passwordErrors.currentPassword}</Text>}
 
           <View style={styles.inputContainer}>
-            <Icon name="lock-plus" size={20} color="#3a7bd5" style={styles.inputIcon} />
+            {/* <Icon name="lock-plus" size={20} color="#3a7bd5" style={styles.inputIcon} /> */}
             <TextInput
               style={styles.modalInput}
               placeholder="New Password"
@@ -314,7 +314,7 @@ export const CoordinatorLandingPage = ({ navigation }) => {
           {passwordErrors.newPassword && <Text style={styles.errorText}>{passwordErrors.newPassword}</Text>}
 
           <View style={styles.inputContainer}>
-            <Icon name="lock-check" size={20} color="#3a7bd5" style={styles.inputIcon} />
+            {/* <Icon name="lock-check" size={20} color="#3a7bd5" style={styles.inputIcon} /> */}
             <TextInput
               style={styles.modalInput}
               placeholder="Confirm New Password"
@@ -367,18 +367,22 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#fff',
     marginBottom: 5,
+    textAlign: 'center',  // <-- added this
   },
+  
   departmentText: {
     fontSize: 16,
     color: 'rgba(255,255,255,0.9)',
+    textAlign: 'center',  // <-- added this
   },
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: '#3a7bd5',   // <-- changed this
     borderRadius: 10,
     marginBottom: 15,
     elevation: 2,
     paddingHorizontal: 15,
   },
+  
   cardButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -388,10 +392,12 @@ const styles = StyleSheet.create({
   },
   cardButtonText: {
     flex: 1,
-    marginLeft: 15,
+    textAlign: 'center',    // center text horizontally
     fontSize: 16,
-    color: '#333',
+    color: 'white',
+    fontWeight:'bold'
   },
+  
   logoutButton: {
     marginTop: 30,
     alignSelf: 'center',

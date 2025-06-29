@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Alert, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Alert, TouchableOpacity, ScrollView,ActivityIndicator } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Modal from 'react-native-modal';
 import { TextInput, Card, Avatar } from 'react-native-paper';
@@ -21,7 +21,7 @@ export const RepLandingPage = ({ navigation }) => {
     const fetchProfile = async () => {
       try {
         const token = await AsyncStorage.getItem('token');
-        const response = await fetch('http://3.0.218.176:3002/coordinatorlandingpage', {
+        const response = await fetch('http://192.168.1.24:3002/coordinatorlandingpage', {
           method: 'GET',
           headers: { 'Authorization': `Bearer ${token}` },
         });
@@ -81,7 +81,7 @@ export const RepLandingPage = ({ navigation }) => {
         return;
       }
 
-      const response = await fetch('http://3.0.218.176:3002/changepasswordrep', {
+      const response = await fetch('http://192.168.1.24:3002/changepasswordrep', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -171,7 +171,7 @@ export const RepLandingPage = ({ navigation }) => {
           style={[styles.actionButton, { backgroundColor: '#6573EA' }]} 
           onPress={handleGoToNominations}
         >
-          <Icon name="vote" size={24} color="white" style={styles.buttonIcon} />
+          {/* <Icon name="vote" size={24} color="white" style={styles.buttonIcon} /> */}
           <Text style={styles.actionButtonText}>Nominations</Text>
         </TouchableOpacity>
 
@@ -179,7 +179,7 @@ export const RepLandingPage = ({ navigation }) => {
           style={[styles.actionButton, { backgroundColor: '#4CAF50' }]} 
           onPress={handleGoToTrialsConfirmation}
         >
-          <Icon name="calendar-clock" size={24} color="white" style={styles.buttonIcon} />
+          {/* <Icon name="calendar-clock" size={24} color="white" style={styles.buttonIcon} /> */}
           <Text style={styles.actionButtonText}>Trials Schedule</Text>
         </TouchableOpacity>
 
@@ -187,7 +187,7 @@ export const RepLandingPage = ({ navigation }) => {
           style={[styles.actionButton, { backgroundColor: '#FF9800' }]} 
           onPress={CreateCaptainsAccount}
         >
-          <Icon name="account-plus" size={24} color="white" style={styles.buttonIcon} />
+          {/* <Icon name="account-plus" size={24} color="white" style={styles.buttonIcon} /> */}
           <Text style={styles.actionButtonText}>Create Captain Account</Text>
         </TouchableOpacity>
 
@@ -198,7 +198,7 @@ export const RepLandingPage = ({ navigation }) => {
             setPasswordErrors({});
           }}
         >
-          <Icon name="lock-reset" size={24} color="white" style={styles.buttonIcon} />
+          {/* <Icon name="lock-reset" size={24} color="white" style={styles.buttonIcon} /> */}
           <Text style={styles.actionButtonText}>Change Password</Text>
         </TouchableOpacity>
 
@@ -206,7 +206,7 @@ export const RepLandingPage = ({ navigation }) => {
           style={[styles.actionButton, { backgroundColor: '#F44336', borderWidth: 0 }]} 
           onPress={handleSignOut}
         >
-          <Icon name="logout" size={24} color="white" style={styles.buttonIcon} />
+          {/* <Icon name="logout" size={24} color="white" style={styles.buttonIcon} /> */}
           <Text style={styles.actionButtonText}>Log Out</Text>
         </TouchableOpacity>
       </Animatable.View>
@@ -228,7 +228,7 @@ export const RepLandingPage = ({ navigation }) => {
             <Card.Content>
               <View style={styles.modalHeader}>
                 <Text style={styles.modalTitle}>Change Password</Text>
-                <Icon name="lock" size={30} color="#6573EA" />
+                {/* <Icon name="lock" size={30} color="#6573EA" /> */}
               </View>
               
               <TextInput
@@ -238,7 +238,7 @@ export const RepLandingPage = ({ navigation }) => {
                 style={styles.input}
                 value={currentPassword}
                 onChangeText={setCurrentPassword}
-                left={<TextInput.Icon name="lock" />}
+                // left={<TextInput.Icon name="lock" />}
                 theme={{ colors: { primary: '#6573EA' } }}
                 error={!!passwordErrors.currentPassword}
               />
@@ -253,7 +253,7 @@ export const RepLandingPage = ({ navigation }) => {
                 style={styles.input}
                 value={newPassword}
                 onChangeText={setNewPassword}
-                left={<TextInput.Icon name="lock-plus" />}
+                // left={<TextInput.Icon name="lock-plus" />}
                 theme={{ colors: { primary: '#6573EA' } }}
                 error={!!passwordErrors.newPassword}
               />
@@ -268,7 +268,7 @@ export const RepLandingPage = ({ navigation }) => {
                 style={styles.input}
                 value={confirmNewPassword}
                 onChangeText={setConfirmNewPassword}
-                left={<TextInput.Icon name="lock-check" />}
+                // left={<TextInput.Icon name="lock-check" />}
                 theme={{ colors: { primary: '#6573EA' } }}
                 error={!!passwordErrors.confirmNewPassword}
               />

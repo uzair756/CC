@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  View, Text, Alert, StyleSheet, TouchableOpacity, FlatList, Modal, TextInput, ScrollView, SafeAreaView 
+  View, Text, Alert, StyleSheet, TouchableOpacity, FlatList, Modal, 
+  TextInput, ScrollView, SafeAreaView, RefreshControl, ActivityIndicator 
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Picker } from '@react-native-picker/picker';
@@ -14,34 +15,36 @@ export const RefLandingPage = ({ navigation }) => {
   const [team2, setTeam2] = useState('');
   const [pool, setPool] = useState('');
   const [year, setYear] = useState(new Date().getFullYear());
+  const [refreshing, setRefreshing] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchProfileAndMatches = async () => {
-      try {
-        const token = await AsyncStorage.getItem('token');
-        const response = await fetch('http://3.0.218.176:3002/reflandingpage', {
-          method: 'GET',
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const data = await response.json();
-        if (data.success) {
-          setUser(data.user);
-          fetchMatches(data.user.sportscategory);
-        } else {
-          Alert.alert('Error', 'User not authenticated');
-        }
-      } catch (error) {
-        Alert.alert('Error', 'Failed to fetch profile');
+  const fetchProfileAndMatches = async () => {
+    try {
+      setLoading(true);
+      const token = await AsyncStorage.getItem('token');
+      const response = await fetch('http://192.168.1.24:3002/reflandingpage', {
+        method: 'GET',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await response.json();
+      if (data.success) {
+        setUser(data.user);
+        await fetchMatches(data.user.sportscategory);
+      } else {
+        Alert.alert('Error', 'User not authenticated');
       }
-    };
-
-    fetchProfileAndMatches();
-  }, []);
+    } catch (error) {
+      Alert.alert('Error', 'Failed to fetch profile');
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
 
   const fetchMatches = async (sportCategory) => {
     try {
       const token = await AsyncStorage.getItem('token');
-      const response = await fetch(`http://3.0.218.176:3002/refmatches`, {
+      const response = await fetch(`http://192.168.1.24:3002/refmatches`, {
         method: 'GET',
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -57,6 +60,15 @@ export const RefLandingPage = ({ navigation }) => {
       Alert.alert('Error', 'An error occurred while fetching matches.');
     }
   };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await fetchProfileAndMatches();
+  };
+
+  useEffect(() => {
+    fetchProfileAndMatches();
+  }, []);
 
   const handleSignOut = async () => {
     await AsyncStorage.removeItem('token');
@@ -75,7 +87,7 @@ export const RefLandingPage = ({ navigation }) => {
   
     try {
       const token = await AsyncStorage.getItem('token');
-      const response = await fetch('http://3.0.218.176:3002/createSemiFinalMatch', {
+      const response = await fetch('http://192.168.1.24:3002/createSemiFinalMatch', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -97,7 +109,6 @@ export const RefLandingPage = ({ navigation }) => {
         setIsModalVisible(false);
         fetchMatches(user?.sportscategory);
       } else {
-        // Custom handling for known backend messages
         if (data.message === "Final match already exists for this sport and year.") {
           Alert.alert('Error', 'A final match is already present for this year and sport.');
         } else if (data.message === "Maximum of 2 semi-final matches already exist for this sport and year.") {
@@ -113,11 +124,28 @@ export const RefLandingPage = ({ navigation }) => {
       Alert.alert('Error', 'An error occurred while creating match');
     }
   };
-  
+
+  if (loading && !refreshing) {
+    return (
+      <SafeAreaView style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#3a7bd5" />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
+      <ScrollView 
+        contentContainerStyle={styles.scrollContainer}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={['#3a7bd5']}
+            tintColor="#3a7bd5"
+          />
+        }
+      >
         {/* Welcome Card */}
         <View style={styles.welcomeCard}>
           <View style={styles.welcomeContent}>
@@ -125,7 +153,7 @@ export const RefLandingPage = ({ navigation }) => {
               Welcome, Ref {user?.username || 'Referee'}!
             </Text>
             <Text style={styles.sportText}>
-              <Icon name="whistle" size={18} color="#fff" /> {user?.sportscategory || 'N/A'}
+              {user?.sportscategory || 'N/A'}
             </Text>
           </View>
         </View>
@@ -136,7 +164,6 @@ export const RefLandingPage = ({ navigation }) => {
             style={[styles.actionButton, styles.createButton]}
             onPress={() => setIsModalVisible(true)}
           >
-            <Icon name="plus-circle" size={24} color="#fff" />
             <Text style={styles.actionButtonText}>Create Semi or Final Match</Text>
           </TouchableOpacity>
 
@@ -144,7 +171,6 @@ export const RefLandingPage = ({ navigation }) => {
             style={[styles.actionButton, styles.logoutButton]}
             onPress={handleSignOut}
           >
-            <Icon name="logout" size={24} color="#fff" />
             <Text style={styles.actionButtonText}>Sign Out</Text>
           </TouchableOpacity>
         </View>
@@ -184,27 +210,24 @@ export const RefLandingPage = ({ navigation }) => {
                   
                   <View style={styles.matchDetails}>
                     <View style={styles.matchDetailRow}>
-                      <Icon name="trophy" size={16} color="#666" />
                       <Text style={styles.matchDetailText}>
-                            {item.pool === 'semi'
-                              ? 'Semi-Final'
-                              : item.pool === 'final'
-                              ? 'Final'
-                              : item.pool === 'poolA'
-                              ? 'Pool A'
-                              : item.pool === 'poolB'
-                              ? 'Pool B'
-                              : item.pool === 'quarter'
-                              ? 'Quarter-Final'
-                              : item.pool === 'league'
-                              ? 'League Match'
-                              : item.pool}
-                          </Text>
-
+                        {item.pool === 'semi'
+                          ? 'Semi-Final'
+                          : item.pool === 'final'
+                          ? 'Final'
+                          : item.pool === 'Pool A'
+                          ? 'Pool A'
+                          : item.pool === 'Pool B'
+                          ? 'Pool B'
+                          : item.pool === 'quarter'
+                          ? 'Quarter-Final'
+                          : item.pool === 'league'
+                          ? 'League Match'
+                          : item.pool}
+                      </Text>
                     </View>
                     
                     <View style={styles.matchDetailRow}>
-                      <Icon name="calendar" size={16} color="#666" />
                       <Text style={styles.matchDetailText}>{item.year}</Text>
                     </View>
                   </View>
@@ -226,11 +249,9 @@ export const RefLandingPage = ({ navigation }) => {
             <View style={styles.modalContainer}>
               <View style={styles.modalHeader}>
                 <Text style={styles.modalTitle}>Create New Match</Text>
-                <Icon name="whistle" size={24} color="#3a7bd5" />
               </View>
 
               <View style={styles.pickerContainer}>
-                <Icon name="account-group" size={20} color="#3a7bd5" style={styles.pickerIcon} />
                 <Picker
                   selectedValue={team1}
                   style={styles.picker}
@@ -250,7 +271,6 @@ export const RefLandingPage = ({ navigation }) => {
               </View>
 
               <View style={styles.pickerContainer}>
-                <Icon name="account-group" size={20} color="#3a7bd5" style={styles.pickerIcon} />
                 <Picker
                   selectedValue={team2}
                   style={styles.picker}
@@ -270,7 +290,6 @@ export const RefLandingPage = ({ navigation }) => {
               </View>
 
               <View style={styles.pickerContainer}>
-                <Icon name="trophy" size={20} color="#3a7bd5" style={styles.pickerIcon} />
                 <Picker
                   selectedValue={pool}
                   style={styles.picker}
@@ -284,7 +303,6 @@ export const RefLandingPage = ({ navigation }) => {
               </View>
 
               <View style={styles.inputContainer}>
-                <Icon name="calendar" size={20} color="#3a7bd5" style={styles.inputIcon} />
                 <TextInput
                   style={styles.modalInput}
                   value={year.toString()}
@@ -320,7 +338,13 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: '#f5f7fa',
-    marginTop:10
+    marginTop: 10
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f5f7fa',
   },
   scrollContainer: {
     flexGrow: 1,
@@ -353,40 +377,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: 'rgba(255,255,255,0.9)',
     textAlign: 'center',
-  },
-  buttonContainer: {
-    flexDirection: 'column',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    marginBottom: 25,
-    margin:10
-  },
-  actionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 30,
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    minWidth: '48%',
-    marginBottom:10
-  },
-  createButton: {
-    backgroundColor: '#4CAF50',
-  },
-  logoutButton: {
-    backgroundColor: '#e74c3c',
-  },
-  actionButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 16,
-    marginLeft: 8,
   },
   sectionContainer: {
     paddingHorizontal: 20,
@@ -522,9 +512,6 @@ const styles = StyleSheet.create({
     borderBottomColor: '#3a7bd5',
     marginBottom: 20,
   },
-  pickerIcon: {
-    marginRight: 10,
-  },
   picker: {
     flex: 1,
     height: 50,
@@ -537,9 +524,6 @@ const styles = StyleSheet.create({
     borderBottomColor: '#3a7bd5',
     marginBottom: 20,
     paddingVertical: 5,
-  },
-  inputIcon: {
-    marginRight: 10,
   },
   modalInput: {
     flex: 1,
@@ -570,6 +554,40 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
     fontSize: 16,
+  },
+  buttonContainer: {
+    flexDirection: 'column',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    marginBottom: 25,
+    marginTop: 10,
+  },
+  actionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    width: '100%',
+    marginBottom: 10,
+  },
+  createButton: {
+    backgroundColor: '#4CAF50',
+  },
+  logoutButton: {
+    backgroundColor: '#e74c3c',
+  },
+  actionButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
+    marginLeft: 8,
   },
 });
 

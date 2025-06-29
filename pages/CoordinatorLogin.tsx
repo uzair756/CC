@@ -53,7 +53,7 @@ export const CoordinatorLogin = ({ navigation }) => {
     setLoading(true);
 
     try {
-      const response = await fetch(`http://3.0.218.176:3002/coordinatorlogin`, {
+      const response = await fetch(`http://192.168.1.24:3002/coordinatorlogin`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),

@@ -71,7 +71,7 @@ export const PastYearPoolsAndSchedules = () => {
       }
 
       const response = await fetch(
-        `http://3.0.218.176:3002/get-schedules?sport=${encodeURIComponent(selectedSport)}&year=${encodeURIComponent(selectedYear)}`,
+        `http://192.168.1.24:3002/get-schedules?sport=${encodeURIComponent(selectedSport)}&year=${encodeURIComponent(selectedYear)}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -103,11 +103,11 @@ export const PastYearPoolsAndSchedules = () => {
     >
       <View style={styles.cardHeader}>
         <View style={styles.sportIconContainer}>
-          <Icon 
+          {/* <Icon 
             name={sportIcons[item.sportCategory] || 'sports'} 
             size={24} 
             color="#FFF" 
-          />
+          /> */}
         </View>
         <Text style={styles.poolText}>{item.pool}</Text>
       </View>
@@ -157,7 +157,7 @@ export const PastYearPoolsAndSchedules = () => {
             
             <View style={styles.filterGroup}>
               <View style={styles.filterLabel}>
-                <Icon name="sports" size={20} color="#4A00E0" />
+                {/* <Icon name="sports" size={20} color="#4A00E0" /> */}
                 <Text style={styles.labelText}>Sports Category</Text>
               </View>
               <View style={styles.pickerContainer}>
@@ -181,7 +181,7 @@ export const PastYearPoolsAndSchedules = () => {
 
             <View style={styles.filterGroup}>
               <View style={styles.filterLabel}>
-                <Icon name="calendar-today" size={20} color="#4A00E0" />
+                {/* <Icon name="calendar-today" size={20} color="#4A00E0" /> */}
                 <Text style={styles.labelText}>Year</Text>
               </View>
               <View style={styles.pickerContainer}>
@@ -210,7 +210,7 @@ export const PastYearPoolsAndSchedules = () => {
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
               >
-                <Icon name="search" size={24} color="#FFF" />
+                {/* <Icon name="search" size={24} color="#FFF" /> */}
                 <Text style={styles.searchButtonText}>Search Results</Text>
               </LinearGradient>
             </TouchableOpacity>
@@ -231,7 +231,7 @@ export const PastYearPoolsAndSchedules = () => {
               duration={800}
               style={styles.emptyState}
             >
-              <Icon name="search-off" size={50} color="#8E2DE2" />
+              {/* <Icon name="search-off" size={50} color="#8E2DE2" /> */}
               <Text style={styles.emptyStateTitle}>No Results Found</Text>
               <Text style={styles.emptyStateText}>
                 No schedules available for {selectedSport} in {selectedYear}

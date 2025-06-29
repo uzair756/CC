@@ -29,7 +29,7 @@ export const TrialsConfirmation = ({ navigation }) => {
       setIsLoading(true);
       try {
         const token = await AsyncStorage.getItem('token');
-        const response = await fetch('http://3.0.218.176:3002/getMyTrialEvents', {
+        const response = await fetch('http://192.168.1.24:3002/getMyTrialEvents', {
           method: 'GET',
           headers: { 'Authorization': `Bearer ${token}` },
         });
@@ -60,7 +60,7 @@ export const TrialsConfirmation = ({ navigation }) => {
     setIsCreating(true);
     try {
       const token = await AsyncStorage.getItem('token');
-      const response = await fetch('http://3.0.218.176:3002/createTrialEvent', {
+      const response = await fetch('http://192.168.1.24:3002/createTrialEvent', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -109,7 +109,7 @@ export const TrialsConfirmation = ({ navigation }) => {
           onPress: async () => {
             try {
               const token = await AsyncStorage.getItem('token');
-              const response = await fetch(`http://3.0.218.176:3002/deleteTrialEvent/${id}`, {
+              const response = await fetch(`http://192.168.1.24:3002/deleteTrialEvent/${id}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` },
               });
@@ -268,7 +268,7 @@ export const TrialsConfirmation = ({ navigation }) => {
             <ActivityIndicator size="large" color="#4CAF50" style={styles.loader} />
           ) : events.length === 0 ? (
             <View style={styles.emptyState}>
-              <Icon name="event-busy" size={50} color="#aaa" />
+              {/* <Icon name="event-busy" size={50} color="#aaa" /> */}
               <Text style={styles.emptyText}>No trial events scheduled yet</Text>
             </View>
           ) : (
@@ -276,7 +276,7 @@ export const TrialsConfirmation = ({ navigation }) => {
               <View key={event._id} style={styles.eventCard}>
                 <View style={styles.eventHeader}>
                   <View style={styles.sportIconContainer}>
-                    <Icon 
+                    {/* <Icon 
                       name={
                         event.sportCategory === 'Football' ? 'soccer' :
                         event.sportCategory === 'Futsal' ? 'soccer' :
@@ -286,12 +286,12 @@ export const TrialsConfirmation = ({ navigation }) => {
                       } 
                       size={24} 
                       color="#fff" 
-                    />
+                    /> */}
                   </View>
                   <Text style={styles.eventSport}>{event.sportCategory} Trials</Text>
                   {event.isConfirmed && (
                     <View style={styles.confirmedBadge}>
-                      <Icon name="check-circle" size={16} color="#fff" />
+                      {/* <Icon name="check-circle" size={16} color="#fff" /> */}
                       <Text style={styles.confirmedText}>Completed</Text>
                     </View>
                   )}
@@ -299,24 +299,24 @@ export const TrialsConfirmation = ({ navigation }) => {
                 
                 <View style={styles.eventDetails}>
                   <View style={styles.detailRow}>
-                    <Icon name="calendar-today" size={16} color="#555" />
+                    {/* <Icon name="calendar-today" size={16} color="#555" /> */}
                     <Text style={styles.detailText}>{event.date}</Text>
                   </View>
                   
                   <View style={styles.detailRow}>
-                    <Icon name="access-time" size={16} color="#555" />
+                    {/* <Icon name="access-time" size={16} color="#555" /> */}
                     <Text style={styles.detailText}>
                       {getFormattedTime(event.hour, event.minute, event.time)}
                     </Text>
                   </View>
                   
                   <View style={styles.detailRow}>
-                    <Icon name="account-circle" size={16} color="#555" />
+                    {/* <Icon name="account-circle" size={16} color="#555" /> */}
                     <Text style={styles.detailText}>Organizer: {event.repName}</Text>
                   </View>
                   
                   <View style={styles.detailRow}>
-                    <Icon name="apartment" size={16} color="#555" />
+                    {/* <Icon name="apartment" size={16} color="#555" /> */}
                     <Text style={styles.detailText}>Department: {event.department}</Text>
                   </View>
                 </View>
@@ -330,7 +330,8 @@ export const TrialsConfirmation = ({ navigation }) => {
                   style={styles.deleteButton}
                   onPress={() => handleDeleteEvent(event._id)}
                 >
-                  <Icon name="delete" size={20} color="#fff" />
+                  {/* <Icon name="delete" size={20} color="#fff" /> */}
+                  <Text style={{color:'white',fontWeight:'bold'}}>⌫</Text>
                 </TouchableOpacity>
                 </View>
               </View>

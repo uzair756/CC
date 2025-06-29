@@ -1,9 +1,10 @@
 import React, { useEffect, useState ,useCallback} from 'react';
-import { View, Text, Alert, StyleSheet, ScrollView, TouchableOpacity, BackHandler,Modal } from 'react-native';
+import { View, Text, Alert, StyleSheet, ScrollView, TouchableOpacity, BackHandler,Modal, StatusBar, Image } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
 import { Picker } from '@react-native-picker/picker';
-
+import Icon from 'react-native-vector-icons/MaterialIcons';
+import LinearGradient from 'react-native-linear-gradient';
 
 export const SnookerScoreUpdatePage = ({ route,navigation }) => {
   const { match } = route.params || {};
@@ -21,6 +22,89 @@ export const SnookerScoreUpdatePage = ({ route,navigation }) => {
   const [selectedPlayingPlayer, setSelectedPlayingPlayer] = useState(null);
   const [swapModalVisible, setSwapModalVisible] = useState(false);
   const [swapTeam, setSwapTeam] = useState(null);
+
+  useEffect(() => {
+    const loadSavedState = async () => {
+      try {
+        const savedState = await AsyncStorage.getItem(`matchState_${match._id}`);
+        if (savedState) {
+          const parsedState = JSON.parse(savedState);
+          setTiming(parsedState.timing);
+          setIsTimerRunning(parsedState.isTimerRunning);
+          setActiveMatchId(parsedState.activeMatchId);
+          
+          // If timer was running, calculate the additional time that passed while away
+          if (parsedState.isTimerRunning) {
+            const now = new Date();
+            const lastUpdated = new Date(parsedState.lastUpdated);
+            const secondsPassed = Math.floor((now - lastUpdated) / 1000);
+            
+            setTiming(prev => {
+              let newSeconds = prev.seconds + secondsPassed;
+              let newMinutes = prev.minutes;
+              
+              while (newSeconds >= 60) {
+                newSeconds -= 60;
+                newMinutes += 1;
+              }
+              
+              return { minutes: newMinutes, seconds: newSeconds };
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Error loading saved state:', error);
+      }
+    };
+  
+    loadSavedState();
+  
+    return () => {
+      // Cleanup if needed
+    };
+  }, [match._id]);
+  
+  useEffect(() => {
+    const saveState = async () => {
+      try {
+        const stateToSave = {
+          timing,
+          isTimerRunning,
+          activeMatchId,
+          lastUpdated: new Date().toISOString()
+        };
+        await AsyncStorage.setItem(`matchState_${match._id}`, JSON.stringify(stateToSave));
+      } catch (error) {
+        console.error('Error saving state:', error);
+      }
+    };
+  
+    // Save state whenever relevant values change
+    saveState();
+  }, [timing, isTimerRunning, activeMatchId, match._id]);
+  
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('blur', () => {
+      // Save state when screen loses focus
+      const saveState = async () => {
+        try {
+          const stateToSave = {
+            timing,
+            isTimerRunning,
+            activeMatchId,
+            lastUpdated: new Date().toISOString()
+          };
+          await AsyncStorage.setItem(`matchState_${match._id}`, JSON.stringify(stateToSave));
+        } catch (error) {
+          console.error('Error saving state:', error);
+        }
+      };
+  
+      saveState();
+    });
+  
+    return unsubscribe;
+  }, [navigation, timing, isTimerRunning, activeMatchId, match._id]);
 
   useFocusEffect(
     useCallback(() => {
@@ -66,7 +150,7 @@ export const SnookerScoreUpdatePage = ({ route,navigation }) => {
           return;
         }
 
-        const response = await fetch(`http://3.0.218.176:3002/match/${match.sport}/${match._id}`, {
+        const response = await fetch(`http://192.168.1.24:3002/match/${match.sport}/${match._id}`, {
           method: 'GET',
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -144,7 +228,7 @@ export const SnookerScoreUpdatePage = ({ route,navigation }) => {
         return;
       }
 
-      const response = await fetch('http://3.0.218.176:3002/swapPlayerssnooker', {
+      const response = await fetch('http://192.168.1.24:3002/swapPlayerssnooker', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({
@@ -181,7 +265,7 @@ export const SnookerScoreUpdatePage = ({ route,navigation }) => {
         return;
       }
   
-      const response = await fetch('http://3.0.218.176:3002/startmatchsnooker', {
+      const response = await fetch('http://192.168.1.24:3002/startmatchsnooker', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ matchId }),
@@ -210,7 +294,7 @@ export const SnookerScoreUpdatePage = ({ route,navigation }) => {
         return;
       }
   
-      const response = await fetch('http://3.0.218.176:3002/stopmatchsnooker', {
+      const response = await fetch('http://192.168.1.24:3002/stopmatchsnooker', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ matchId }),
@@ -258,7 +342,7 @@ export const SnookerScoreUpdatePage = ({ route,navigation }) => {
         return;
       }
   
-      const response = await fetch('http://3.0.218.176:3002/updateGoalsnooker', {
+      const response = await fetch('http://192.168.1.24:3002/updateGoalsnooker', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -299,7 +383,7 @@ export const SnookerScoreUpdatePage = ({ route,navigation }) => {
 
         const nextQuarter = currentQuarter + 1;
 
-        const response = await fetch('http://3.0.218.176:3002/updateHalfsnooker', {
+        const response = await fetch('http://192.168.1.24:3002/updateHalfsnooker', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
             body: JSON.stringify({ matchId: matchDetails._id, quarter: nextQuarter }),
@@ -332,7 +416,7 @@ const handleEnd4thQuarter = async () => {
           return;
       }
 
-      const response = await fetch('http://3.0.218.176:3002/updateHalf4thsnooker', {
+      const response = await fetch('http://192.168.1.24:3002/updateHalf4thsnooker', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
           body: JSON.stringify({ matchId: matchDetails._id, quarter: 4 }) // Ensure quarter 4 is correctly passed
@@ -358,354 +442,574 @@ const handleEnd4thQuarter = async () => {
   
 
   return (
-    <ScrollView style={styles.container}>
-        {/* Stopwatch display */}
-        {activeMatchId === matchDetails._id && isTimerRunning && (
-          <Text style={styles.stopwatchText}>
-            {`${timing.minutes}:${timing.seconds < 10 ? `0${timing.seconds}` : timing.seconds}`}
-           </Text>
-         )}
-      <Text style={styles.status}> {matchDetails.status === 'live' ? 'Match is Live' : matchDetails.status === 'recent' ? 'Match has been finished': 'Upcoming Match'}
-</Text>
-
-<Text style={styles.status}>
-        {matchDetails && matchDetails.quarter === 0
-          ? 'Match Not Started'
-          : matchDetails.quarter === 1
-          ? '1st Quarter'
-          : matchDetails.quarter === 2
-          ? '2nd Quarter'
-          : matchDetails.quarter === 3
-          ? '3rd Quarter'
-          : matchDetails.quarter === 4
-          ? '4th Quarter'
-          : ''}
-      </Text>
-      <Text style={styles.header}>
-  {matchDetails.team1}   {matchDetails.scoreT1?.[matchDetails.quarter - 1] || 0}     -      {matchDetails.scoreT2?.[matchDetails.quarter - 1] || 0}     {matchDetails.team2}
-</Text>
-
-      <Text style={styles.pool}>Pool: {matchDetails.pool}</Text>
-      <Text style={styles.status}>
-      {matchDetails.result && matchDetails.result !== "TBD" ? `${matchDetails.result} won`: "Result not announced yet"}
-</Text>
-
+    <ScrollView>
+    <LinearGradient colors={['#f5f7fa', '#e4e8f0']} style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor="#f5f7fa" />
       
+      {/* Match Header */}
+      <View style={styles.matchHeader}>
+        <View style={styles.teamContainer}>
+          <Text style={styles.teamName}>{matchDetails.team1}</Text>
+          <Text style={styles.teamScore}>{matchDetails.scoreT1?.[matchDetails.quarter - 1] || 0}</Text>
+        </View>
+        
+        <View style={styles.matchInfoContainer}>
+          {activeMatchId === matchDetails._id && isTimerRunning && (
+            <View style={styles.timerContainer}>
+              <Text style={styles.timerText}>
+                {`${timing.minutes}:${timing.seconds < 10 ? `0${timing.seconds}` : timing.seconds}`}
+              </Text>
+            </View>
+          )}
+          
+          <Text style={styles.vsText}>vs</Text>
+          
+          <View style={styles.matchStatusContainer}>
+            <Text style={[
+              styles.matchStatus,
+              matchDetails.status === 'live' && styles.liveStatus,
+              matchDetails.status === 'recent' && styles.recentStatus
+            ]}>
+              {matchDetails.status === 'live' ? 'LIVE' : matchDetails.status === 'recent' ? 'FINISHED' : 'UPCOMING'}
+            </Text>
+            
+            <Text style={styles.quarterStatus}>
+              {matchDetails.quarter === 0 ? 'Not Started' : 
+               matchDetails.quarter === 1 ? '1st Quarter' : 
+               matchDetails.quarter === 2 ? '2nd Quarter' :
+               matchDetails.quarter === 3 ? '3rd Quarter' :
+               '4th Quarter'}
+            </Text>
+          </View>
+        </View>
+        
+        <View style={styles.teamContainer}>
+          <Text style={styles.teamScore}>{matchDetails.scoreT2?.[matchDetails.quarter - 1] || 0}</Text>
+          <Text style={styles.teamName}>{matchDetails.team2}</Text>
+        </View>
+      </View>
+      
+      <Text style={styles.poolText}>Pool: {matchDetails.pool}</Text>
+      
+      {matchDetails.result && matchDetails.result !== "TBD" && (
+        <View style={styles.resultContainer}>
+          <Text style={styles.resultText}>{matchDetails.result} won</Text>
+        </View>
+      )}
 
-           <View style={styles.buttonsContainer}>
-           <TouchableOpacity style={styles.actionButton} onPress={() => handleStart(matchDetails._id)}  disabled={isTimerRunning}>
-          <Text style={styles.actionButtonText}>Start</Text>
-        </TouchableOpacity>
+      {/* Action Buttons */}
+      <View style={styles.actionButtonsContainer}>
+        {matchDetails?.quarter === 0 && (
+          <TouchableOpacity 
+            style={[styles.actionButton, isTimerRunning && styles.disabledButton]} 
+            onPress={() => handleStart(matchDetails._id)}
+            disabled={isTimerRunning}
+          >
+            <Text style={styles.actionButtonText}>Start</Text>
+          </TouchableOpacity>
+        )}
+        
         {matchDetails?.quarter > 0 && matchDetails?.quarter <= 3 && (
-  <TouchableOpacity style={styles.actionButton} onPress={() => handleEndQuarter(matchDetails.quarter)}>
-    <Text style={styles.actionButtonText}>End Quarter {matchDetails.quarter}</Text>
-  </TouchableOpacity>
-)}
-{matchDetails?.quarter == 4 && (
-  <TouchableOpacity style={styles.actionButton} onPress={() => handleEnd4thQuarter(matchDetails.quarter)}>
-    <Text style={styles.actionButtonText}>End Quarter {matchDetails.quarter}</Text>
-  </TouchableOpacity>
-)}
+          <TouchableOpacity 
+            style={styles.actionButton} 
+            onPress={() => handleEndQuarter(matchDetails.quarter)}
+          >
+            <Text style={styles.actionButtonText}>End Q{matchDetails.quarter}</Text>
+          </TouchableOpacity>
+        )}
+        
+        {matchDetails?.quarter === 4 && (
+          <TouchableOpacity 
+            style={styles.actionButton} 
+            onPress={() => handleEnd4thQuarter()}
+          >
+            <Text style={styles.actionButtonText}>End Match</Text>
+          </TouchableOpacity>
+        )}
+        
+        {matchDetails?.quarter > 0 && (
+          <TouchableOpacity 
+            style={[styles.actionButton, !isTimerRunning && styles.disabledButton]} 
+            onPress={() => handleStop(matchDetails._id)}
+            disabled={!isTimerRunning}
+          >
+            <Text style={styles.actionButtonText}>Stop</Text>
+          </TouchableOpacity>
+        )}
+      </View>
 
+      {/* Team Players */}
+      <View style={styles.teamsContainer}>
+        {/* Team 1 Column */}
+        <View style={styles.teamColumn}>
+          <Text style={styles.sectionTitle}>{matchDetails.team1} Players</Text>
+          {playingTeam1.map((player, index) => (
+            <View key={index} style={styles.playerCard}>
+              <View style={styles.playerHeader}>
+              // In the player card section (for both teams), replace the shirt number text with:
+<View style={styles.shirtContainer}>
+  <Image source={require('../../assets/shirt.png')} style={styles.shirtImage} />
+  <Text style={styles.shirtNumber}>{player.shirtNo}</Text>
+</View>
+                <Text style={styles.playerName}>{player.name}</Text>
+                <Text style={styles.pointsText}>
+                  {player.pointsByQuarter?.[matchDetails.quarter - 1] || 0} pts
+                </Text>
+              </View>
+              
+              <View style={styles.scoreSection}>
+                <Text style={styles.scoreSectionLabel}>Score Points:</Text>
+                <View style={styles.scoreButtonsContainer}>
+                  {[1, 2, 3].map((value) => (
+                    <TouchableOpacity
+                      key={value}
+                      style={styles.scoreButton}
+                      onPress={() => handlePointIncrement(player._id, 'team1', value)}
+                    >
+                      <Text style={styles.scoreButtonText}>+{value}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+              
+              <View style={styles.scoreSection}>
+                <Text style={styles.scoreSectionLabel}>Foul Points:</Text>
+                <View style={styles.scoreButtonsContainer}>
+                  {[-4, -5, -6, -7].map((value) => (
+                    <TouchableOpacity
+                      key={value}
+                      style={[styles.scoreButton, styles.foulButton]}
+                      onPress={() => handlePointIncrement(player._id, 'team1', value)}
+                    >
+                      <Text style={styles.scoreButtonText}>{value}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+            </View>
+          ))}
 
-
-
-        <TouchableOpacity style={styles.actionButton} onPress={() => handleStop(matchDetails._id)}  disabled={!isTimerRunning}>
-          <Text style={styles.actionButtonText}>Stop</Text>
-        </TouchableOpacity>
+          <Text style={styles.sectionTitle}>{matchDetails.team1} Substitutes</Text>
+          {reservedTeam1.map((player, index) => (
+            <TouchableOpacity 
+              key={index} 
+              style={styles.reservedPlayerCard}
+              onPress={() => handleReservePlayerPress(player, 'team1')}
+            >
+              <View style={styles.playerInfo}>
+                <Text style={styles.playerShirtNumber}>#{player.shirtNo}</Text>
+                <Text style={styles.reservedPlayerName}>{player.name}</Text>
+              </View>
+              <Icon name="swap-horiz" size={20} color="#6573EA" />
+            </TouchableOpacity>
+          ))}
         </View>
 
-
-        <View style={styles.teamCard}>
-  <Text style={styles.teamHeader}>{matchDetails.team1} (Playing)</Text>
-  {playingTeam1.map((player, index) => (
-  <View key={index} style={styles.playerContainer}>
-    {/* Player Name & Points */}
-    <View style={styles.playerRow}>
-      <Text style={styles.playerName}>
-        {player.shirtNo} 👕 {player.name}
-      </Text>
-      <Text style={styles.goalsText}>
-        Points: {player.pointsByQuarter?.[matchDetails.quarter - 1] || 0}
-      </Text>
-    </View>
-    <Text style={styles.teamHeader1}>Score Buttons</Text>
-    {/* Buttons placed on the next line */}
-    <View style={styles.buttonRow}>
-      <View style={styles.scoreButtonsContainer}>
-        {[1, 2, 3].map((value) => (
-          <TouchableOpacity
-            key={value}
-            style={styles.scoreButton}
-            onPress={() => handlePointIncrement(player._id, 'team1', value)}
-          >
-            <Text style={styles.scoreButtonText}>+{value}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-    </View>
-    <Text style={styles.teamHeader1}>Foul Buttons</Text>
-    <View style={styles.buttonRow}>
-      <View style={styles.scoreButtonsContainer}>
-        {[-4, -5, -6, -7].map((value) => (
-          <TouchableOpacity
-            key={value}
-            style={styles.scoreButton}
-            onPress={() => handlePointIncrement(player._id, 'team1', value)}
-          >
-            <Text style={styles.scoreButtonText}>{value}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-    </View>
-  </View>
-))}
-
+        {/* Team 2 Column */}
+        <View style={styles.teamColumn}>
+          <Text style={styles.sectionTitle}>{matchDetails.team2} Players</Text>
+          {playingTeam2.map((player, index) => (
+            <View key={index} style={styles.playerCard}>
+              <View style={styles.playerHeader}>
+              // In the player card section (for both teams), replace the shirt number text with:
+<View style={styles.shirtContainer}>
+  <Image source={require('../../assets/shirt.png')} style={styles.shirtImage} />
+  <Text style={styles.shirtNumber}>{player.shirtNo}</Text>
 </View>
-
-      <View style={styles.teamCard}>
-        <Text style={styles.teamHeader}>{matchDetails?.team1} (Reserved)</Text>
-        {reservedTeam1.map(player => (
-          <TouchableOpacity key={player._id} onPress={() => handleReservePlayerPress(player, 'team1')}>
-            <Text style={[styles.playerName, styles.reservedPlayer, styles.playerRow]}>{player.shirtNo} 👕 {player.name}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-
-      {/* Playing Players - Team 2 */}
-      <View style={styles.teamCard}>
-  <Text style={styles.teamHeader}>{matchDetails.team2} (Playing)</Text>
-  {playingTeam2.map((player, index) => (
-  <View key={index} style={styles.playerContainer}>
-    {/* Player Name & Points */}
-    <View style={styles.playerRow}>
-      <Text style={styles.playerName}>
-        {player.shirtNo} 👕 {player.name}
-      </Text>
-      <Text style={styles.goalsText}>
-        Points: {player.pointsByQuarter?.[matchDetails.quarter - 1] || 0}
-      </Text>
-    </View>
-    <Text style={styles.teamHeader1}>Score Buttons</Text>
-    {/* Buttons placed on the next line */}
-    <View style={styles.buttonRow}>
-      <View style={styles.scoreButtonsContainer}>
-        {[1, 2, 3].map((value) => (
-          <TouchableOpacity
-            key={value}
-            style={styles.scoreButton}
-            onPress={() => handlePointIncrement(player._id, 'team2', value)}
-          >
-            <Text style={styles.scoreButtonText}>+{value}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-    </View>
-    <Text style={styles.teamHeader1}>Foul Buttons</Text>
-    <View style={styles.buttonRow}>
-      <View style={styles.scoreButtonsContainer}>
-        {[-4, -5, -6, -7].map((value) => (
-          <TouchableOpacity
-            key={value}
-            style={styles.scoreButton}
-            onPress={() => handlePointIncrement(player._id, 'team1', value)}
-          >
-            <Text style={styles.scoreButtonText}>{value}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-    </View>
-  </View>
-))}
-
-</View>
-
-      <View style={styles.teamCard}>
-        <Text style={styles.teamHeader}>{matchDetails?.team2} (Reserved)</Text>
-        {reservedTeam2.map(player => (
-          <TouchableOpacity key={player._id} onPress={() => handleReservePlayerPress(player, 'team2')}>
-            <Text style={[styles.playerName, styles.reservedPlayer, styles.playerRow]}>{player.shirtNo} 👕 {player.name}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-
-
-
-
-
-
-      <Modal 
-  visible={swapModalVisible} 
-  transparent 
-  animationType="slide"
-  onRequestClose={() => setSwapModalVisible(false)}
->
-  <View style={styles.modalContainer}>
-    <View style={styles.modalContent}>
-      <Text style={styles.modalTitle}>
-        Select a player to swap with {selectedReservedPlayer?.name}
-      </Text>
-      
-      {/* Player Selection Dropdown */}
-      <View style={styles.pickerContainer}>
-        <Picker
-          selectedValue={selectedPlayingPlayer}
-          onValueChange={(itemValue) => setSelectedPlayingPlayer(itemValue)}
-          style={styles.picker}
-          mode="dropdown"
-        >
-          <Picker.Item label="Select Player" value={null} />
-          {(swapTeam === 'team1' ? playingTeam1 : playingTeam2).map((player, index) => (
-            <Picker.Item 
-              key={player._id} 
-              label={player.name} 
-              value={player} // Send full player object
-            />
+                <Text style={styles.playerName}>{player.name}</Text>
+                <Text style={styles.pointsText}>
+                  {player.pointsByQuarter?.[matchDetails.quarter - 1] || 0} pts
+                </Text>
+              </View>
+              
+              <View style={styles.scoreSection}>
+                <Text style={styles.scoreSectionLabel}>Score Points:</Text>
+                <View style={styles.scoreButtonsContainer}>
+                  {[1, 2, 3].map((value) => (
+                    <TouchableOpacity
+                      key={value}
+                      style={styles.scoreButton}
+                      onPress={() => handlePointIncrement(player._id, 'team2', value)}
+                    >
+                      <Text style={styles.scoreButtonText}>+{value}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+              
+              <View style={styles.scoreSection}>
+                <Text style={styles.scoreSectionLabel}>Foul Points:</Text>
+                <View style={styles.scoreButtonsContainer}>
+                  {[-4, -5, -6, -7].map((value) => (
+                    <TouchableOpacity
+                      key={value}
+                      style={[styles.scoreButton, styles.foulButton]}
+                      onPress={() => handlePointIncrement(player._id, 'team2', value)}
+                    >
+                      <Text style={styles.scoreButtonText}>{value}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+            </View>
           ))}
-        </Picker>
+
+          <Text style={styles.sectionTitle}>{matchDetails.team2} Substitutes</Text>
+          {reservedTeam2.map((player, index) => (
+            <TouchableOpacity 
+              key={index} 
+              style={styles.reservedPlayerCard}
+              onPress={() => handleReservePlayerPress(player, 'team2')}
+            >
+              <View style={styles.playerInfo}>
+                <Text style={styles.playerShirtNumber}>#{player.shirtNo}</Text>
+                <Text style={styles.reservedPlayerName}>{player.name}</Text>
+              </View>
+              <Icon name="swap-horiz" size={20} color="#6573EA" />
+            </TouchableOpacity>
+          ))}
+        </View>
       </View>
 
-      {/* Swap Button */}
-      <TouchableOpacity style={styles.swapButton} onPress={swapPlayers}>
-        <Text style={styles.buttonText}>Swap</Text>
-      </TouchableOpacity>
+      {/* Swap Players Modal */}
+      <Modal 
+        visible={swapModalVisible} 
+        transparent 
+        animationType="slide"
+        onRequestClose={() => setSwapModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>
+              Swap {selectedReservedPlayer?.name} (#{selectedReservedPlayer?.shirtNo}) with:
+            </Text>
+            
+            <View style={styles.pickerContainer}>
+              <Picker
+                selectedValue={selectedPlayingPlayer}
+                onValueChange={(itemValue) => setSelectedPlayingPlayer(itemValue)}
+                style={styles.picker}
+                mode="dropdown"
+              >
+                <Picker.Item label="Select Player" value={null} />
+                {(swapTeam === 'team1' ? playingTeam1 : playingTeam2).map((player) => (
+                  <Picker.Item 
+                    key={player._id} 
+                    label={`#${player.shirtNo} ${player.name}`} 
+                    value={player}
+                  />
+                ))}
+              </Picker>
+            </View>
 
-      {/* Cancel Button */}
-      <TouchableOpacity style={styles.cancelButton} onPress={() => setSwapModalVisible(false)}>
-        <Text style={styles.buttonText}>Cancel</Text>
-      </TouchableOpacity>
-    </View>
-  </View>
-</Modal>
-
-
-
-
-
-
-
-
-
-
-    </ScrollView>
+            <View style={styles.modalButtonsContainer}>
+              <TouchableOpacity 
+                style={[styles.modalButton, styles.cancelButton]} 
+                onPress={() => setSwapModalVisible(false)}
+              >
+                <Text style={styles.modalButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={[styles.modalButton, styles.confirmButton]} 
+                onPress={swapPlayers}
+                disabled={!selectedPlayingPlayer}
+              >
+                <Text style={styles.modalButtonText}>Confirm Swap</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+    </LinearGradient>
+  </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: '#f4f4f4' },
-  loading: { textAlign: 'center', marginTop: 20, fontSize: 18, fontStyle: 'italic' },
-  header: { fontSize: 26, fontWeight: 'bold', textAlign: 'center', marginBottom: 10, color: '#333' },
-  pool: { fontSize: 18, color: '#555', textAlign: 'center', marginBottom: 5 },
-  status: { fontSize: 18, fontWeight: 'bold', color: '#007AFF', textAlign: 'center', marginBottom: 20 },
-  teamCard: { backgroundColor: '#fff', padding: 15, borderRadius: 10, marginBottom: 15, shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 4, elevation: 3 },
-  teamHeader: { fontSize: 22, fontWeight: 'bold', marginBottom: 10, color: '#222', textAlign: 'center' },
-  teamHeader1: { fontSize: 18, fontWeight: 'bold', marginBottom: 5, color: '#222', textAlign: 'center',marginTop:5 },
-  // playerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 8 },
-  // playerName: { fontSize: 18, color: '#333', flex: 2 },
-  // goalsText: { fontSize: 12, color: '#555', flex: 1, textAlign: 'right', marginRight:10},
-  updateButton: { backgroundColor: '#007AFF', paddingVertical: 5, paddingHorizontal: 12, borderRadius: 5 },
-  buttonText: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
-  noData: { fontSize: 16, fontStyle: 'italic', color: 'gray', textAlign: 'center' },
-  stopwatchText: {fontSize: 18,fontWeight: 'bold',color: 'black',marginTop: 15,textAlign: 'center'},
-  buttonsContainer: {flexDirection: 'row',justifyContent: 'space-evenly',marginTop: 15,width: '100%',marginBottom:20},
-  actionButton: {backgroundColor: '#ffffff',paddingVertical: 8,paddingHorizontal: 15,borderRadius: 10,marginHorizontal: 5,elevation: 3,},
-  actionButtonText: {color: '#6573EA',fontWeight: 'bold'},
-  modalContainer: {flex: 1,justifyContent: 'center',alignItems: 'center',backgroundColor: 'rgba(0, 0, 0, 0.5)', // Semi-transparent background
-},
-  modalContent: {width: '80%',backgroundColor: '#fff',padding: 20,borderRadius: 10,alignItems: 'center',elevation: 5, // Shadow for AndroidshadowColor: '#000', // Shadow for iOS
-shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-  },modalTitle: {
-    fontSize: 18,
+  container: {
+    flex: 1,
+    padding: 16,
+  },
+  matchHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 16,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  teamContainer: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  teamName: {
+    fontSize: 16,
     fontWeight: 'bold',
-    marginBottom: 15,
+    color: '#333',
+    marginBottom: 4,
+  },
+  teamScore: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#6573EA',
+  },
+  matchInfoContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 8,
+  },
+  timerContainer: {
+    marginBottom: 4,
+  },
+  timerText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#4a4a4a',
+  },
+  vsText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#888',
+    marginVertical: 4,
+  },
+  matchStatusContainer: {
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  matchStatus: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
+    overflow: 'hidden',
+  },
+  liveStatus: {
+    backgroundColor: '#ff4757',
+    color: '#fff',
+  },
+  recentStatus: {
+    backgroundColor: '#2ed573',
+    color: '#fff',
+  },
+  quarterStatus: {
+    fontSize: 12,
+    color: '#6573EA',
+    fontWeight: '600',
+    marginTop: 2,
+  },
+  poolText: {
+    fontSize: 14,
+    color: '#666',
     textAlign: 'center',
-  },pickerContainer: {
-    width: '100%',
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 5,
-    backgroundColor: '#f9f9f9',
-    marginBottom: 15,
-  },picker: {
-    width: '100%',
-    height: 70,
-  },swapButton: {
-    backgroundColor: '#007bff',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 5,
+    marginBottom: 16,
   },
-  // buttonRow: {
-  //   marginTop: 10,
-  // },
-  // scoreButtonsContainer: {
-  //   flexDirection: "row",
-  //   justifyContent: "space-evenly",
-  //   alignItems: "center",
-  //   width: "60%",
-  // },
-  // scoreButton: {
-  //   backgroundColor: "#007AFF",
-  //   paddingVertical: 8,
-  //   paddingHorizontal: 12,
-  //   borderRadius: 5,
-  //   marginHorizontal: 2,
-  //   elevation: 3,
-  // },
-  // scoreButtonText: {
-  //   color: "#fff",
-  //   fontSize: 11,
-  //   fontWeight: "bold",
-  // },
-  playerContainer: {
-    marginBottom: 15, // Space between players
-    paddingBottom: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: "#ddd", // Adds separation line
+  resultContainer: {
+    backgroundColor: '#6573EA',
+    padding: 8,
+    borderRadius: 20,
+    alignSelf: 'center',
+    marginBottom: 16,
   },
-  playerRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingVertical: 8,
+  resultText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 14,
+  },
+  actionButtonsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 24,
+  },
+  actionButton: {
+    backgroundColor: '#6573EA',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    flex: 1,
+    marginHorizontal: 4,
+    alignItems: 'center',
+  },
+  disabledButton: {
+    opacity: 0.6,
+  },
+  actionButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 14,
+  },
+  teamsContainer: {
+    flexDirection: 'row',
+    marginBottom: 20,
+  },
+  teamColumn: {
+    flex: 1,
+    paddingHorizontal: 8,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 12,
+    paddingLeft: 8,
+    borderLeftWidth: 3,
+    borderLeftColor: '#6573EA',
+  },
+  playerCard: {
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    padding: 12,
+    marginBottom: 12,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+  },
+  playerHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  playerShirtNumber: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#6573EA',
+    marginRight: 8,
   },
   playerName: {
-    fontSize: 18,
-    color: "#333",
-    flex: 2,
-  },
-  goalsText: {
-    fontSize: 12,
-    color: "#555",
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#333',
     flex: 1,
-    textAlign: "right",
-    marginRight: 10,
   },
-  buttonRow: {
-    marginTop: 5, // Ensures buttons appear below player name
-    alignItems: "center",
-    width: "100%",
+  pointsText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#6573EA',
+  },
+  scoreSection: {
+    marginBottom: 10,
+  },
+  scoreSectionLabel: {
+    fontSize: 12,
+    color: '#666',
+    marginBottom: 6,
+    fontWeight: '600',
   },
   scoreButtonsContainer: {
-    flexDirection: "row",
-    justifyContent: "center", // Centers buttons
-    alignItems: "center",
-    width: "100%",
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginHorizontal: -4,
   },
   scoreButton: {
-    backgroundColor: "#007AFF",
+    backgroundColor: '#6573EA',
     paddingVertical: 8,
     paddingHorizontal: 12,
-    borderRadius: 5,
-    marginHorizontal: 5,
-    elevation: 3,
+    borderRadius: 6,
+    margin: 4,
+    minWidth: 50,
+    alignItems: 'center',
+  },
+  foulButton: {
+    backgroundColor: '#ff4757',
   },
   scoreButtonText: {
-    color: "#fff",
+    color: '#fff',
     fontSize: 14,
-    fontWeight: "bold",
+    fontWeight: 'bold',
+  },
+  reservedPlayerCard: {
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+  },
+  reservedPlayerName: {
+    fontSize: 14,
+    color: '#666',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContainer: {
+    backgroundColor: '#fff',
+    width: '90%',
+    borderRadius: 12,
+    padding: 20,
+  },
+  modalTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  pickerContainer: {
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    borderRadius: 8,
+    marginBottom: 20,
+  },
+  picker: {
+    width: '100%',
+  },
+  modalButtonsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  modalButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    flex: 1,
+    marginHorizontal: 8,
+    alignItems: 'center',
+  },
+  cancelButton: {
+    backgroundColor: '#f1f2f6',
+  },
+  confirmButton: {
+    backgroundColor: '#6573EA',
+  },
+  modalButtonText: {
+    fontWeight: 'bold',
+    fontSize: 14,
+  },
+  shirtContainer: {
+    width: 36,
+    height: 36,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 10,
+    position: 'relative',
+  },
+  shirtImage: {
+    width: 36,
+    height: 36,
+    resizeMode: 'contain',
+  },
+  shirtNumber: {
+    position: 'absolute',
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#fff',
+    top: '50%',
+    marginTop: -6, // Half of font size to center vertically
   },
   
 });

@@ -69,7 +69,7 @@ export const PoolsCreateSchedulingPage = () => {
       const token = await AsyncStorage.getItem("token");
       const previousYear = new Date().getFullYear() - 1; // Get the previous year
   
-      const response = await fetch(`http://3.0.218.176:3002/store-rankings`, {
+      const response = await fetch(`http://192.168.1.24:3002/store-rankings`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -97,7 +97,7 @@ export const PoolsCreateSchedulingPage = () => {
   
     try {
       const token = await AsyncStorage.getItem("token");
-      const response = await fetch(`http://3.0.218.176:3002/get-pools-and-schedules/${sport}`, {
+      const response = await fetch(`http://192.168.1.24:3002/get-pools-and-schedules/${sport}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -123,7 +123,7 @@ export const PoolsCreateSchedulingPage = () => {
 const handleCreatePools = async () => {
   try {
     const token = await AsyncStorage.getItem("token");
-    const response = await fetch(`http://3.0.218.176:3002/create-pools`, {
+    const response = await fetch(`http://192.168.1.24:3002/create-pools`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -190,14 +190,14 @@ return (
               fetchPoolsAndSchedules(sport);
             }}
           >
-            <Icon 
+            {/* <Icon 
               name={getSportIcon(sport)} 
               size={30} 
               color="#3a7bd5" 
               style={styles.sportIcon}
-            />
+            /> */}
             <Text style={styles.sportName}>{sport}</Text>
-            <Icon name="chevron-right" size={20} color="#3a7bd5" />
+            {/* <Icon name="chevron-right" size={20} color="#3a7bd5" /> */}
           </TouchableOpacity>
         ))}
       </View>
@@ -212,7 +212,7 @@ return (
               style={[styles.actionButton, styles.primaryButton]}
               onPress={handleCreatePools}
             >
-              <Icon name="plus-circle" size={20} color="white" />
+              {/* <Icon name="plus-circle" size={20} color="white" /> */}
               <Text style={styles.buttonText}>Create New Pools</Text>
             </TouchableOpacity>
 

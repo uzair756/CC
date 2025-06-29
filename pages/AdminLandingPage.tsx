@@ -57,7 +57,7 @@ export const AdminLandingPage = ({ navigation }) => {
     try {
       setRefreshing(true);
       const token = await AsyncStorage.getItem('token');
-      const response = await fetch('http://3.0.218.176:3002/dsalandingpage', {
+      const response = await fetch('http://192.168.1.24:3002/dsalandingpage', {
         method: 'GET',
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -137,7 +137,7 @@ const handleAddCoach = async () => {
   }
 
   try {
-    const response = await fetch('http://3.0.218.176:3002/dsasportscoachuser', {
+    const response = await fetch('http://192.168.1.24:3002/dsasportscoachuser', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -188,6 +188,47 @@ const validateAnnouncementForm = () => {
   return valid;
 };
 
+// const handleAddAnnouncement = async () => {
+//   if (!validateAnnouncementForm()) {
+//     return;
+//   }
+
+//   try {
+//     const token = await AsyncStorage.getItem('token');
+//     if (!token) {
+//       Alert.alert('Error', 'No authentication token found');
+//       return;
+//     }
+
+//     const response = await fetch('http://192.168.1.24:3002/adminpost', {
+//       method: 'POST',
+//       headers: {
+//         'Content-Type': 'application/json',
+//         Authorization: `Bearer ${token}`,
+//       },
+//       body: JSON.stringify({
+//         adminpostdescription: postDescription,
+//         adminimagepost: postImage,
+//       }),
+//     });
+
+//     const data = await response.json();
+
+//     if (data.success) {
+//       Alert.alert('Success', 'Announcement posted successfully');
+//       setPostVisible(false);
+//       setPostDescription('');
+//       setPostImage(null);
+//       setPosts([...posts, data.post]);
+//       setAnnouncementErrors({ postDescription: '' });
+//     } else {
+//       Alert.alert('Error', data.error || 'Failed to post announcement');
+//     }
+//   } catch (error) {
+//     console.error('Error posting announcement:', error);
+//     Alert.alert('Error', 'An error occurred while posting');
+//   }
+// };
 const handleAddAnnouncement = async () => {
   if (!validateAnnouncementForm()) {
     return;
@@ -200,16 +241,24 @@ const handleAddAnnouncement = async () => {
       return;
     }
 
-    const response = await fetch('http://3.0.218.176:3002/adminpost', {
+    const formData = new FormData();
+    formData.append('adminpostdescription', postDescription);
+    
+    if (postImage?.base64) {
+      formData.append('adminimagepost', {
+        uri: `data:image/jpeg;base64,${postImage.base64}`,
+        type: 'image/jpeg',
+        name: 'post-image.jpg'
+      });
+    }
+
+    const response = await fetch('http://192.168.1.24:3002/adminpost', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'multipart/form-data',
       },
-      body: JSON.stringify({
-        adminpostdescription: postDescription,
-        adminimagepost: postImage,
-      }),
+      body: formData,
     });
 
     const data = await response.json();
@@ -230,13 +279,39 @@ const handleAddAnnouncement = async () => {
   }
 };
 
+  // const handleImageSelection = async () => {
+  //   const options = { mediaType: 'photo', quality: 1 };
+  //   const result = await launchImageLibrary(options);
+  //   if (result.assets && result.assets.length > 0) {
+  //     setPostImage(result.assets[0].uri);
+  //   }
+  // };
   const handleImageSelection = async () => {
-    const options = { mediaType: 'photo', quality: 1 };
-    const result = await launchImageLibrary(options);
-    if (result.assets && result.assets.length > 0) {
-      setPostImage(result.assets[0].uri);
+    try {
+      const options = {
+        mediaType: 'photo',
+        quality: 0.8,
+        maxWidth: 800,
+        maxHeight: 800,
+        includeBase64: true
+      };
+      
+      const result = await launchImageLibrary(options);
+      
+      if (result.assets && result.assets.length > 0) {
+        const selectedAsset = result.assets[0];
+        // Store both the URI for preview and base64 for upload
+        setPostImage({
+          uri: selectedAsset.uri,
+          base64: selectedAsset.base64
+        });
+      }
+    } catch (error) {
+      console.error('Error selecting image:', error);
+      Alert.alert('Error', 'Failed to select image');
     }
   };
+  
 
   const handleUpdatePost = async () => {
     try {
@@ -245,27 +320,43 @@ const handleAddAnnouncement = async () => {
         Alert.alert('Error', 'No authentication token found');
         return;
       }
-
-      const response = await fetch(`http://3.0.218.176:3002/adminpost/${selectedPost._id}`, {
+  
+      const formData = new FormData();
+      formData.append('adminpostdescription', updatedDescription);
+      
+      if (updatedImage) {
+        if (updatedImage.base64) {
+          // New image selected
+          formData.append('adminimagepost', {
+            uri: `data:image/jpeg;base64,${updatedImage.base64}`,
+            type: 'image/jpeg',
+            name: 'updated-image.jpg'
+          });
+        } else if (updatedImage === 'remove') {
+          // Image removed
+          formData.append('removeImage', 'true');
+        }
+        // If updatedImage exists but doesn't have base64, it's the existing image (no change)
+      }
+  
+      const response = await fetch(`http://192.168.1.24:3002/adminpost/${selectedPost._id}`, {
         method: 'PUT',
         headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data',
         },
-        body: JSON.stringify({
-          adminpostdescription: updatedDescription,
-          adminimagepost: updatedImage,
-        }),
+        body: formData,
       });
-
+  
       const data = await response.json();
-
+  
       if (data.success) {
         Alert.alert('Success', 'Post updated successfully');
         setUpdateModalVisible(false);
         setPosts(posts.map(post => 
           post._id === selectedPost._id ? { ...post, ...data.updatedPost } : post
         ));
+        setUpdatedImage(null);
       } else {
         Alert.alert('Error', data.error || 'Failed to update post');
       }
@@ -327,7 +418,7 @@ const handleChangePassword = async () => {
       return;
     }
 
-    const response = await fetch('http://3.0.218.176:3002/changepasswordadmin', {
+    const response = await fetch('http://192.168.1.24:3002/changepasswordadmin', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -395,7 +486,7 @@ const handleChangePassword = async () => {
             style={[styles.actionButton, styles.coachButton]} 
             onPress={() => setIsModalVisible(true)}
           >
-            <Icon name="account-plus" size={24} color="white" />
+            {/* <Icon name="account-plus" size={24} color="white" /> */}
             <Text style={styles.actionButtonText}>Add Sports Coach</Text>
           </TouchableOpacity>
 
@@ -403,7 +494,7 @@ const handleChangePassword = async () => {
             style={[styles.actionButton, styles.announcementButton]} 
             onPress={() => setPostVisible(true)}
           >
-            <Icon name="bullhorn" size={24} color="white" />
+            {/* <Icon name="bullhorn" size={24} color="white" /> */}
             <Text style={styles.actionButtonText}>Create Announcement</Text>
           </TouchableOpacity>
 
@@ -411,7 +502,7 @@ const handleChangePassword = async () => {
             style={[styles.actionButton, styles.passwordButton]} 
             onPress={() => setIsChangePasswordVisible(true)}
           >
-            <Icon name="lock-reset" size={24} color="white" />
+            {/* <Icon name="lock-reset" size={24} color="white" /> */}
             <Text style={styles.actionButtonText}>Change Password</Text>
           </TouchableOpacity>
 
@@ -419,7 +510,7 @@ const handleChangePassword = async () => {
             style={[styles.actionButton, styles.logoutButton]} 
             onPress={handleSignOut}
           >
-            <Icon name="logout" size={24} color="white" />
+            {/* <Icon name="logout" size={24} color="white" /> */}
             <Text style={styles.actionButtonText}>Log Out</Text>
           </TouchableOpacity>
         </Animatable.View>
@@ -437,9 +528,16 @@ const handleChangePassword = async () => {
               <Card>
                 <Card.Content>
                   <Text style={styles.postText}>{post.adminpostdescription}</Text>
-                  {post.adminimagepost && (
+                  {/* {post.adminimagepost && (
                     <Image 
                       source={{ uri: post.adminimagepost }} 
+                      style={styles.postImage} 
+                      resizeMode="cover"
+                    />
+                  )} */}
+                    {post.adminimagepost && (
+                    <Image 
+                      source={{ uri: `http://192.168.1.24:3002/adminpost/image/${post._id}` }} 
                       style={styles.postImage} 
                       resizeMode="cover"
                     />
@@ -453,7 +551,7 @@ const handleChangePassword = async () => {
                       setUpdateModalVisible(true);
                     }}
                   >
-                    <Icon name="pencil" size={20} color="#6573EA" />
+                    {/* <Icon name="pencil" size={20} color="#6573EA" /> */}
                     <Text style={styles.editButtonText}>Edit</Text>
                   </TouchableOpacity>
                 </Card.Content>
@@ -471,7 +569,7 @@ const handleChangePassword = async () => {
       <Card.Content>
         <View style={styles.modalHeader}>
           <Text style={styles.modalTitle}>Add New Coach</Text>
-          <Icon name="account-plus" size={30} color="#6573EA" />
+          {/* <Icon name="account-plus" size={30} color="#6573EA" /> */}
         </View>
         
         <TextInput
@@ -483,7 +581,7 @@ const handleChangePassword = async () => {
             setCoachUsername(text);
             setErrors({...errors, coachUsername: ''});
           }}
-          left={<TextInput.Icon name="account" />}
+          // left={<TextInput.Icon name="account" />}
           theme={{ colors: { primary: '#6573EA', error: '#FF0000' } }}
           error={!!errors.coachUsername}
         />
@@ -498,7 +596,7 @@ const handleChangePassword = async () => {
             setCoachEmail(text);
             setErrors({...errors, coachEmail: ''});
           }}
-          left={<TextInput.Icon name="email" />}
+          // left={<TextInput.Icon name="email" />}
           theme={{ colors: { primary: '#6573EA', error: '#FF0000' } }}
           error={!!errors.coachEmail}
         />
@@ -514,7 +612,7 @@ const handleChangePassword = async () => {
             setCoachPassword(text);
             setErrors({...errors, coachPassword: ''});
           }}
-          left={<TextInput.Icon name="lock" />}
+          // left={<TextInput.Icon name="lock" />}
           theme={{ colors: { primary: '#6573EA', error: '#FF0000' } }}
           error={!!errors.coachPassword}
         />
@@ -555,7 +653,7 @@ const handleChangePassword = async () => {
       <Card.Content>
         <View style={styles.modalHeader}>
           <Text style={styles.modalTitle}>New Announcement</Text>
-          <Icon name="bullhorn" size={30} color="#6573EA" />
+          {/* <Icon name="bullhorn" size={30} color="#6573EA" /> */}
         </View>
         
         <TextInput
@@ -575,15 +673,19 @@ const handleChangePassword = async () => {
         />
         {announcementErrors.postDescription ? <Text style={styles.errorText}>{announcementErrors.postDescription}</Text> : null}
         
-        {postImage && (
-          <Image source={{ uri: postImage }} style={styles.imagePreview} />
-        )}
+        {postImage?.uri && (
+  <Image 
+    source={{ uri: postImage.uri }} 
+    style={styles.imagePreview} 
+    onError={(e) => console.log('Failed to load image:', e.nativeEvent.error)}
+  />
+)}
         
         <TouchableOpacity
           style={[styles.modalButton, styles.imageButton]}
           onPress={handleImageSelection}
         >
-          <Icon name="image" size={20} color="white" />
+          {/* <Icon name="image" size={20} color="white" /> */}
           <Text style={styles.modalButtonText}>Select Image</Text>
         </TouchableOpacity>
         
@@ -618,7 +720,7 @@ const handleChangePassword = async () => {
       <Card.Content>
         <View style={styles.modalHeader}>
           <Text style={styles.modalTitle}>Change Password</Text>
-          <Icon name="lock" size={30} color="#6573EA" />
+          {/* <Icon name="lock" size={30} color="#6573EA" /> */}
         </View>
         
         <TextInput
@@ -631,7 +733,7 @@ const handleChangePassword = async () => {
             setCurrentPassword(text);
             setPasswordErrors({...passwordErrors, currentPassword: ''});
           }}
-          left={<TextInput.Icon name="lock" />}
+          // left={<TextInput.Icon name="lock" />}
           theme={{ colors: { primary: '#6573EA', error: '#FF0000' } }}
           error={!!passwordErrors.currentPassword}
         />
@@ -647,7 +749,7 @@ const handleChangePassword = async () => {
             setNewPassword(text);
             setPasswordErrors({...passwordErrors, newPassword: ''});
           }}
-          left={<TextInput.Icon name="lock-plus" />}
+          // left={<TextInput.Icon name="lock-plus" />}
           theme={{ colors: { primary: '#6573EA', error: '#FF0000' } }}
           error={!!passwordErrors.newPassword}
         />
@@ -663,7 +765,7 @@ const handleChangePassword = async () => {
             setConfirmNewPassword(text);
             setPasswordErrors({...passwordErrors, confirmNewPassword: ''});
           }}
-          left={<TextInput.Icon name="lock-check" />}
+          // left={<TextInput.Icon name="lock-check" />}
           theme={{ colors: { primary: '#6573EA', error: '#FF0000' } }}
           error={!!passwordErrors.confirmNewPassword}
         />
@@ -697,59 +799,76 @@ const handleChangePassword = async () => {
     </Card>
   </Animatable.View>
 </Modal>
-      {/* Update Post Modal */}
-      <Modal isVisible={updateModalVisible}>
-        <Animatable.View animation="zoomIn" duration={300}>
-          <Card style={styles.modalCard}>
-            <Card.Content>
-              <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>Update Announcement</Text>
-                <Icon name="pencil" size={30} color="#6573EA" />
-              </View>
-              
-              <TextInput
-                label="Description"
-                mode="outlined"
-                multiline
-                numberOfLines={4}
-                style={styles.modalInput}
-                value={updatedDescription}
-                onChangeText={setUpdatedDescription}
-                left={<TextInput.Icon name="text" />}
-                theme={{ colors: { primary: '#6573EA' } }}
-              />
-              
-              {updatedImage && (
-                <Image source={{ uri: updatedImage }} style={styles.imagePreview} />
-              )}
-              
-              <TouchableOpacity
-                style={[styles.modalButton, styles.imageButton]}
-                onPress={handleImageSelection}
-              >
-                <Icon name="image" size={20} color="white" />
-                <Text style={styles.modalButtonText}>Change Image</Text>
-              </TouchableOpacity>
-              
-              <View style={styles.modalButtons}>
-                <TouchableOpacity
-                  style={[styles.modalButton, styles.submitButton]}
-                  onPress={handleUpdatePost}
-                >
-                  <Text style={styles.modalButtonText}>Update Announcement</Text>
-                </TouchableOpacity>
-                
-                <TouchableOpacity
-                  style={[styles.modalButton, styles.cancelButton]}
-                  onPress={() => setUpdateModalVisible(false)}
-                >
-                  <Text style={[styles.modalButtonText, { color: '#6573EA' }]}>Cancel</Text>
-                </TouchableOpacity>
-              </View>
-            </Card.Content>
-          </Card>
-        </Animatable.View>
-      </Modal>
+<Modal isVisible={updateModalVisible}>
+  <Animatable.View animation="zoomIn" duration={300}>
+    <Card style={styles.modalCard}>
+      <Card.Content>
+        <View style={styles.modalHeader}>
+          <Text style={styles.modalTitle}>Update Announcement</Text>
+        </View>
+        
+        <TextInput
+          label="Description"
+          mode="outlined"
+          multiline
+          numberOfLines={4}
+          style={styles.modalInput}
+          value={updatedDescription}
+          onChangeText={setUpdatedDescription}
+          theme={{ colors: { primary: '#6573EA' } }}
+        />
+        
+        {updatedImage && updatedImage.uri ? (
+          <Image source={{ uri: updatedImage.uri }} style={styles.imagePreview} />
+        ) : selectedPost?.adminimagepost ? (
+          <Image 
+            source={{ uri: `http://192.168.1.24:3002/adminpost/image/${selectedPost._id}` }} 
+            style={styles.imagePreview} 
+          />
+        ) : null}
+        
+        <View style={styles.imageButtonContainer}>
+          <TouchableOpacity
+            style={[styles.modalButton, styles.imageButton]}
+            onPress={handleImageSelection}
+          >
+            <Text style={styles.modalButtonText}>
+              {updatedImage ? 'Change Image' : 'Select Image'}
+            </Text>
+          </TouchableOpacity>
+          
+          {(updatedImage || selectedPost?.adminimagepost) && (
+            <TouchableOpacity
+              style={[styles.modalButton, styles.removeImageButton]}
+              onPress={() => setUpdatedImage('remove')}
+            >
+              <Text style={styles.modalButtonText}>Remove Image</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+        
+        <View style={styles.modalButtons}>
+          <TouchableOpacity
+            style={[styles.modalButton, styles.submitButton]}
+            onPress={handleUpdatePost}
+          >
+            <Text style={styles.modalButtonText}>Update Announcement</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity
+            style={[styles.modalButton, styles.cancelButton]}
+            onPress={() => {
+              setUpdateModalVisible(false);
+              setUpdatedImage(null);
+            }}
+          >
+            <Text style={[styles.modalButtonText, { color: '#6573EA' }]}>Cancel</Text>
+          </TouchableOpacity>
+        </View>
+      </Card.Content>
+    </Card>
+  </Animatable.View>
+</Modal>
     </ImageBackground>
   );
 };
@@ -926,6 +1045,20 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     borderWidth: 1,
     borderColor: '#ddd',
+  },
+  imageButtonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 15,
+  },
+  removeImageButton: {
+    backgroundColor: '#F44336',
+    marginLeft: 10,
+  },
+  errorText: {
+    color: 'red',
+    marginBottom: 10,
+    marginLeft: 5,
   },
 });
 
