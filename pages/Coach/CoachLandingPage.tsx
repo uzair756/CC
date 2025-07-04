@@ -71,23 +71,33 @@ const validateUsername = (username) => {
   const sportsCategories = ['Football', 'Futsal', 'Volleyball', 'Basketball','Table Tennis (M)', 'Table Tennis (F)', 'Snooker', 'Tug of War (M)','Tug of War (F)', 'Tennis', 'Cricket', 'Badminton (M)', 'Badminton (F)'];
   const [department, setDepartment] = useState('');
   const [refsportscategory, setRefSportsCategory] = useState('');
-  const [departments] = useState([
-    'CS',
-    'EE',
-    'ME',
-    'MSE',
-    'AVE',
-    'AE',
-    'MATH',
-    'SS',
-  ]);
+  const [departments, setDepartments] = useState([]);
+  useEffect(() => {
+  const fetchDepartments = async () => {
+    try {
+      const response = await fetch('http://192.168.1.9:3002/departments');
+      const data = await response.json();
+      if (data.success) {
+        setDepartments(data.departments);
+      } else {
+        Alert.alert('Error', data.error || 'Could not fetch departments');
+      }
+    } catch (error) {
+      console.error('Fetch departments error:', error);
+      Alert.alert('Error', 'Failed to load departments');
+    }
+  };
+
+  fetchDepartments();
+}, []);
+
   const [refsportscategories] = useState(['Football', 'Futsal', 'Volleyball', 'Basketball','Table Tennis (M)', 'Table Tennis (F)', 'Snooker', 'Tug of War (M)','Tug of War (F)', 'Tennis', 'Cricket', 'Badminton (M)', 'Badminton (F)']);
 
   const fetchProfile = async () => {
       try {
         setRefreshing(true);
         const token = await AsyncStorage.getItem('token');
-        const response = await fetch('http://192.168.139.169:3002/coachlandingpage', {
+        const response = await fetch('http://192.168.1.9:3002/coachlandingpage', {
           method: 'GET',
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -166,7 +176,7 @@ const validateUsername = (username) => {
     }
   
     try {
-      const response = await fetch('http://192.168.139.169:3002/addcoordinator', {
+      const response = await fetch('http://192.168.1.9:3002/addcoordinator', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -259,7 +269,7 @@ const validateUsername = (username) => {
   
     try {
       const token = await AsyncStorage.getItem('token');
-      const response = await fetch('http://192.168.139.169:3002/addref', {
+      const response = await fetch('http://192.168.1.9:3002/addref', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -310,7 +320,7 @@ const validateUsername = (username) => {
 
     try {
       const token = await AsyncStorage.getItem('token');
-      const response = await fetch(`http://192.168.139.169:3002/getrules/${sport.toLowerCase()}`, {
+      const response = await fetch(`http://192.168.1.9:3002/getrules/${sport.toLowerCase()}`, {
         method: 'GET',
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -339,7 +349,7 @@ const validateUsername = (username) => {
         return;
       }
 
-      const response = await fetch(`http://192.168.139.169:3002/updaterules/${selectedSport.toLowerCase()}`, {
+      const response = await fetch(`http://192.168.1.9:3002/updaterules/${selectedSport.toLowerCase()}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -410,7 +420,7 @@ const validateUsername = (username) => {
   
     try {
       const token = await AsyncStorage.getItem('token');
-      const response = await fetch('http://192.168.139.169:3002/changepasswordcoach', {
+      const response = await fetch('http://192.168.1.9:3002/changepasswordcoach', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -503,10 +513,10 @@ const validateUsername = (username) => {
 
           <TouchableOpacity 
             style={[styles.actionButton, styles.poolsButton]}
-            onPress={() => navigation.navigate('PoolsCreateSchedulingPage')}
+            onPress={() => navigation.navigate('YearSelectionScreen')}
           >
             {/* <Icon name="calendar-plus" size={24} color="white" /> */}
-            <Text style={styles.actionButtonText}>Create {new Date().getFullYear()} Pools</Text>
+            <Text style={styles.actionButtonText}>Create Pools and Schedules</Text>
           </TouchableOpacity>
 
           <TouchableOpacity 
@@ -623,6 +633,7 @@ const validateUsername = (username) => {
     ))}
   </Picker>
 </View>
+
 {errors.coordinator.department ? <Text style={styles.errorText}>{errors.coordinator.department}</Text> : null}
               
               <View style={styles.modalButtons}>

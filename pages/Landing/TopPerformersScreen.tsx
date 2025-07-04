@@ -46,7 +46,7 @@ export const TopPerformersScreen = () => {
 
       try {
         if (selectedSport === "Cricket") {
-          const response = await fetch(`http://192.168.139.169:3002/bestcricketertp/${selectedYear}`);
+          const response = await fetch(`http://192.168.1.9:3002/bestcricketertp/${selectedYear}`);
           const data = await response.json();
 
           if (data.success) {
@@ -57,7 +57,7 @@ export const TopPerformersScreen = () => {
           }
         } 
         else if (selectedSport === "Football") {
-          const response = await fetch(`http://192.168.139.169:3002/bestfootballertp/${selectedYear}`);
+          const response = await fetch(`http://192.168.1.9:3002/bestfootballertp/${selectedYear}`);
           const data = await response.json();
 
           if (data.success) {
@@ -67,7 +67,7 @@ export const TopPerformersScreen = () => {
           }
         }
         else if (selectedSport === "Basketball") {
-          const response = await fetch(`http://192.168.139.169:3002/bestbasketballplayertp/${selectedYear}`);
+          const response = await fetch(`http://192.168.1.9:3002/bestbasketballplayertp/${selectedYear}`);
           const data = await response.json();
 
           if (data.success) {
@@ -77,7 +77,7 @@ export const TopPerformersScreen = () => {
           }
         }
         else if (selectedSport === "Futsal") {
-          const response = await fetch(`http://192.168.139.169:3002/bestfutsalplayertp/${selectedYear}`);
+          const response = await fetch(`http://192.168.1.9:3002/bestfutsalplayertp/${selectedYear}`);
           const data = await response.json();
 
           if (data.success) {

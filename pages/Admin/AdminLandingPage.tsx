@@ -57,7 +57,7 @@ export const AdminLandingPage = ({ navigation }) => {
     try {
       setRefreshing(true);
       const token = await AsyncStorage.getItem('token');
-      const response = await fetch('http://192.168.139.169:3002/dsalandingpage', {
+      const response = await fetch('http://192.168.1.9:3002/dsalandingpage', {
         method: 'GET',
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -137,7 +137,7 @@ const handleAddCoach = async () => {
   }
 
   try {
-    const response = await fetch('http://192.168.139.169:3002/dsasportscoachuser', {
+    const response = await fetch('http://192.168.1.9:3002/dsasportscoachuser', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -188,47 +188,6 @@ const validateAnnouncementForm = () => {
   return valid;
 };
 
-// const handleAddAnnouncement = async () => {
-//   if (!validateAnnouncementForm()) {
-//     return;
-//   }
-
-//   try {
-//     const token = await AsyncStorage.getItem('token');
-//     if (!token) {
-//       Alert.alert('Error', 'No authentication token found');
-//       return;
-//     }
-
-//     const response = await fetch('http://192.168.139.169:3002/adminpost', {
-//       method: 'POST',
-//       headers: {
-//         'Content-Type': 'application/json',
-//         Authorization: `Bearer ${token}`,
-//       },
-//       body: JSON.stringify({
-//         adminpostdescription: postDescription,
-//         adminimagepost: postImage,
-//       }),
-//     });
-
-//     const data = await response.json();
-
-//     if (data.success) {
-//       Alert.alert('Success', 'Announcement posted successfully');
-//       setPostVisible(false);
-//       setPostDescription('');
-//       setPostImage(null);
-//       setPosts([...posts, data.post]);
-//       setAnnouncementErrors({ postDescription: '' });
-//     } else {
-//       Alert.alert('Error', data.error || 'Failed to post announcement');
-//     }
-//   } catch (error) {
-//     console.error('Error posting announcement:', error);
-//     Alert.alert('Error', 'An error occurred while posting');
-//   }
-// };
 const handleAddAnnouncement = async () => {
   if (!validateAnnouncementForm()) {
     return;
@@ -252,7 +211,7 @@ const handleAddAnnouncement = async () => {
       });
     }
 
-    const response = await fetch('http://192.168.139.169:3002/adminpost', {
+    const response = await fetch('http://192.168.1.9:3002/adminpost', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -339,7 +298,7 @@ const handleAddAnnouncement = async () => {
         // If updatedImage exists but doesn't have base64, it's the existing image (no change)
       }
   
-      const response = await fetch(`http://192.168.139.169:3002/adminpost/${selectedPost._id}`, {
+      const response = await fetch(`http://192.168.1.9:3002/adminpost/${selectedPost._id}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -418,7 +377,7 @@ const handleChangePassword = async () => {
       return;
     }
 
-    const response = await fetch('http://192.168.139.169:3002/changepasswordadmin', {
+    const response = await fetch('http://192.168.1.9:3002/changepasswordadmin', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -499,6 +458,42 @@ const handleChangePassword = async () => {
           </TouchableOpacity>
 
           <TouchableOpacity 
+            style={[styles.actionButton, styles.announcementButton]} 
+             onPress={() => navigation.navigate('AddDepartments')}
+          >
+            {/* <Icon name="bullhorn" size={24} color="white" /> */}
+            <Text style={styles.actionButtonText}>Add Department</Text>
+          </TouchableOpacity>
+           <TouchableOpacity 
+            style={[styles.actionButton, styles.announcementButton]} 
+             onPress={() => navigation.navigate('DSANominationView')}
+          >
+            {/* <Icon name="bullhorn" size={24} color="white" /> */}
+            <Text style={styles.actionButtonText}>Nomination View</Text>
+          </TouchableOpacity>
+           <TouchableOpacity 
+            style={[styles.actionButton, styles.announcementButton]} 
+             onPress={() => navigation.navigate('DSAScheduleManagement')}
+          >
+            {/* <Icon name="bullhorn" size={24} color="white" /> */}
+            <Text style={styles.actionButtonText}>Schedule Management</Text>
+          </TouchableOpacity>
+           <TouchableOpacity 
+            style={[styles.actionButton, styles.announcementButton]} 
+             onPress={() => navigation.navigate('PlayersPerformanceCheck')}
+          >
+            {/* <Icon name="bullhorn" size={24} color="white" /> */}
+            <Text style={styles.actionButtonText}>Players Performance Check</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.actionButton, styles.announcementButton]} 
+             onPress={() => navigation.navigate('ManageAccounts')}
+          >
+            {/* <Icon name="bullhorn" size={24} color="white" /> */}
+            <Text style={styles.actionButtonText}>Manage Accounts</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
             style={[styles.actionButton, styles.passwordButton]} 
             onPress={() => setIsChangePasswordVisible(true)}
           >
@@ -537,7 +532,7 @@ const handleChangePassword = async () => {
                   )} */}
                     {post.adminimagepost && (
                     <Image 
-                      source={{ uri: `http://192.168.139.169:3002/adminpost/image/${post._id}` }} 
+                      source={{ uri: `http://192.168.1.9:3002/adminpost/image/${post._id}` }} 
                       style={styles.postImage} 
                       resizeMode="cover"
                     />
@@ -822,7 +817,7 @@ const handleChangePassword = async () => {
           <Image source={{ uri: updatedImage.uri }} style={styles.imagePreview} />
         ) : selectedPost?.adminimagepost ? (
           <Image 
-            source={{ uri: `http://192.168.139.169:3002/adminpost/image/${selectedPost._id}` }} 
+            source={{ uri: `http://192.168.1.9:3002/adminpost/image/${selectedPost._id}` }} 
             style={styles.imagePreview} 
           />
         ) : null}

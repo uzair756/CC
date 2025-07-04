@@ -53,7 +53,7 @@ export const CoachLogin = ({ navigation }) => {
     setLoading(true);
 
     try {
-      const response = await fetch(`http://192.168.139.169:3002/sportscoachlogin`, {
+      const response = await fetch(`http://192.168.1.9:3002/sportscoachlogin`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),

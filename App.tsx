@@ -54,6 +54,12 @@ import { SettingsScreen } from './pages/Landing/SettingsScreen';
 import { BestFootballPlayerPage } from './pages/Football/BestFootballPlayerPage';
 import { BestFutsalPlayerPage } from './pages/Futsal/BestFutsalPlayerPage';
 import { BestBasketballPlayerPage } from './pages/Basketball/BestBasketballPlayerPage';
+import { AddDepartments } from './pages/Admin/AddDepartments';
+import { DSANominationView } from './pages/Admin/DSANominationView';
+import {DSAScheduleManagement} from './pages/Admin/DSAScheduleManagement';
+import { YearSelectionScreen } from './pages/Coach/YearSelectionScreen';
+import { PlayersPerformanceCheck } from './pages/Admin/PlayersPerformanceCheck';
+import { ManageAccounts } from './pages/Admin/ManageAccounts';
 const Stack = createNativeStackNavigator();
 
 const MyStack = () => {
@@ -325,6 +331,37 @@ const MyStack = () => {
           <Stack.Screen
             name="BestBasketballPlayerPage"
             component={BestBasketballPlayerPage}
+            options={{headerShown: false}}
+          />
+          <Stack.Screen
+            name="AddDepartments"
+            component={AddDepartments}
+            options={{headerShown: false}}
+          />
+          <Stack.Screen
+            name="DSANominationView"
+            component={DSANominationView}
+            options={{headerShown: false}}
+          />
+          <Stack.Screen
+            name="DSAScheduleManagement"
+            component={DSAScheduleManagement}
+            options={{headerShown: false}}
+          />
+          <Stack.Screen
+            name="YearSelectionScreen"
+            component={YearSelectionScreen}
+            options={{headerShown: false}}
+          />
+          
+          <Stack.Screen
+            name="PlayersPerformanceCheck"
+            component={PlayersPerformanceCheck}
+            options={{headerShown: false}}
+          />
+          <Stack.Screen
+            name="ManageAccounts"
+            component={ManageAccounts}
             options={{headerShown: false}}
           />
         </Stack.Navigator>

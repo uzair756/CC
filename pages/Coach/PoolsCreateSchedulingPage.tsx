@@ -22,27 +22,7 @@ export const PoolsCreateSchedulingPage = () => {
   const [schedules, setSchedules] = useState([]);
   const [rankingModalVisible, setRankingModalVisible] = useState(false);
   const [year, setYear] = useState(new Date().getFullYear());
-  const sportsOptions = ["CS", "EE", "MSE", "AVE", "AE", "MATH", "SS", "ME"];
-  const [rankings, setRankings] = useState({
-    P1: "",
-    P2: "",
-    P3: "",
-    P4: "",
-    P5: "",
-    P6: "",
-    P7: "",
-    P8: "",
-  });
-  const getAvailableOptions = (currentKey) => {
-    // Get all selected values except for the current ranking key
-    const selectedValues = Object.keys(rankings)
-      .filter((key) => key !== currentKey)
-      .map((key) => rankings[key]);
-  
-    // Return options that are not already selected
-    return sportsOptions.filter((option) => !selectedValues.includes(option));
-  };
-  
+  const [sportsOptions, setSportsOptions] = useState([]); // Remove hardcoded array
 
   // Fetch User on Component Mount
   useEffect(() => {
@@ -64,31 +44,101 @@ export const PoolsCreateSchedulingPage = () => {
     fetchUser();
   }, []);
 
-  const handleStoreRankings = async () => {
-    try {
-      const token = await AsyncStorage.getItem("token");
-      const previousYear = new Date().getFullYear() - 1; // Get the previous year
-  
-      const response = await fetch(`http://192.168.139.169:3002/store-rankings`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ sport: selectedSport, year: previousYear, rankings }),
-      });
-  
-      const responseData = await response.json();
-      if (responseData.success) {
-        Alert.alert("Success", "Rankings stored successfully!");
-        setRankingModalVisible(false);
-      } else {
-        Alert.alert("Error", responseData.message);
+
+   // Add this useEffect to fetch teams on component mount
+  useEffect(() => {
+    const fetchTeams = async () => {
+      try {
+        const token = await AsyncStorage.getItem("token");
+        const response = await fetch('http://192.168.1.9:3002/teams', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        const data = await response.json();
+        if (response.ok) {
+          setSportsOptions(data.teams);
+        } else {
+          console.error("Failed to fetch teams:", data.message);
+        }
+      } catch (error) {
+        console.error("Error fetching teams:", error);
       }
-    } catch (error) {
-      console.error("Error storing rankings:", error);
+    };
+
+    fetchTeams();
+  }, []);
+
+
+
+const [teams, setTeams] = useState([{ id: 1, value: "" }]); // Start with one empty team
+const [nextId, setNextId] = useState(2);
+
+  const getAvailableOptions = (currentId) => {
+  // Get all selected values except for the current team
+  const selectedValues = teams
+    .filter(team => team.id !== currentId)
+    .map(team => team.value);
+  
+  // Return options that are not already selected
+  return sportsOptions.filter(option => !selectedValues.includes(option));
+};
+
+const handleAddTeam = () => {
+  if (teams.length >= sportsOptions.length) return;
+  setTeams([...teams, { id: nextId, value: "" }]);
+  setNextId(nextId + 1);
+};
+
+const handleRemoveTeam = (id) => {
+  if (teams.length <= 1) return; // Don't remove the last team
+  setTeams(teams.filter(team => team.id !== id));
+};
+
+const handleTeamChange = (id, value) => {
+  setTeams(teams.map(team => 
+    team.id === id ? { ...team, value } : team
+  ));
+};
+
+const handleStoreRankings = async () => {
+  // Convert the teams array to rankings object (P1, P2, etc.)
+  const rankings = {};
+  teams.forEach((team, index) => {
+    rankings[`P${index + 1}`] = team.value;
+  });
+
+  try {
+    const token = await AsyncStorage.getItem("token");
+    const previousYear = new Date().getFullYear() - 1;
+
+    const response = await fetch(`http://192.168.1.9:3002/store-rankings`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ 
+        sport: selectedSport, 
+        year: previousYear, 
+        rankings 
+      }),
+    });
+
+    const responseData = await response.json();
+    if (responseData.success) {
+      Alert.alert("Success", "Rankings stored successfully!");
+      setRankingModalVisible(false);
+      // Clear the team selections after successful save
+      setTeams([{ id: 1, value: "" }]);
+      setNextId(2);
+    } else {
+      Alert.alert("Error", responseData.message);
     }
-  };
+  } catch (error) {
+    console.error("Error storing rankings:", error);
+  }
+};
   
   const fetchPoolsAndSchedules = async (sport) => {
     // Clear previous data to avoid showing old results
@@ -97,7 +147,7 @@ export const PoolsCreateSchedulingPage = () => {
   
     try {
       const token = await AsyncStorage.getItem("token");
-      const response = await fetch(`http://192.168.139.169:3002/get-pools-and-schedules/${sport}`, {
+      const response = await fetch(`http://192.168.1.9:3002/get-pools-and-schedules/${sport}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -119,11 +169,10 @@ export const PoolsCreateSchedulingPage = () => {
     }
   };
 
-  // Handle Create Pools
-const handleCreatePools = async () => {
+ const handleCreatePools = async () => {
   try {
     const token = await AsyncStorage.getItem("token");
-    const response = await fetch(`http://192.168.139.169:3002/create-pools`, {
+    const response = await fetch(`http://192.168.1.9:3002/create-pools`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -133,39 +182,36 @@ const handleCreatePools = async () => {
     });
 
     const responseData = await response.json();
+    
     if (responseData.success) {
       console.log("Pools and schedules created successfully!");
-      fetchPoolsAndSchedules(selectedSport); // Fetch updated pools and schedules
+      fetchPoolsAndSchedules(selectedSport);
     } else {
-      // console.error("Error creating pools:", responseData.message);
-
-      if (responseData.message.includes("already been created")) {
-        const message = responseData.message;
-        const yearMatch = message.match(/\d{4}/); // Extract the year (e.g., 2025)
-        const userMatch = message.match(/by (.+)\./); // Extract username
-
-        const year = yearMatch ? yearMatch[0] : "unknown year";
-        const userName = userMatch ? userMatch[1] : "an unknown user";
-
+      // Check for specific error messages
+      if (responseData.message.includes("No rankings found") || 
+          responseData.message.includes("No team rankings found")) {
+        // Open ranking modal if no rankings exist
+        setRankingModalVisible(true);
+      } else if (responseData.message.includes("already been created")) {
+        const year = responseData.message.match(/\d{4}/)?.[0] || "unknown year";
+        const userName = responseData.message.match(/by (.+)\./)?.[1] || "an unknown user";
+        
         Alert.alert(
           "Pools Already Created",
           `The pools and schedules for ${year} have already been created by ${userName}.`,
           [{ text: "OK" }]
         );
-        // console.log(message);
-      }
-
-      if (responseData.message.includes("No team rankings found")) {
-        setRankingModalVisible(true);
+      } else {
+        Alert.alert("Error", responseData.message);
       }
     }
   } catch (error) {
-    // console.error("Error during pool creation:", error);
+    console.error("Error during pool creation:", error);
+    Alert.alert("Error", "Failed to create pools. Please try again.");
   } finally {
     setModalVisible(false);
   }
 };
-
 
 return (
   <ImageBackground 
@@ -188,16 +234,13 @@ return (
               setSelectedSport(sport);
               setModalVisible(true);
               fetchPoolsAndSchedules(sport);
+              // Reset team selections when selecting a new sport
+              setTeams([{ id: 1, value: "" }]);
+              setNextId(2);
             }}
           >
-            {/* <Icon 
-              name={getSportIcon(sport)} 
-              size={30} 
-              color="#3a7bd5" 
-              style={styles.sportIcon}
-            /> */}
+            \
             <Text style={styles.sportName}>{sport}</Text>
-            {/* <Icon name="chevron-right" size={20} color="#3a7bd5" /> */}
           </TouchableOpacity>
         ))}
       </View>
@@ -226,54 +269,77 @@ return (
         </View>
       </Modal>
 
-      {/* Rankings Modal */}
-      <Modal visible={rankingModalVisible} transparent animationType="slide">
-        <View style={styles.modalOverlay}>
-          <View style={[styles.modalContainer, {paddingBottom: 20}]}>
-            <Text style={styles.modalTitle}>
-              {selectedSport} Rankings for {year-1}
-            </Text>
-            
-            <ScrollView style={styles.rankingsContainer}>
-              {Object.keys(rankings).map((key) => (
-                <View key={key} style={styles.rankingRow}>
-                  <Text style={styles.rankLabel}>{key}</Text>
-                  <View style={styles.pickerContainer}>
-                    <Picker
-                      selectedValue={rankings[key]}
-                      style={styles.picker}
-                      dropdownIconColor="#3a7bd5"
-                      onValueChange={(itemValue) =>
-                        setRankings({ ...rankings, [key]: itemValue })
-                      }
-                    >
-                      <Picker.Item label="Select Team" value="" />
-                      {getAvailableOptions(key).map((option) => (
-                        <Picker.Item key={option} label={option} value={option} />
-                      ))}
-                    </Picker>
-                  </View>
-                </View>
-              ))}
-            </ScrollView>
-
-            <View style={styles.modalActions}>
-              <TouchableOpacity 
-                style={[styles.actionButton, styles.submitButton]}
-                onPress={handleStoreRankings}
+<Modal visible={rankingModalVisible} transparent animationType="slide">
+  <View style={styles.modalOverlay}>
+    <View style={[styles.modalContainer, {paddingBottom: 20}]}>
+      <Text style={styles.modalTitle}>
+        {selectedSport} Rankings for {year-1}
+      </Text>
+      
+      <ScrollView style={styles.rankingsContainer}>
+        {teams.map((team) => (
+          <View key={team.id} style={styles.rankingRow}>
+            <Text style={styles.rankLabel}>#{teams.findIndex(t => t.id === team.id) + 1}</Text>
+            <View style={styles.pickerContainer}>
+              <Picker
+                selectedValue={team.value}
+                style={styles.picker}
+                dropdownIconColor="#3a7bd5"
+                onValueChange={(itemValue) => handleTeamChange(team.id, itemValue)}
               >
-                <Text style={styles.buttonText}>Save Rankings</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.actionButton, styles.cancelButton]}
-                onPress={() => setRankingModalVisible(false)}
-              >
-                <Text style={[styles.buttonText, {color: '#3a7bd5'}]}>Cancel</Text>
-              </TouchableOpacity>
+                <Picker.Item label="Select Team" value="" />
+                {sportsOptions.filter(option => 
+                  !teams.some(t => t.value === option) || team.value === option
+                ).map((option) => (
+                  <Picker.Item key={option} label={option} value={option} />
+                ))}
+              </Picker>
             </View>
+            {teams.length > 1 && (
+              <TouchableOpacity 
+                style={styles.removeButton}
+                onPress={() => handleRemoveTeam(team.id)}
+              >
+                <Icon name="close" size={20} color="#ff4444" />
+              </TouchableOpacity>
+            )}
           </View>
-        </View>
-      </Modal>
+        ))}
+        
+        {teams.length < sportsOptions.length && (
+          <TouchableOpacity 
+            style={styles.addButton}
+            onPress={handleAddTeam}
+          >
+            <Icon name="plus" size={20} color="#3a7bd5" />
+            <Text style={styles.addButtonText}>Add Team</Text>
+          </TouchableOpacity>
+        )}
+      </ScrollView>
+
+      <View style={styles.modalActions}>
+        <TouchableOpacity 
+          style={[styles.actionButton, styles.submitButton]}
+          onPress={handleStoreRankings}
+          disabled={teams.some(t => !t.value)}
+        >
+          <Text style={styles.buttonText}>Save Rankings</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.actionButton, styles.cancelButton]}
+          onPress={() => {
+            setRankingModalVisible(false);
+            // Clear selections when modal closes without saving
+            setTeams([{ id: 1, value: "" }]);
+            setNextId(2);
+          }}
+        >
+        <Text style={[styles.buttonText, {color: '#3a7bd5'}]}>Cancel</Text>
+</TouchableOpacity>
+      </View>
+    </View>
+  </View>
+</Modal>
 
       {/* Pools and Matches Display */}
       {selectedSport && poolsData && (
@@ -447,24 +513,6 @@ rankingsContainer: {
   maxHeight: 300,
   marginBottom: 15,
 },
-rankingRow: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  marginBottom: 10,
-},
-rankLabel: {
-  width: 50,
-  fontSize: 16,
-  fontWeight: 'bold',
-  color: '#3a7bd5',
-},
-pickerContainer: {
-  flex: 1,
-  borderWidth: 1,
-  borderColor: '#ddd',
-  borderRadius: 8,
-  overflow: 'hidden',
-},
 picker: {
   height: 50,
   color: '#333',
@@ -551,5 +599,46 @@ noMatches: {
   textAlign: 'center',
   color: '#666',
   fontStyle: 'italic',
+},
+addButton: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'center',
+  padding: 10,
+  borderWidth: 1,
+  borderColor: '#3a7bd5',
+  borderRadius: 8,
+  marginTop: 10,
+  backgroundColor: 'rgba(58, 123, 213, 0.1)',
+},
+addButtonText: {
+  color: '#3a7bd5',
+  marginLeft: 5,
+  fontWeight: '500',
+},
+removeButton: {
+  padding: 10,
+  marginLeft: 5,
+},
+rankingRow: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  marginBottom: 10,
+  justifyContent: 'space-between',
+},
+rankLabel: {
+  width: 30,
+  fontSize: 16,
+  fontWeight: 'bold',
+  color: '#3a7bd5',
+  textAlign: 'center',
+},
+pickerContainer: {
+  flex: 1,
+  borderWidth: 1,
+  borderColor: '#ddd',
+  borderRadius: 8,
+  overflow: 'hidden',
+  marginHorizontal: 5,
 },
 });

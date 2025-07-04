@@ -53,7 +53,7 @@ export const CaptainLogin = ({ navigation }) => {
     setLoading(true);
 
     try {
-      const response = await fetch(`http://192.168.139.169:3002/captainlogin`, {
+      const response = await fetch(`http://192.168.1.9:3002/captainlogin`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),

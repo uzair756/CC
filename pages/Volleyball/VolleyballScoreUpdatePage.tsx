@@ -152,7 +152,7 @@ export const VolleyballScoreUpdatePage = ({ route,navigation }) => {
           return;
         }
 
-        const response = await fetch(`http://192.168.139.169:3002/match/${match.sport}/${match._id}`, {
+        const response = await fetch(`http://192.168.1.9:3002/match/${match.sport}/${match._id}`, {
           method: 'GET',
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -230,7 +230,7 @@ export const VolleyballScoreUpdatePage = ({ route,navigation }) => {
         return;
       }
 
-      const response = await fetch('http://192.168.139.169:3002/swapPlayersvolleyball', {
+      const response = await fetch('http://192.168.1.9:3002/swapPlayersvolleyball', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({
@@ -267,7 +267,7 @@ export const VolleyballScoreUpdatePage = ({ route,navigation }) => {
         return;
       }
   
-      const response = await fetch('http://192.168.139.169:3002/startmatchvolleyball', {
+      const response = await fetch('http://192.168.1.9:3002/startmatchvolleyball', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ matchId }),
@@ -296,7 +296,7 @@ export const VolleyballScoreUpdatePage = ({ route,navigation }) => {
         return;
       }
   
-      const response = await fetch('http://192.168.139.169:3002/stopmatchvolleyball', {
+      const response = await fetch('http://192.168.1.9:3002/stopmatchvolleyball', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ matchId }),
@@ -344,7 +344,7 @@ export const VolleyballScoreUpdatePage = ({ route,navigation }) => {
         return;
       }
   
-      const response = await fetch('http://192.168.139.169:3002/updateGoalvolleyball', {
+      const response = await fetch('http://192.168.1.9:3002/updateGoalvolleyball', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -384,7 +384,7 @@ export const VolleyballScoreUpdatePage = ({ route,navigation }) => {
 
         const nextQuarter = currentQuarter + 1;
 
-        const response = await fetch('http://192.168.139.169:3002/updateHalfvolleyball', {
+        const response = await fetch('http://192.168.1.9:3002/updateHalfvolleyball', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
             body: JSON.stringify({ matchId: matchDetails._id, quarter: nextQuarter }),
@@ -417,7 +417,7 @@ const handleEnd3rdQuarter = async () => {
           return;
       }
 
-      const response = await fetch('http://192.168.139.169:3002/updateHalf3rdvolleyball', {
+      const response = await fetch('http://192.168.1.9:3002/updateHalf3rdvolleyball', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
           body: JSON.stringify({ matchId: matchDetails._id, quarter: 3 }) // Ensure quarter 4 is correctly passed
