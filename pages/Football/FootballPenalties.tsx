@@ -65,7 +65,7 @@ const FootballPenalties = ({ route,navigation }) => {
             throw new Error("Authentication token not found");
         }
 
-        const response = await fetch("http://192.168.1.24:3002/updatePenaltyFootball", {
+        const response = await fetch("http://192.168.139.169:3002/updatePenaltyFootball", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

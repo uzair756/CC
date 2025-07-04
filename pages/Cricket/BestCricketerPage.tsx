@@ -59,7 +59,7 @@ export const BestCricketerPage = ({ navigation }) => {
                 return;
             }
 
-            const response = await fetch("http://192.168.1.24:3002/bestcricketer", {
+            const response = await fetch("http://192.168.139.169:3002/bestcricketer", {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",

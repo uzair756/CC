@@ -199,7 +199,7 @@ const [isRunOutModalVisible, setIsRunOutModalVisible] = useState(false);
         }
 
         const response = await fetch(
-          `http://192.168.1.24:3002/match/${match.sport}/${match._id}`,
+          `http://192.168.139.169:3002/match/${match.sport}/${match._id}`,
           {
             method: 'GET',
             headers: {Authorization: `Bearer ${token}`},
@@ -359,7 +359,7 @@ const [isRunOutModalVisible, setIsRunOutModalVisible] = useState(false);
       }
 
       const response = await fetch(
-        'http://192.168.1.24:3002/updateScoreCricket',
+        'http://192.168.139.169:3002/updateScoreCricket',
         {
           method: 'POST',
           headers: {
@@ -403,7 +403,7 @@ const [isRunOutModalVisible, setIsRunOutModalVisible] = useState(false);
       }
 
       const response = await fetch(
-        'http://192.168.1.24:3002/stopmatchcricket',
+        'http://192.168.139.169:3002/stopmatchcricket',
         {
           method: 'POST',
           headers: {
@@ -456,7 +456,7 @@ const [isRunOutModalVisible, setIsRunOutModalVisible] = useState(false);
     try {
       const token = await AsyncStorage.getItem('token');
       const response = await fetch(
-        'http://192.168.1.24:3002/swapPlayerscricket2ndInning',
+        'http://192.168.139.169:3002/swapPlayerscricket2ndInning',
         {
           method: 'POST',
           headers: {
@@ -492,7 +492,7 @@ const [isRunOutModalVisible, setIsRunOutModalVisible] = useState(false);
     try {
       const token = await AsyncStorage.getItem('token');
       const response = await fetch(
-        'http://192.168.1.24:3002/swapbowlercricket2ndInning',
+        'http://192.168.139.169:3002/swapbowlercricket2ndInning',
         {
           method: 'POST',
           headers: {
@@ -534,7 +534,7 @@ const [isRunOutModalVisible, setIsRunOutModalVisible] = useState(false);
       }
 
       const response = await fetch(
-        'http://192.168.1.24:3002/updateByesCricket2ndInning',
+        'http://192.168.139.169:3002/updateByesCricket2ndInning',
         {
           method: 'POST',
           headers: {
@@ -602,7 +602,7 @@ const [isRunOutModalVisible, setIsRunOutModalVisible] = useState(false);
       }
   
       const response = await fetch(
-        'http://192.168.1.24:3002/updateExtrasCricket2ndInning',
+        'http://192.168.139.169:3002/updateExtrasCricket2ndInning',
         {
           method: 'POST',
           headers: {
@@ -665,7 +665,7 @@ const [isRunOutModalVisible, setIsRunOutModalVisible] = useState(false);
       }
 
       const response = await fetch(
-        'http://192.168.1.24:3002/handlealloutinning2',
+        'http://192.168.139.169:3002/handlealloutinning2',
         {
           method: 'POST',
           headers: {
@@ -723,7 +723,7 @@ const [isRunOutModalVisible, setIsRunOutModalVisible] = useState(false);
       }
   
       const response = await fetch(
-        'http://192.168.1.24:3002/handleRunOutWithRuns',
+        'http://192.168.139.169:3002/handleRunOutWithRuns',
         {
           method: 'POST',
           headers: {
@@ -763,7 +763,7 @@ const [isRunOutModalVisible, setIsRunOutModalVisible] = useState(false);
   
       const token = await AsyncStorage.getItem('token');
       const response = await fetch(
-        'http://192.168.1.24:3002/handleAllOutWithRuns',
+        'http://192.168.139.169:3002/handleAllOutWithRuns',
         {
           method: 'POST',
           headers: {
