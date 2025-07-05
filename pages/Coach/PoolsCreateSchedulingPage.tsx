@@ -13,7 +13,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Picker } from "@react-native-picker/picker";
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
-export const PoolsCreateSchedulingPage = () => {
+export const PoolsCreateSchedulingPage = ({ route }) => {
+
   // State Variables
   const [user, setUser] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
@@ -21,8 +22,12 @@ export const PoolsCreateSchedulingPage = () => {
   const [poolsData, setPoolsData] = useState([]);
   const [schedules, setSchedules] = useState([]);
   const [rankingModalVisible, setRankingModalVisible] = useState(false);
-  const [year, setYear] = useState(new Date().getFullYear());
+  // const [year, setYear] = useState(new Date().getFullYear());
   const [sportsOptions, setSportsOptions] = useState([]); // Remove hardcoded array
+  // Get year from navigation props
+  const { selectedYear } = route.params;
+  const previousYear = selectedYear - 1; // For rankings
+
 
   // Fetch User on Component Mount
   useEffect(() => {
@@ -110,7 +115,7 @@ const handleStoreRankings = async () => {
 
   try {
     const token = await AsyncStorage.getItem("token");
-    const previousYear = new Date().getFullYear() - 1;
+    // const previousYear = new Date().getFullYear() - 1;
 
     const response = await fetch(`http://192.168.1.9:3002/store-rankings`, {
       method: "POST",
@@ -147,7 +152,7 @@ const handleStoreRankings = async () => {
   
     try {
       const token = await AsyncStorage.getItem("token");
-      const response = await fetch(`http://192.168.1.9:3002/get-pools-and-schedules/${sport}`, {
+      const response = await fetch(`http://192.168.1.9:3002/get-pools-and-schedules/${sport}?year=${selectedYear}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -178,7 +183,7 @@ const handleStoreRankings = async () => {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ sport: selectedSport }),
+      body: JSON.stringify({ sport: selectedSport, year: selectedYear}),
     });
 
     const responseData = await response.json();
@@ -273,7 +278,7 @@ return (
   <View style={styles.modalOverlay}>
     <View style={[styles.modalContainer, {paddingBottom: 20}]}>
       <Text style={styles.modalTitle}>
-        {selectedSport} Rankings for {year-1}
+       {selectedSport} Rankings for {previousYear}
       </Text>
       
       <ScrollView style={styles.rankingsContainer}>
