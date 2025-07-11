@@ -45,7 +45,7 @@ export const DSANominationView = ({ navigation }) => {
     const token = await AsyncStorage.getItem('token');
     setLoading(true);
     try {
-      const response = await fetch(`http://192.168.1.9:3002/nomination-status?year=${year}`, {
+      const response = await fetch(`http://10.4.36.23:3002/nomination-status?year=${year}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -90,7 +90,7 @@ export const DSANominationView = ({ navigation }) => {
 
     try {
       const response = await fetch(
-        `http://192.168.1.9:3002/downloadPDF/${selectedDept}/${sport}?year=${selectedYear}`, 
+        `http://10.4.36.23:3002/downloadPDF/${selectedDept}/${sport}?year=${selectedYear}`, 
         {
           headers: {
             Authorization: `Bearer ${token}`,

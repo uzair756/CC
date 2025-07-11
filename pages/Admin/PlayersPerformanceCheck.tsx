@@ -48,7 +48,7 @@ export const PlayersPerformanceCheck = () => {
     setLoading(true);
     try {
       const response = await fetch(
-        `http://192.168.1.9:3002/admin/players?sport=${selectedSport}&year=${selectedYear}`
+        `http://10.4.36.23:3002/admin/players?sport=${selectedSport}&year=${selectedYear}`
       );
       const data = await response.json();
 
@@ -70,41 +70,55 @@ export const PlayersPerformanceCheck = () => {
   };
 
   const prepareTableData = (playersList) => {
-    if (selectedSport === 'Cricket') {
-      setTableHead(['Name', 'Reg No', 'CNIC', 'Section', 'Runs', 'Balls', 'Wickets', 'Runs Con']);
-      const data = playersList.map(player => [
-        player.name,
-        player.regNo,
-        player.cnic,
-        player.section,
-        player.totalrunsScored?.toString() || '0',
-        player.totalballsfaced?.toString() || '0',
-        player.totalwicketstaken?.toString() || '0',
-        player.totalrunsconceeded?.toString() || '0'
-      ]);
-      setTableData(data);
-    } else if (['Football', 'Futsal', 'Basketball'].includes(selectedSport)) {
-      setTableHead(['Name', 'Reg No', 'CNIC', 'Section', 'Shirt No', selectedSport === 'Basketball' ? 'Points' : 'Goals']);
-      const data = playersList.map(player => [
-        player.name,
-        player.regNo,
-        player.cnic,
-        player.section,
-        player.shirtNo,
-        (selectedSport === 'Basketball' ? player.totalpointsscored : player.totalgoalsscored)?.toString() || '0'
-      ]);
-      setTableData(data);
-    } else {
-      setTableHead([]);
-      setTableData([]);
-    }
-  };
+  if (selectedSport === 'Cricket') {
+    setTableHead(['Name', 'Reg No', 'CNIC', 'Section', 'Runs', 'Balls', 'Wickets', 'Runs Con', 'Matches Played']);
+    const data = playersList.map(player => [
+      player.name,
+      player.regNo,
+      player.cnic,
+      player.section,
+      player.totalrunsScored?.toString() || '0',
+      player.totalballsfaced?.toString() || '0',
+      player.totalwicketstaken?.toString() || '0',
+      player.totalrunsconceeded?.toString() || '0',
+      player.matchesPlayed?.toString() || '0'
+    ]);
+    setTableData(data);
+  } else if (['Football', 'Futsal', 'Basketball', 'Tennis', 'Table Tennis (M)','Table Tennis (F)', 'Snooker', 'Badminton (M)','Badminton (F)'].includes(selectedSport)) {
+    setTableHead([
+      'Name',
+      'Reg No',
+      'CNIC',
+      'Section',
+      'Shirt No',
+      selectedSport === 'Basketball' || selectedSport === 'Tennis' || selectedSport === 'Table Tennis (M)' || selectedSport === 'Table Tennis (F)' || selectedSport === 'Snooker' || selectedSport === 'Badminton (M)' || selectedSport === 'Badminton (F)' ? 'Points' : 'Goals',
+      'Matches Played'
+    ]);
+    const data = playersList.map(player => [
+      player.name,
+      player.regNo,
+      player.cnic,
+      player.section,
+      player.shirtNo,
+      (selectedSport === 'Basketball' || selectedSport === 'Tennis' || selectedSport === 'Table Tennis (M)' || selectedSport === 'Table Tennis (F)' || selectedSport === 'Snooker' || selectedSport === 'Badminton (M)' || selectedSport === 'Badminton (F)'
+        ? player.totalpointsscored
+        : player.totalgoalsscored
+      )?.toString() || '0',
+      player.matchesPlayed?.toString() || '0'
+    ]);
+    setTableData(data);
+  } else {
+    setTableHead([]);
+    setTableData([]);
+  }
+};
+
 
   const generatePDF = async () => {
     setLoading(true);
     try {
       const response = await fetch(
-        `http://192.168.1.9:3002/admin/players/pdf?sport=${selectedSport}&year=${selectedYear}`
+        `http://10.4.36.23:3002/admin/players/pdf?sport=${selectedSport}&year=${selectedYear}`
       );
       if (!response.ok) throw new Error('Failed to download PDF');
 

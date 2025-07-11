@@ -60,7 +60,7 @@ export const DSAScheduleManagement = () => {
     try {
       const token = await AsyncStorage.getItem('token');
       const response = await fetch(
-        `http://192.168.1.9:3002/dsa/schedules?sport=${selectedSport}&year=${selectedYear}`,
+        `http://10.4.36.23:3002/dsa/schedules?sport=${selectedSport}&year=${selectedYear}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -103,7 +103,7 @@ export const DSAScheduleManagement = () => {
     try {
       const token = await AsyncStorage.getItem('token');
       const response = await fetch(
-        `http://192.168.1.9:3002/dsa/schedules/${selectedMatch._id}`,
+        `http://10.4.36.23:3002/dsa/schedules/${selectedMatch._id}`,
         {
           method: 'PUT',
           headers: {

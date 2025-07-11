@@ -53,7 +53,7 @@ export const RefLogin = ({ navigation }) => {
     setLoading(true);
 
     try {
-      const response = await fetch(`http://192.168.1.9:3002/reflogin`, {
+      const response = await fetch(`http://10.4.36.23:3002/reflogin`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),

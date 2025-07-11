@@ -75,7 +75,7 @@ const validateUsername = (username) => {
   useEffect(() => {
   const fetchDepartments = async () => {
     try {
-      const response = await fetch('http://192.168.1.9:3002/departments');
+      const response = await fetch('http://10.4.36.23:3002/departments');
       const data = await response.json();
       if (data.success) {
         setDepartments(data.departments);
@@ -97,7 +97,7 @@ const validateUsername = (username) => {
       try {
         setRefreshing(true);
         const token = await AsyncStorage.getItem('token');
-        const response = await fetch('http://192.168.1.9:3002/coachlandingpage', {
+        const response = await fetch('http://10.4.36.23:3002/coachlandingpage', {
           method: 'GET',
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -176,7 +176,7 @@ const validateUsername = (username) => {
     }
   
     try {
-      const response = await fetch('http://192.168.1.9:3002/addcoordinator', {
+      const response = await fetch('http://10.4.36.23:3002/addcoordinator', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -269,7 +269,7 @@ const validateUsername = (username) => {
   
     try {
       const token = await AsyncStorage.getItem('token');
-      const response = await fetch('http://192.168.1.9:3002/addref', {
+      const response = await fetch('http://10.4.36.23:3002/addref', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -320,7 +320,7 @@ const validateUsername = (username) => {
 
     try {
       const token = await AsyncStorage.getItem('token');
-      const response = await fetch(`http://192.168.1.9:3002/getrules/${sport.toLowerCase()}`, {
+      const response = await fetch(`http://10.4.36.23:3002/getrules/${sport.toLowerCase()}`, {
         method: 'GET',
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -349,7 +349,7 @@ const validateUsername = (username) => {
         return;
       }
 
-      const response = await fetch(`http://192.168.1.9:3002/updaterules/${selectedSport.toLowerCase()}`, {
+      const response = await fetch(`http://10.4.36.23:3002/updaterules/${selectedSport.toLowerCase()}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -420,7 +420,7 @@ const validateUsername = (username) => {
   
     try {
       const token = await AsyncStorage.getItem('token');
-      const response = await fetch('http://192.168.1.9:3002/changepasswordcoach', {
+      const response = await fetch('http://10.4.36.23:3002/changepasswordcoach', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

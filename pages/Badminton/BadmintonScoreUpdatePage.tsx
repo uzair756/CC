@@ -152,7 +152,7 @@ export const BadmintonScoreUpdatePage = ({ route,navigation }) => {
           return;
         }
 
-        const response = await fetch(`http://192.168.1.9:3002/match/${match.sport}/${match._id}`, {
+        const response = await fetch(`http://10.4.36.23:3002/match/${match.sport}/${match._id}`, {
           method: 'GET',
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -230,7 +230,7 @@ export const BadmintonScoreUpdatePage = ({ route,navigation }) => {
         return;
       }
 
-      const response = await fetch('http://192.168.1.9:3002/swapPlayersbadminton', {
+      const response = await fetch('http://10.4.36.23:3002/swapPlayersbadminton', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({
@@ -267,7 +267,7 @@ export const BadmintonScoreUpdatePage = ({ route,navigation }) => {
         return;
       }
   
-      const response = await fetch('http://192.168.1.9:3002/startmatchbadminton', {
+      const response = await fetch('http://10.4.36.23:3002/startmatchbadminton', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ matchId }),
@@ -296,7 +296,7 @@ export const BadmintonScoreUpdatePage = ({ route,navigation }) => {
         return;
       }
   
-      const response = await fetch('http://192.168.1.9:3002/stopmatchbadminton', {
+      const response = await fetch('http://10.4.36.23:3002/stopmatchbadminton', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ matchId }),
@@ -344,7 +344,7 @@ export const BadmintonScoreUpdatePage = ({ route,navigation }) => {
         return;
       }
   
-      const response = await fetch('http://192.168.1.9:3002/updateGoalbadminton', {
+      const response = await fetch('http://10.4.36.23:3002/updateGoalbadminton', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -384,7 +384,7 @@ export const BadmintonScoreUpdatePage = ({ route,navigation }) => {
 
         const nextQuarter = currentQuarter + 1;
 
-        const response = await fetch('http://192.168.1.9:3002/updateHalfbadminton', {
+        const response = await fetch('http://10.4.36.23:3002/updateHalfbadminton', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
             body: JSON.stringify({ matchId: matchDetails._id, quarter: nextQuarter }),
@@ -417,7 +417,7 @@ const handleEnd3rdQuarter = async () => {
           return;
       }
 
-      const response = await fetch('http://192.168.1.9:3002/updateHalf3rdbadminton', {
+      const response = await fetch('http://10.4.36.23:3002/updateHalf3rdbadminton', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
           body: JSON.stringify({ matchId: matchDetails._id, quarter: 3 }) // Ensure quarter 4 is correctly passed

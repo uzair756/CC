@@ -1,28 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  View, Text, Alert, StyleSheet, TouchableOpacity, FlatList, Modal, 
-  TextInput, ScrollView, SafeAreaView, RefreshControl, ActivityIndicator 
+  View, Text, Alert, StyleSheet, TouchableOpacity, FlatList, 
+  ActivityIndicator, ScrollView, SafeAreaView, RefreshControl 
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Picker } from '@react-native-picker/picker';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 export const RefLandingPage = ({ navigation }) => {
   const [user, setUser] = useState(null);
   const [matches, setMatches] = useState([]);
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [team1, setTeam1] = useState('');
-  const [team2, setTeam2] = useState('');
-  const [pool, setPool] = useState('');
-  const [year, setYear] = useState(new Date().getFullYear());
+  const [canCreateFinal, setCanCreateFinal] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [year] = useState(new Date().getFullYear());
 
   const fetchProfileAndMatches = async () => {
     try {
       setLoading(true);
       const token = await AsyncStorage.getItem('token');
-      const response = await fetch('http://192.168.1.9:3002/reflandingpage', {
+      const response = await fetch('http://10.4.36.23:3002/reflandingpage', {
         method: 'GET',
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -30,6 +27,7 @@ export const RefLandingPage = ({ navigation }) => {
       if (data.success) {
         setUser(data.user);
         await fetchMatches(data.user.sportscategory);
+        checkExistingSemis(data.user.sportscategory);
       } else {
         Alert.alert('Error', 'User not authenticated');
       }
@@ -44,7 +42,7 @@ export const RefLandingPage = ({ navigation }) => {
   const fetchMatches = async (sportCategory) => {
     try {
       const token = await AsyncStorage.getItem('token');
-      const response = await fetch(`http://192.168.1.9:3002/refmatches`, {
+      const response = await fetch(`http://10.4.36.23:3002/refmatches`, {
         method: 'GET',
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -58,6 +56,28 @@ export const RefLandingPage = ({ navigation }) => {
     } catch (error) {
       console.error('Error fetching matches:', error);
       Alert.alert('Error', 'An error occurred while fetching matches.');
+    }
+  };
+
+  const checkExistingSemis = async (sportCategory) => {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      const response = await fetch(`http://10.4.36.23:3002/check-semifinals`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ 
+          sport: sportCategory,
+          year 
+        }),
+      });
+      const data = await response.json();
+      setCanCreateFinal(data.canCreateFinal);
+    } catch (error) {
+      // console.error('Error checking semi-finals:', error);
+      return;
     }
   };
 
@@ -79,49 +99,66 @@ export const RefLandingPage = ({ navigation }) => {
     navigation.navigate('RefSelectedPlayerPage', { match });
   };
 
-  const handleCreateMatch = async () => {
-    if (!team1 || !team2 || !pool) {
-      Alert.alert('Error', 'Please fill all fields');
-      return;
-    }
-  
+  const handleCreateSemiFinals = async () => {
     try {
+      setIsCreating(true);
       const token = await AsyncStorage.getItem('token');
-      const response = await fetch('http://192.168.1.9:3002/createSemiFinalMatch', {
+      const response = await fetch('http://10.4.36.23:3002/create-semi-finals', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          team1,
-          team2,
-          pool,
-          year,
-          sportscategory: user?.sportscategory
+        body: JSON.stringify({ 
+          sport: user?.sportscategory,
+          year
         }),
       });
-  
+
       const data = await response.json();
-  
       if (data.success) {
-        Alert.alert('Success', 'Match created successfully');
-        setIsModalVisible(false);
+        Alert.alert('Success', 'Semi-finals created successfully with nominations!');
+        setCanCreateFinal(true);
         fetchMatches(user?.sportscategory);
       } else {
-        if (data.message === "Final match already exists for this sport and year.") {
-          Alert.alert('Error', 'A final match is already present for this year and sport.');
-        } else if (data.message === "Maximum of 2 semi-final matches already exist for this sport and year.") {
-          Alert.alert('Error', 'Two semi-final matches already exist for this year and sport.');
-        } else if (data.message === "This semi-final match already exists.") {
-          Alert.alert('Error', 'This semi-final match has already been created.');
-        } else {
-          Alert.alert('Error', data.message || 'Failed to create match');
-        }
+        Alert.alert('Error', data.message || 'Failed to create semi-finals');
       }
     } catch (error) {
-      console.error('Error creating match:', error);
-      Alert.alert('Error', 'An error occurred while creating match');
+      Alert.alert('Error', 'An error occurred while creating semi-finals');
+      console.error(error);
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  const handleCreateFinal = async () => {
+    try {
+      setIsCreating(true);
+      const token = await AsyncStorage.getItem('token');
+      const response = await fetch('http://10.4.36.23:3002/create-final', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ 
+          sport: user?.sportscategory,
+          year
+        }),
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        Alert.alert('Success', 'Final match created successfully with nominations!');
+        fetchMatches(user?.sportscategory);
+      } else {
+        Alert.alert('Error', data.message || 'Failed to create final match');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'An error occurred while creating final match');
+      console.error(error);
+    } finally {
+      setIsCreating(false);
     }
   };
 
@@ -153,7 +190,7 @@ export const RefLandingPage = ({ navigation }) => {
               Welcome, Ref {user?.username || 'Referee'}!
             </Text>
             <Text style={styles.sportText}>
-              {user?.sportscategory || 'N/A'}
+              {user?.sportscategory || 'N/A'} - {year}
             </Text>
           </View>
         </View>
@@ -161,10 +198,35 @@ export const RefLandingPage = ({ navigation }) => {
         {/* Action Buttons */}
         <View style={styles.buttonContainer}>
           <TouchableOpacity 
-            style={[styles.actionButton, styles.createButton]}
-            onPress={() => setIsModalVisible(true)}
+            style={[
+              styles.actionButton, 
+              styles.createButton,
+              isCreating && styles.disabledButton
+            ]}
+            onPress={handleCreateSemiFinals}
+            disabled={isCreating}
           >
-            <Text style={styles.actionButtonText}>Create Semi or Final Match</Text>
+            {isCreating ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.actionButtonText}>Create Semi-Finals</Text>
+            )}
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={[
+              styles.actionButton, 
+              styles.finalButton,
+              (!canCreateFinal || isCreating) && styles.disabledButton
+            ]}
+            onPress={handleCreateFinal}
+            // disabled={!canCreateFinal || isCreating}
+          >
+            {isCreating ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.actionButtonText}>Create Final</Text>
+            )}
           </TouchableOpacity>
 
           <TouchableOpacity 
@@ -210,24 +272,18 @@ export const RefLandingPage = ({ navigation }) => {
                   
                   <View style={styles.matchDetails}>
                     <View style={styles.matchDetailRow}>
+                      <Icon name="whistle" size={16} color="#555" />
                       <Text style={styles.matchDetailText}>
                         {item.pool === 'semi'
                           ? 'Semi-Final'
                           : item.pool === 'final'
                           ? 'Final'
-                          : item.pool === 'Pool A'
-                          ? 'Pool A'
-                          : item.pool === 'Pool B'
-                          ? 'Pool B'
-                          : item.pool === 'quarter'
-                          ? 'Quarter-Final'
-                          : item.pool === 'league'
-                          ? 'League Match'
                           : item.pool}
                       </Text>
                     </View>
                     
                     <View style={styles.matchDetailRow}>
+                      <Icon name="calendar" size={16} color="#555" />
                       <Text style={styles.matchDetailText}>{item.year}</Text>
                     </View>
                   </View>
@@ -238,97 +294,14 @@ export const RefLandingPage = ({ navigation }) => {
             <View style={styles.emptyState}>
               <Icon name="whistle-outline" size={40} color="#ccc" />
               <Text style={styles.emptyStateText}>No matches scheduled yet</Text>
-              <Text style={styles.emptyStateSubText}>Create a new match to get started</Text>
+              <Text style={styles.emptyStateSubText}>
+                {canCreateFinal 
+                  ? 'Create semi-finals or final to get started'
+                  : 'Create semi-finals to get started'}
+              </Text>
             </View>
           )}
         </View>
-
-        {/* Create Match Modal */}
-        <Modal visible={isModalVisible} transparent animationType="slide">
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalContainer}>
-              <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>Create New Match</Text>
-              </View>
-
-              <View style={styles.pickerContainer}>
-                <Picker
-                  selectedValue={team1}
-                  style={styles.picker}
-                  dropdownIconColor="#3a7bd5"
-                  onValueChange={(value) => setTeam1(value)}
-                >
-                  <Picker.Item label="Select Team 1" value="" />
-                  <Picker.Item label="CS" value="CS" />
-                  <Picker.Item label="AE" value="AE" />
-                  <Picker.Item label="AVE" value="AVE" />
-                  <Picker.Item label="ME" value="ME" />
-                  <Picker.Item label="SS" value="SS" />
-                  <Picker.Item label="MATH" value="MATH" />
-                  <Picker.Item label="EE" value="EE" />
-                  <Picker.Item label="MSE" value="MSE" />
-                </Picker>
-              </View>
-
-              <View style={styles.pickerContainer}>
-                <Picker
-                  selectedValue={team2}
-                  style={styles.picker}
-                  dropdownIconColor="#3a7bd5"
-                  onValueChange={(value) => setTeam2(value)}
-                >
-                  <Picker.Item label="Select Team 2" value="" />
-                  <Picker.Item label="CS" value="CS" />
-                  <Picker.Item label="AE" value="AE" />
-                  <Picker.Item label="AVE" value="AVE" />
-                  <Picker.Item label="ME" value="ME" />
-                  <Picker.Item label="SS" value="SS" />
-                  <Picker.Item label="MATH" value="MATH" />
-                  <Picker.Item label="EE" value="EE" />
-                  <Picker.Item label="MSE" value="MSE" />
-                </Picker>
-              </View>
-
-              <View style={styles.pickerContainer}>
-                <Picker
-                  selectedValue={pool}
-                  style={styles.picker}
-                  dropdownIconColor="#3a7bd5"
-                  onValueChange={(value) => setPool(value)}
-                >
-                  <Picker.Item label="Select Match Type" value="" />
-                  <Picker.Item label="Semi-Final" value="semi" />
-                  <Picker.Item label="Final" value="final" />
-                </Picker>
-              </View>
-
-              <View style={styles.inputContainer}>
-                <TextInput
-                  style={styles.modalInput}
-                  value={year.toString()}
-                  editable={false}
-                  placeholder="Year"
-                />
-              </View>
-
-              <View style={styles.modalButtonContainer}>
-                <TouchableOpacity 
-                  style={[styles.modalButton, styles.cancelButton]}
-                  onPress={() => setIsModalVisible(false)}
-                >
-                  <Text style={styles.modalButtonText}>Cancel</Text>
-                </TouchableOpacity>
-                
-                <TouchableOpacity 
-                  style={[styles.modalButton, styles.submitButton]}
-                  onPress={handleCreateMatch}
-                >
-                  <Text style={styles.modalButtonText}>Create Match</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-        </Modal>
       </ScrollView>
     </SafeAreaView>
   );
@@ -338,7 +311,6 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: '#f5f7fa',
-    marginTop: 10
   },
   loadingContainer: {
     flex: 1,
@@ -377,6 +349,46 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: 'rgba(255,255,255,0.9)',
     textAlign: 'center',
+  },
+  buttonContainer: {
+    flexDirection: 'column',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    marginBottom: 25,
+    marginTop: 10,
+  },
+  actionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    width: '100%',
+    marginBottom: 10,
+  },
+  createButton: {
+    backgroundColor: '#4CAF50',
+  },
+  finalButton: {
+    backgroundColor: '#9b59b6',
+  },
+  logoutButton: {
+    backgroundColor: '#e74c3c',
+  },
+  disabledButton: {
+    opacity: 0.6,
+  },
+  actionButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
+    marginLeft: 8,
   },
   sectionContainer: {
     paddingHorizontal: 20,
@@ -479,115 +491,6 @@ const styles = StyleSheet.create({
     color: '#999',
     fontSize: 14,
     textAlign: 'center',
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalContainer: {
-    backgroundColor: '#fff',
-    borderRadius: 15,
-    padding: 25,
-    width: '90%',
-    maxWidth: 400,
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 25,
-  },
-  modalTitle: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#3a7bd5',
-    marginRight: 10,
-  },
-  pickerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderBottomWidth: 1,
-    borderBottomColor: '#3a7bd5',
-    marginBottom: 20,
-  },
-  picker: {
-    flex: 1,
-    height: 50,
-    color: '#333',
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderBottomWidth: 1,
-    borderBottomColor: '#3a7bd5',
-    marginBottom: 20,
-    paddingVertical: 5,
-  },
-  modalInput: {
-    flex: 1,
-    fontSize: 16,
-    color: '#333',
-    paddingVertical: 8,
-  },
-  modalButtonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 20,
-  },
-  modalButton: {
-    padding: 15,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minWidth: '48%',
-    elevation: 3,
-  },
-  cancelButton: {
-    backgroundColor: '#e74c3c',
-  },
-  submitButton: {
-    backgroundColor: '#4CAF50',
-  },
-  modalButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-  buttonContainer: {
-    flexDirection: 'column',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    marginBottom: 25,
-    marginTop: 10,
-  },
-  actionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 5,
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    width: '100%',
-    marginBottom: 10,
-  },
-  createButton: {
-    backgroundColor: '#4CAF50',
-  },
-  logoutButton: {
-    backgroundColor: '#e74c3c',
-  },
-  actionButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 16,
-    marginLeft: 8,
   },
 });
 

@@ -62,7 +62,7 @@ export const CaptainsAccountCreate = () => {
     
     try {
       const token = await AsyncStorage.getItem('token');
-      const response = await fetch('http://192.168.1.9:3002/captainsignup', {
+      const response = await fetch('http://10.4.36.23:3002/captainsignup', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

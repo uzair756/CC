@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import axios from 'axios';
 // import { API_BASE_URL } from '../config';
-const API_BASE_URL = 'http://192.168.1.9:3002';
+const API_BASE_URL = 'http://10.4.36.23:3002';
 
 export const CricketMatchDetailScreen = ({route}) => {
   const {matchId} = route.params;

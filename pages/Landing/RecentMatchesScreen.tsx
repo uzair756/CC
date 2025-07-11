@@ -42,7 +42,7 @@ export const RecentMatchesScreen = () => {
       setLoading(true);
       try {
         const response = await fetch(
-          `http://192.168.1.9:3002/recentmatches?sportCategory=${selectedSport}`,
+          `http://10.4.36.23:3002/recentmatches?sportCategory=${selectedSport}`,
         );
         const data = await response.json();
 
@@ -65,11 +65,25 @@ export const RecentMatchesScreen = () => {
     }
     
     if (Array.isArray(score)) {
-      // Format array scores with spaces between values
-      return score.map(val => val || 0).join('  -  ');
+      return score.map(val => val || 0).join('-');
     }
     
     return score || 0;
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
+  };
+
+  const formatTime = (timeString) => {
+    if (!timeString) return 'N/A';
+    return timeString; // You could format this further if needed
   };
 
   const renderMatchItem = ({item}) => {
@@ -92,9 +106,12 @@ export const RecentMatchesScreen = () => {
         }}
         activeOpacity={isCricket ? 0.9 : 1}>
         
-        {/* Match Header */}
+        {/* Match Header with Year and Pool */}
         <View style={styles.matchHeader}>
-          <Text style={styles.poolText}>{item.pool}</Text>
+          <View>
+            <Text style={styles.poolText}>{item.pool || 'N/A'}</Text>
+            <Text style={styles.yearText}>{item.year || 'N/A'}</Text>
+          </View>
           <View style={[
             styles.resultBadge,
             item.result ? styles.completedBadge : styles.liveBadge
@@ -102,6 +119,22 @@ export const RecentMatchesScreen = () => {
             <Text style={styles.resultText}>
               {item.result ? 'Completed' : 'Live'}
             </Text>
+          </View>
+        </View>
+
+        {/* Match Details */}
+        <View style={styles.detailsContainer}>
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>Date:</Text>
+            <Text style={styles.detailValue}>{formatDate(item.matchDate)}</Text>
+          </View>
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>Time:</Text>
+            <Text style={styles.detailValue}>{formatTime(item.matchTime)}</Text>
+          </View>
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>Venue:</Text>
+            <Text style={styles.detailValue}>{item.venue || 'N/A'}</Text>
           </View>
         </View>
 
@@ -136,7 +169,7 @@ export const RecentMatchesScreen = () => {
           </View>
         </View>
 
-        {/* Quarter Indicator */}
+        {/* Quarter/Set Indicator */}
         {isQuarterSport && item.quarter > 0 && (
           <View style={styles.quarterContainer}>
             <Text style={styles.quarterText}>
@@ -160,7 +193,7 @@ export const RecentMatchesScreen = () => {
 
   return (
     <View style={styles.container}>
-      {/* Categories */}
+      {/* Sports Categories */}
       <View style={styles.categoryWrapper}>
         <ScrollView
           horizontal
@@ -318,6 +351,11 @@ const styles = StyleSheet.create({
     color: '#64748B',
     textTransform: 'uppercase',
   },
+  yearText: {
+    fontSize: 12,
+    color: '#94A3B8',
+    marginTop: 2,
+  },
   resultBadge: {
     paddingHorizontal: 10,
     paddingVertical: 4,
@@ -333,11 +371,26 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
   },
-  completedText: {
-    color: '#065F46',
+  detailsContainer: {
+    marginBottom: 12,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
   },
-  liveText: {
-    color: '#DC2626',
+  detailRow: {
+    flexDirection: 'row',
+    marginBottom: 4,
+  },
+  detailLabel: {
+    fontSize: 12,
+    color: '#64748B',
+    width: 60,
+  },
+  detailValue: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#334155',
+    flex: 1,
   },
   teamsContainer: {
     flexDirection: 'row',

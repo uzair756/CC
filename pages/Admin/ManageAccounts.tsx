@@ -24,7 +24,7 @@ export const ManageAccounts = () => {
   const fetchAllUsers = async () => {
     setLoading(true);
     try {
-      const res = await fetch('http://192.168.1.9:3002/dsa/allusers');
+      const res = await fetch('http://10.4.36.23:3002/dsa/allusers');
       const data = await res.json();
       if (data.success) {
         // Group by role
@@ -58,7 +58,7 @@ export const ManageAccounts = () => {
           onPress: async () => {
             try {
               const res = await fetch(
-                `http://192.168.1.9:3002/dsa/deleteuser/${role}/${id}`,
+                `http://10.4.36.23:3002/dsa/deleteuser/${role}/${id}`,
                 { method: 'DELETE' }
               );
               const data = await res.json();

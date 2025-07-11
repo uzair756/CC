@@ -48,7 +48,7 @@ export const CricketSuperOver = ({navigation}) => {
       try {
         const token = await AsyncStorage.getItem('token');
         const response = await fetch(
-          `http://192.168.1.9:3002/match/${match.sport}/${match._id}`,
+          `http://10.4.36.23:3002/match/${match.sport}/${match._id}`,
           {
             headers: {Authorization: `Bearer ${token}`},
           },
@@ -116,7 +116,7 @@ export const CricketSuperOver = ({navigation}) => {
 
     try {
       const token = await AsyncStorage.getItem('token');
-      const response = await fetch('http://192.168.1.9:3002/startSuperOver', {
+      const response = await fetch('http://10.4.36.23:3002/startSuperOver', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -193,7 +193,7 @@ export const CricketSuperOver = ({navigation}) => {
     try {
       const token = await AsyncStorage.getItem('token');
       const response = await fetch(
-        'http://192.168.1.9:3002/updateSuperOverScore',
+        'http://10.4.36.23:3002/updateSuperOverScore',
         {
           method: 'POST',
           headers: {
@@ -251,7 +251,7 @@ export const CricketSuperOver = ({navigation}) => {
     try {
       const token = await AsyncStorage.getItem('token');
       const response = await fetch(
-        'http://192.168.1.9:3002/prepareSuperOverSecondInning',
+        'http://10.4.36.23:3002/prepareSuperOverSecondInning',
         {
           method: 'POST',
           headers: {
@@ -334,7 +334,7 @@ export const CricketSuperOver = ({navigation}) => {
     try {
       const token = await AsyncStorage.getItem('token');
       const response = await fetch(
-        'http://192.168.1.9:3002/updateSuperOverWicket',
+        'http://10.4.36.23:3002/updateSuperOverWicket',
         {
           method: 'POST',
           headers: {
@@ -441,7 +441,7 @@ export const CricketSuperOver = ({navigation}) => {
   const updateMatchResult = async winner => {
     try {
       const token = await AsyncStorage.getItem('token');
-      await fetch('http://192.168.1.9:3002/completeSuperOver', {
+      await fetch('http://10.4.36.23:3002/completeSuperOver', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -488,7 +488,7 @@ export const CricketSuperOver = ({navigation}) => {
     try {
       const token = await AsyncStorage.getItem('token');
       const response = await fetch(
-        'http://192.168.1.9:3002/updateSuperOverByes',
+        'http://10.4.36.23:3002/updateSuperOverByes',
         {
           method: 'POST',
           headers: {
@@ -559,7 +559,7 @@ export const CricketSuperOver = ({navigation}) => {
     try {
       const token = await AsyncStorage.getItem('token');
       const response = await fetch(
-        'http://192.168.1.9:3002/updateSuperOverExtras',
+        'http://10.4.36.23:3002/updateSuperOverExtras',
         {
           method: 'POST',
           headers: {

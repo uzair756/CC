@@ -42,7 +42,7 @@ export const UpcomingMatchesScreen = () => {
       setLoading(true);
       try {
         const response = await fetch(
-          `http://192.168.1.9:3002/upcomingmatches?sportCategory=${selectedSport}`,
+          `http://10.4.36.23:3002/upcomingmatches?sportCategory=${selectedSport}`,
         );
         const data = await response.json();
 
@@ -63,8 +63,8 @@ export const UpcomingMatchesScreen = () => {
     switch(selectedSport) {
       case 'Cricket':
         return {
-          team1Score: `${item.scoreT1}/${item.T1wickets}`,
-          team2Score: `${item.scoreT2}/${item.T2wickets}`
+          team1Score: `${item.scoreT1 || 0}/${item.T1wickets || 0}`,
+          team2Score: `${item.scoreT2 || 0}/${item.T2wickets || 0}`
         };
       case 'Tennis':
       case 'Volleyball':
@@ -104,6 +104,16 @@ export const UpcomingMatchesScreen = () => {
     }
   };
 
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
+  };
+
   const renderMatchItem = ({item}) => {
     const scores = renderScoreForSport(item);
     
@@ -116,12 +126,15 @@ export const UpcomingMatchesScreen = () => {
               matchId: item._id,
             });
           }
-          // No navigation for other sports
         }}
         activeOpacity={selectedSport === 'Cricket' ? 0.9 : 1}>
-        {/* Match Header */}
+        
+        {/* Match Header with Year and Pool */}
         <View style={styles.matchHeader}>
-          <Text style={styles.poolText}>{item.pool}</Text>
+          <View>
+            <Text style={styles.poolText}>{item.pool || 'N/A'}</Text>
+            <Text style={styles.yearText}>{item.year || 'N/A'}</Text>
+          </View>
           <View style={[
             styles.resultBadge,
             item.result ? styles.completedBadge : styles.liveBadge
@@ -131,7 +144,23 @@ export const UpcomingMatchesScreen = () => {
             </Text>
           </View>
         </View>
-  
+
+        {/* Match Details */}
+        <View style={styles.detailsContainer}>
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>Date:</Text>
+            <Text style={styles.detailValue}>{formatDate(item.matchDate)}</Text>
+          </View>
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>Time:</Text>
+            <Text style={styles.detailValue}>{item.matchTime || 'N/A'}</Text>
+          </View>
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>Venue:</Text>
+            <Text style={styles.detailValue}>{item.venue || 'N/A'}</Text>
+          </View>
+        </View>
+
         {/* Teams and Score */}
         <View style={styles.teamsContainer}>
           <View style={styles.teamColumn}>
@@ -142,11 +171,11 @@ export const UpcomingMatchesScreen = () => {
               {scores.team1Score}
             </Text>
           </View>
-  
+
           <View style={styles.vsContainer}>
             <Text style={styles.vsText}>vs</Text>
           </View>
-  
+
           <View style={styles.teamColumn}>
             <Text style={styles.teamName} numberOfLines={1}>
               {item.team2}
@@ -156,20 +185,33 @@ export const UpcomingMatchesScreen = () => {
             </Text>
           </View>
         </View>
-  
+
+        {/* Quarter/Set Indicator */}
+        {['Tennis', 'Volleyball', 'Table Tennis (M)', 'Table Tennis (F)', 
+          'Basketball', 'Snooker', 'Tug of War (M)', 'Tug of War (F)',
+          'Badminton (M)', 'Badminton (F)'].includes(selectedSport) && item.quarter > 0 && (
+          <View style={styles.quarterContainer}>
+            <Text style={styles.quarterText}>
+              {selectedSport === 'Basketball' || selectedSport === 'Snooker' 
+                ? `Quarter ${item.quarter}`
+                : `Set ${item.quarter}`}
+            </Text>
+          </View>
+        )}
+
         {/* Winner Display */}
         <View style={styles.winnerContainer}>
           <Text style={styles.winnerTeam}>
-            {item.result || 'Result not announced yet'}
+            {item.result || 'Match not started yet'}
           </Text>
         </View>
       </TouchableOpacity>
     );
   };
-  
+
   return (
     <View style={styles.container}>
-      {/* Categories */}
+      {/* Sports Categories */}
       <View style={styles.categoryWrapper}>
         <ScrollView
           horizontal
@@ -200,7 +242,7 @@ export const UpcomingMatchesScreen = () => {
           ))}
         </ScrollView>
       </View>
-  
+
       {/* Matches List */}
       <View style={styles.matchesList}>
         {loading && matches.length === 0 ? (
@@ -211,7 +253,7 @@ export const UpcomingMatchesScreen = () => {
           <View style={styles.emptyContainer}>
             <Image
               // source={require('../../assets/no-matches.png')}
-              style={styles.emptyImage}
+              // style={styles.emptyImage}
             />
             <Text style={styles.emptyText}>No upcoming matches available</Text>
           </View>
@@ -327,6 +369,11 @@ const styles = StyleSheet.create({
     color: '#64748B',
     textTransform: 'uppercase',
   },
+  yearText: {
+    fontSize: 12,
+    color: '#94A3B8',
+    marginTop: 2,
+  },
   resultBadge: {
     paddingHorizontal: 10,
     paddingVertical: 4,
@@ -338,15 +385,33 @@ const styles = StyleSheet.create({
   liveBadge: {
     backgroundColor: '#FEE2E2',
   },
+  upcomingBadge: {
+    backgroundColor: '#DBEAFE',
+  },
   resultText: {
     fontSize: 12,
     fontWeight: '600',
   },
-  completedText: {
-    color: '#065F46',
+  detailsContainer: {
+    marginBottom: 12,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
   },
-  liveText: {
-    color: '#DC2626',
+  detailRow: {
+    flexDirection: 'row',
+    marginBottom: 4,
+  },
+  detailLabel: {
+    fontSize: 12,
+    color: '#64748B',
+    width: 60,
+  },
+  detailValue: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#334155',
+    flex: 1,
   },
   teamsContainer: {
     flexDirection: 'row',
@@ -377,6 +442,18 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#64748B',
+  },
+  quarterContainer: {
+    marginTop: 8,
+    paddingVertical: 4,
+    backgroundColor: '#EFF6FF',
+    borderRadius: 4,
+    alignItems: 'center',
+  },
+  quarterText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#3B82F6',
   },
   winnerContainer: {
     flexDirection: 'row',

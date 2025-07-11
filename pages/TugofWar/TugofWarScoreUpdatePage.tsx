@@ -151,7 +151,7 @@ export const TugofWarScoreUpdatePage = ({ route,navigation }) => {
           return;
         }
 
-        const response = await fetch(`http://192.168.1.9:3002/match/${match.sport}/${match._id}`, {
+        const response = await fetch(`http://10.4.36.23:3002/match/${match.sport}/${match._id}`, {
           method: 'GET',
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -229,7 +229,7 @@ export const TugofWarScoreUpdatePage = ({ route,navigation }) => {
         return;
       }
 
-      const response = await fetch('http://192.168.1.9:3002/swapPlayerstugofwar', {
+      const response = await fetch('http://10.4.36.23:3002/swapPlayerstugofwar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({
@@ -266,7 +266,7 @@ export const TugofWarScoreUpdatePage = ({ route,navigation }) => {
         return;
       }
   
-      const response = await fetch('http://192.168.1.9:3002/startmatchtugofwar', {
+      const response = await fetch('http://10.4.36.23:3002/startmatchtugofwar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ matchId }),
@@ -295,7 +295,7 @@ export const TugofWarScoreUpdatePage = ({ route,navigation }) => {
         return;
       }
   
-      const response = await fetch('http://192.168.1.9:3002/stopmatchtugofwar', {
+      const response = await fetch('http://10.4.36.23:3002/stopmatchtugofwar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ matchId }),
@@ -343,7 +343,7 @@ export const TugofWarScoreUpdatePage = ({ route,navigation }) => {
         return;
       }
   
-      const response = await fetch('http://192.168.1.9:3002/updateGoaltugofwar', {
+      const response = await fetch('http://10.4.36.23:3002/updateGoaltugofwar', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -383,7 +383,7 @@ export const TugofWarScoreUpdatePage = ({ route,navigation }) => {
 
         const nextQuarter = currentQuarter + 1;
 
-        const response = await fetch('http://192.168.1.9:3002/updateHalftugofwar', {
+        const response = await fetch('http://10.4.36.23:3002/updateHalftugofwar', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
             body: JSON.stringify({ matchId: matchDetails._id, quarter: nextQuarter }),
@@ -416,7 +416,7 @@ const handleEnd3rdQuarter = async () => {
           return;
       }
 
-      const response = await fetch('http://192.168.1.9:3002/updateHalf3rdtugofwar', {
+      const response = await fetch('http://10.4.36.23:3002/updateHalf3rdtugofwar', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
           body: JSON.stringify({ matchId: matchDetails._id, quarter: 3 }) // Ensure quarter 4 is correctly passed

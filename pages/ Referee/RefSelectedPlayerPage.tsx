@@ -39,7 +39,7 @@ export const RefSelectedPlayerPage = ({ route, navigation }) => {
           return;
         }
 
-        const response = await fetch(`http://192.168.1.9:3002/match/${match.sport}/${match._id}`, {
+        const response = await fetch(`http://10.4.36.23:3002/match/${match.sport}/${match._id}`, {
           method: 'GET',
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -142,7 +142,7 @@ export const RefSelectedPlayerPage = ({ route, navigation }) => {
 
     try {
       const token = await AsyncStorage.getItem('token');
-      const response = await fetch('http://192.168.1.9:3002/updatePlayerStatus', {
+      const response = await fetch('http://10.4.36.23:3002/updatePlayerStatus', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

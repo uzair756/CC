@@ -56,7 +56,7 @@ export const BestFutsalPlayerPage = ({ navigation }) => {
                 return;
             }
 
-            const response = await fetch("http://192.168.1.9:3002/bestfutsalplayer", {
+            const response = await fetch("http://10.4.36.23:3002/bestfutsalplayer", {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",

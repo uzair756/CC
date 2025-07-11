@@ -27,67 +27,65 @@ const sportsCategories = [
   { name: 'Badminton (F)', icon: require('../../assets/badminton.png') },
 ];
 
+const SPORT_TYPES = {
+  CRICKET: 'Cricket',
+  FOOTBALL: 'Football',
+  FUTSAL: 'Futsal',
+  BASKETBALL: 'Basketball',
+  TENNIS: 'Tennis',
+  SNOOKER: 'Snooker',
+  TABLE_TENNIS_MALE: 'Table Tennis (M)',
+  TABLE_TENNIS_FEMALE: 'Table Tennis (F)',
+  BADMINTON_MALE: 'Badminton (M)',
+  BADMINTON_FEMALE: 'Badminton (F)',
+  VOLLEYBALL: 'Volleyball',
+  TUG_OF_WAR_MALE: 'Tug of War (M)',
+  TUG_OF_WAR_FEMALE: 'Tug of War (F)',
+};
+
+const MULTI_PLAYER_SPORTS = [
+  SPORT_TYPES.BASKETBALL,
+  SPORT_TYPES.TENNIS,
+  SPORT_TYPES.SNOOKER,
+  SPORT_TYPES.TABLE_TENNIS_MALE,
+  SPORT_TYPES.TABLE_TENNIS_FEMALE,
+  SPORT_TYPES.BADMINTON_MALE,
+  SPORT_TYPES.BADMINTON_FEMALE
+];
+
 export const TopPerformersScreen = () => {
-  const [selectedSport, setSelectedSport] = useState('Football');
+  const [selectedSport, setSelectedSport] = useState(SPORT_TYPES.FOOTBALL);
   const [selectedYear, setSelectedYear] = useState('2025');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [topPerformer, setTopPerformer] = useState(null);
-  const [bestBatsman, setBestBatsman] = useState(null);
-  const [bestBowler, setBestBowler] = useState(null);
+  const [cricketData, setCricketData] = useState({ batsman: null, bowler: null });
+  const [singlePlayerData, setSinglePlayerData] = useState(null);
+  const [multiPlayerData, setMultiPlayerData] = useState([]);
+  const [requiresEvaluation, setRequiresEvaluation] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       setError(null);
-      setBestBatsman(null);
-      setBestBowler(null);
-      setTopPerformer(null);
+      setCricketData({ batsman: null, bowler: null });
+      setSinglePlayerData(null);
+      setMultiPlayerData([]);
+      setRequiresEvaluation(false);
 
       try {
-        if (selectedSport === "Cricket") {
-          const response = await fetch(`http://192.168.1.9:3002/bestcricketertp/${selectedYear}`);
-          const data = await response.json();
-
-          if (data.success) {
-            setBestBatsman(data.bestBatsman);
-            setBestBowler(data.bestBowler);
-          } else {
-            setError(data.message || 'No cricket data available');
-          }
+        const baseUrl = 'http://10.4.36.23:3002/';
+        
+        if (selectedSport === SPORT_TYPES.CRICKET) {
+          await fetchCricketData(baseUrl);
         } 
-        else if (selectedSport === "Football") {
-          const response = await fetch(`http://192.168.1.9:3002/bestfootballertp/${selectedYear}`);
-          const data = await response.json();
-
-          if (data.success) {
-            setTopPerformer(data.bestFootballer);
-          } else {
-            setError(data.message || 'No football data available');
-          }
+        else if (MULTI_PLAYER_SPORTS.includes(selectedSport)) {
+          await fetchMultiPlayerSportData(baseUrl);
         }
-        else if (selectedSport === "Basketball") {
-          const response = await fetch(`http://192.168.1.9:3002/bestbasketballplayertp/${selectedYear}`);
-          const data = await response.json();
-
-          if (data.success) {
-            setTopPerformer(data.bestFootballer);
-          } else {
-            setError(data.message || 'No basketball data available');
-          }
-        }
-        else if (selectedSport === "Futsal") {
-          const response = await fetch(`http://192.168.1.9:3002/bestfutsalplayertp/${selectedYear}`);
-          const data = await response.json();
-
-          if (data.success) {
-            setTopPerformer(data.bestFutsalPlayer);
-          } else {
-            setError(data.message || 'No futsal data available');
-          }
+        else if ([SPORT_TYPES.FOOTBALL, SPORT_TYPES.FUTSAL].includes(selectedSport)) {
+          await fetchSinglePlayerSportData(baseUrl);
         }
         else {
-          setTopPerformer("DSA will evaluate this sport manually");
+          setRequiresEvaluation(true);
         }
       } catch (err) {
         console.error('Fetch error:', err);
@@ -101,33 +99,213 @@ export const TopPerformersScreen = () => {
     fetchData();
   }, [selectedSport, selectedYear]);
 
+  const fetchCricketData = async (baseUrl) => {
+    const response = await fetch(`${baseUrl}bestcricketertp/${selectedYear}`);
+    const data = await response.json();
+
+    if (data.success) {
+      setCricketData({
+        batsman: formatPlayerData(data.bestBatsman, true),
+        bowler: formatPlayerData(data.bestBowler, false)
+      });
+    } else {
+      setError(data.message || 'No cricket data available');
+    }
+  };
+
+  const fetchSinglePlayerSportData = async (baseUrl) => {
+    let endpoint = '';
+    
+    if (selectedSport === SPORT_TYPES.FOOTBALL) {
+      endpoint = `bestfootballertp/${selectedYear}`;
+    } else if (selectedSport === SPORT_TYPES.FUTSAL) {
+      endpoint = `bestfutsalplayertp/${selectedYear}`;
+    }
+
+    const response = await fetch(`${baseUrl}${endpoint}`);
+    const data = await response.json();
+
+    if (data.success) {
+      const responseKey = Object.keys(data).find(key => 
+        key.toLowerCase().includes('best') || 
+        key.toLowerCase().includes('player') ||
+        key.toLowerCase().includes('footballer')
+      );
+
+      if (responseKey && data[responseKey]) {
+        setSinglePlayerData(formatPlayerData(data[responseKey]));
+      } else {
+        setError(`No ${selectedSport.toLowerCase()} data available`);
+      }
+    } else {
+      setError(data.message || `No ${selectedSport.toLowerCase()} data available`);
+    }
+  };
+
+  const fetchMultiPlayerSportData = async (baseUrl) => {
+    let endpoint = '';
+    
+    switch (selectedSport) {
+      case SPORT_TYPES.BASKETBALL:
+        endpoint = `bestbasketballplayertp/${selectedYear}`;
+        break;
+      case SPORT_TYPES.TENNIS:
+        endpoint = `besttennisplayertp/${selectedYear}`;
+        break;
+      case SPORT_TYPES.SNOOKER:
+        endpoint = `bestsnookerplayertp/${selectedYear}`;
+        break;
+      case SPORT_TYPES.TABLE_TENNIS_MALE:
+        endpoint = `besttabletennismaleplayertp/${selectedYear}`;
+        break;
+      case SPORT_TYPES.TABLE_TENNIS_FEMALE:
+        endpoint = `besttabletennisfemaleplayertp/${selectedYear}`;
+        break;
+      case SPORT_TYPES.BADMINTON_MALE:
+        endpoint = `bestbadmintonmaleplayertp/${selectedYear}`;
+        break;
+      case SPORT_TYPES.BADMINTON_FEMALE:
+        endpoint = `bestbadmintonfemaleplayertp/${selectedYear}`;
+        break;
+      default:
+        return;
+    }
+
+    const response = await fetch(`${baseUrl}${endpoint}`);
+    const data = await response.json();
+
+    if (data.success) {
+      if (data.topPlayers && Array.isArray(data.topPlayers)) {
+        const players = data.topPlayers.map((player, index) => ({
+          ...formatPlayerData(player),
+          rank: index + 1
+        }));
+        setMultiPlayerData(players);
+      } else {
+        setError(`No ${selectedSport.toLowerCase()} players found`);
+      }
+    } else {
+      setError(data.message || `No ${selectedSport.toLowerCase()} data available`);
+    }
+  };
+
+  const formatPlayerData = (playerData, isBatsman = false) => {
+    if (!playerData) return null;
+    
+    const baseData = {
+      name: playerData.name || 'N/A',
+      shirtNo: playerData.shirtNo || 'N/A',
+      section: playerData.section || 'N/A',
+      matchesPlayed: playerData.matchesPlayed || 0
+    };
+
+    if (selectedSport === SPORT_TYPES.CRICKET) {
+      return {
+        ...baseData,
+        runs: isBatsman ? playerData.runs || 0 : undefined,
+        ballsFaced: isBatsman ? playerData.ballsfaced || 0 : undefined,
+        average: isBatsman ? playerData.average || 0 : undefined,
+        wickets: !isBatsman ? playerData.wickets || 0 : undefined,
+        ballsBowled: !isBatsman ? playerData.ballsbowled || 0 : undefined,
+        economy: !isBatsman ? playerData.economy || 0 : undefined
+      };
+    } else if ([SPORT_TYPES.FOOTBALL, SPORT_TYPES.FUTSAL].includes(selectedSport)) {
+      return {
+        ...baseData,
+        goals: playerData.goals || 0
+      };
+    } else {
+      return {
+        ...baseData,
+        points: playerData.points || playerData.totalpointsscored || 0
+      };
+    }
+  };
+
   const generateYears = () => {
     const currentYear = new Date().getFullYear();
     return Array.from({ length: 5 }, (_, i) => String(currentYear - i));
   };
 
-  const renderPerformerCard = (player, role, stats) => {
+  const renderPerformerCard = (player, role, index = 0) => {
     if (!player) return null;
     
+    const isCricket = selectedSport === SPORT_TYPES.CRICKET;
+    const isFootball = [SPORT_TYPES.FOOTBALL, SPORT_TYPES.FUTSAL].includes(selectedSport);
+    const isMultiPlayer = MULTI_PLAYER_SPORTS.includes(selectedSport);
+    
     return (
-      <View style={styles.performerCard}>
+      <View style={[styles.performerCard, index > 0 && styles.additionalPlayerCard]} key={`${role}-${index}`}>
         <View style={styles.performerHeader}>
-          <Image 
-            source={selectedSport === 'Football' ? require('../../assets/football.png') : 
-                    selectedSport === 'Futsal' ? require('../../assets/football.png') :
-                    selectedSport === 'Basketball' ? require('../../assets/basketball.png') : 
-                    require('../../assets/cricket.png')} 
-            style={styles.sportIcon} 
-          />
           <Text style={styles.performerRole}>{role}</Text>
+          {isMultiPlayer && index > 0 && (
+            <Text style={styles.rankBadge}>#{player.rank || index + 1}</Text>
+          )}
         </View>
+        
         <View style={styles.performerContent}>
-          <Image source={require('../../assets/user1.png')} style={styles.userIcon} />
+          <View style={styles.avatarPlaceholder}>
+            <Text style={styles.avatarInitial}>
+              {player.name ? player.name.charAt(0).toUpperCase() : '?'}
+            </Text>
+          </View>
+          
           <View style={styles.performerDetails}>
             <Text style={styles.performerName}>{player.name}</Text>
-            {stats.map((stat, index) => (
-              <Text key={index} style={styles.performerStat}>{stat}</Text>
-            ))}
+            
+            <View style={styles.statsContainer}>
+              <View style={styles.statRow}>
+                <Text style={styles.statLabel}>Shirt No:</Text>
+                <Text style={styles.statValue}>{player.shirtNo}</Text>
+              </View>
+              
+              <View style={styles.statRow}>
+                <Text style={styles.statLabel}>Section:</Text>
+                <Text style={styles.statValue}>{player.section}</Text>
+              </View>
+              
+              {isCricket ? (
+                <>
+                  {role === "Best Batsman" ? (
+                    <>
+                      <View style={styles.statRow}>
+                        <Text style={styles.statLabel}>Runs:</Text>
+                        <Text style={styles.statValue}>{player.runs}</Text>
+                      </View>
+                      <View style={styles.statRow}>
+                        <Text style={styles.statLabel}>Average:</Text>
+                        <Text style={styles.statValue}>{player.average?.toFixed(2)}</Text>
+                      </View>
+                    </>
+                  ) : (
+                    <>
+                      <View style={styles.statRow}>
+                        <Text style={styles.statLabel}>Wickets:</Text>
+                        <Text style={styles.statValue}>{player.wickets}</Text>
+                      </View>
+                      <View style={styles.statRow}>
+                        <Text style={styles.statLabel}>Economy:</Text>
+                        <Text style={styles.statValue}>{player.economy?.toFixed(2)}</Text>
+                      </View>
+                    </>
+                  )}
+                </>
+              ) : (
+                <View style={styles.statRow}>
+                  <Text style={styles.statLabel}>
+                    {isFootball ? "Goals" : "Points"}:
+                  </Text>
+                  <Text style={styles.statValue}>
+                    {isFootball ? player.goals : player.points}
+                  </Text>
+                </View>
+              )}
+              
+              <View style={styles.statRow}>
+                <Text style={styles.statLabel}>Matches Played:</Text>
+                <Text style={styles.statValue}>{player.matchesPlayed}</Text>
+              </View>
+            </View>
           </View>
         </View>
       </View>
@@ -136,7 +314,6 @@ export const TopPerformersScreen = () => {
 
   return (
     <ScrollView style={styles.container}>
-      {/* Sport Category Selection */}
       <View style={styles.categoryWrapper}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryScroll}>
           {sportsCategories.map((category) => (
@@ -160,16 +337,14 @@ export const TopPerformersScreen = () => {
         </ScrollView>
       </View>
 
-      {/* Year Selection Card */}
       <View style={styles.yearSelectionCard}>
         <Text style={styles.yearSelectionTitle}>Select Year</Text>
-        
         <View style={styles.pickerContainer}>
           <Picker
             selectedValue={selectedYear}
             style={styles.yearPicker}
             dropdownIconColor="#6a11cb"
-            onValueChange={(itemValue) => setSelectedYear(itemValue)}
+            onValueChange={setSelectedYear}
           >
             {generateYears().map((year) => (
               <Picker.Item key={year} label={year} value={year} />
@@ -178,48 +353,42 @@ export const TopPerformersScreen = () => {
         </View>
       </View>
 
-      {/* Performer Section */}
       <View style={styles.topPerformerWrapper}>
-        <Text style={styles.topPerformerTitle}>Top Performer(s) for {selectedYear}</Text>
+        <Text style={styles.topPerformerTitle}>
+          {selectedSport} Top Performers {selectedYear}
+        </Text>
         
         {loading ? (
-          <ActivityIndicator size="large" color="#6a11cb" />
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#6a11cb" />
+          </View>
         ) : error ? (
           <View style={styles.errorContainer}>
             <Text style={styles.errorText}>{error}</Text>
           </View>
-        ) : selectedSport === "Cricket" ? (
-          <>
-            {renderPerformerCard(bestBatsman, "Best Batsman", [
-              `🏏 Runs: ${bestBatsman?.runs || 0}`,
-              `🏏 Balls Faced: ${bestBatsman?.ballsfaced || 0}`,
-              `🏏 Average: ${bestBatsman?.average?.toFixed(2) || 0}`
-            ])}
-            {renderPerformerCard(bestBowler, "Best Bowler", [
-              `🎯 Wickets: ${bestBowler?.wickets || 0}`,
-              `🎯 Balls Bowled: ${bestBowler?.ballsbowled || 0}`,
-              `🎯 Economy: ${bestBowler?.economy?.toFixed(2) || 0}`
-            ])}
-          </>
-        ) : (selectedSport === "Football" || selectedSport === "Futsal") && topPerformer ? (
-          renderPerformerCard(topPerformer, "Top Scorer", [
-            `⚽ Goals: ${topPerformer.goals}`,
-            `👕 Shirt No: ${topPerformer.shirtNo}`,
-            `🏫 Section: ${topPerformer.section}`
-          ])
-        ): selectedSport === "Basketball"  && topPerformer ? (
-          renderPerformerCard(topPerformer, "Top Scorer", [
-            `⚽ Points: ${topPerformer.points}`,
-            `👕 Shirt No: ${topPerformer.shirtNo}`,
-            `🏫 Section: ${topPerformer.section}`
-          ])
-        ) 
-        : (
+        ) : selectedSport === SPORT_TYPES.CRICKET ? (
+          <View style={styles.cricketContainer}>
+            {renderPerformerCard(cricketData.batsman, "Best Batsman")}
+            {renderPerformerCard(cricketData.bowler, "Best Bowler")}
+          </View>
+        ) : multiPlayerData.length > 0 ? (
+          <View style={styles.multiPlayerContainer}>
+            {multiPlayerData.map((player, index) => 
+              renderPerformerCard(player, `Top ${index + 1}`, index)
+            )}
+          </View>
+        ) : singlePlayerData ? (
+          renderPerformerCard(singlePlayerData, "Top Performer")
+        ) : requiresEvaluation ? (
           <View style={styles.dsaContainer}>
-            <Text style={styles.dsaTitle}>DSA Evaluation Required</Text>
+            <Text style={styles.dsaTitle}>Evaluation Required</Text>
             <Text style={styles.dsaText}>
-              {topPerformer || 'The DSA will evaluate and determine the top performers for this sport.'}
+              Top performers will be determined after evaluation by DSA.
             </Text>
+          </View>
+        ) : (
+          <View style={styles.errorContainer}>
+            <Text style={styles.errorText}>No data available</Text>
           </View>
         )}
       </View>
@@ -299,53 +468,75 @@ const styles = StyleSheet.create({
   },
   topPerformerWrapper: {
     marginTop: 20,
-    padding: 20,
+    paddingHorizontal: 15,
+    paddingBottom: 30,
   },
   topPerformerTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
+    fontSize: 18,
+    fontWeight: '600',
     color: '#333',
-    marginBottom: 20,
+    marginBottom: 15,
     textAlign: 'center',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   performerCard: {
     backgroundColor: 'white',
-    borderRadius: 12,
+    borderRadius: 10,
     padding: 15,
     marginBottom: 15,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 3,
+    shadowRadius: 3,
+    elevation: 2,
+    borderLeftWidth: 4,
+    borderLeftColor: '#6a11cb',
+  },
+  additionalPlayerCard: {
+    borderLeftColor: '#4CAF50',
+    backgroundColor: '#f8f8f8',
   },
   performerHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
     marginBottom: 10,
+    paddingBottom: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-    paddingBottom: 10,
-  },
-  sportIcon: {
-    width: 24,
-    height: 24,
-    marginRight: 10,
+    borderBottomColor: '#f0f0f0',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   performerRole: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#007BFF',
+    color: 'black',
+  },
+  rankBadge: {
+    backgroundColor: '#FFC107',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#333',
   },
   performerContent: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
   },
-  userIcon: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+  avatarPlaceholder: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: '#e6e6e6',
+    justifyContent: 'center',
+    alignItems: 'center',
     marginRight: 15,
+  },
+  avatarInitial: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#555',
   },
   performerDetails: {
     flex: 1,
@@ -354,42 +545,68 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     color: '#333',
-    marginBottom: 5,
+    marginBottom: 8,
   },
-  performerStat: {
+  statsContainer: {
+    marginTop: 5,
+  },
+  statRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 5,
+    paddingVertical: 3,
+  },
+  statLabel: {
     fontSize: 14,
     color: '#666',
-    marginVertical: 2,
+    fontWeight: '500',
+  },
+  statValue: {
+    fontSize: 14,
+    color: '#333',
+    fontWeight: '600',
+  },
+  cricketContainer: {
+    gap: 15,
+  },
+  multiPlayerContainer: {
+    gap: 15,
+  },
+  loadingContainer: {
+    padding: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   errorContainer: {
-    backgroundColor: '#FFEBEE',
+    backgroundColor: '#fff0f0',
     padding: 15,
     borderRadius: 8,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#ffcccc',
   },
   errorText: {
-    color: '#D32F2F',
-    fontSize: 16,
-    fontWeight: 'bold',
+    color: '#d32f2f',
+    fontSize: 14,
+    textAlign: 'center',
   },
   dsaContainer: {
-    backgroundColor: '#E3F2FD',
+    backgroundColor: '#f8f9fa',
     padding: 20,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
   },
   dsaTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#0D47A1',
-    marginBottom: 10,
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 8,
+    textAlign: 'center',
   },
   dsaText: {
-    fontSize: 16,
-    color: '#1976D2',
+    fontSize: 14,
+    color: '#666',
     textAlign: 'center',
+    lineHeight: 20,
   },
 });

@@ -16,7 +16,7 @@ export const AddDepartments = () => {
     try {
       setLoading(true);
       const token = await AsyncStorage.getItem('token');
-      const response = await fetch('http://192.168.1.9:3002/teams', {
+      const response = await fetch('http://10.4.36.23:3002/teams', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -51,7 +51,7 @@ export const AddDepartments = () => {
     try {
       setLoading(true);
       const token = await AsyncStorage.getItem('token');
-      const response = await fetch('http://192.168.1.9:3002/teams', {
+      const response = await fetch('http://10.4.36.23:3002/teams', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -78,7 +78,7 @@ export const AddDepartments = () => {
     try {
       setLoading(true);
       const token = await AsyncStorage.getItem('token');
-      const response = await fetch(`http://192.168.1.9:3002/teams/${team}`, {
+      const response = await fetch(`http://10.4.36.23:3002/teams/${team}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`

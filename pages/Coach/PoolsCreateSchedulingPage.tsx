@@ -55,7 +55,7 @@ export const PoolsCreateSchedulingPage = ({ route }) => {
     const fetchTeams = async () => {
       try {
         const token = await AsyncStorage.getItem("token");
-        const response = await fetch('http://192.168.1.9:3002/teams', {
+        const response = await fetch('http://10.4.36.23:3002/teams', {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -117,7 +117,7 @@ const handleStoreRankings = async () => {
     const token = await AsyncStorage.getItem("token");
     // const previousYear = new Date().getFullYear() - 1;
 
-    const response = await fetch(`http://192.168.1.9:3002/store-rankings`, {
+    const response = await fetch(`http://10.4.36.23:3002/store-rankings`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -152,7 +152,7 @@ const handleStoreRankings = async () => {
   
     try {
       const token = await AsyncStorage.getItem("token");
-      const response = await fetch(`http://192.168.1.9:3002/get-pools-and-schedules/${sport}?year=${selectedYear}`, {
+      const response = await fetch(`http://10.4.36.23:3002/get-pools-and-schedules/${sport}?year=${selectedYear}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -177,7 +177,7 @@ const handleStoreRankings = async () => {
  const handleCreatePools = async () => {
   try {
     const token = await AsyncStorage.getItem("token");
-    const response = await fetch(`http://192.168.1.9:3002/create-pools`, {
+    const response = await fetch(`http://10.4.36.23:3002/create-pools`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

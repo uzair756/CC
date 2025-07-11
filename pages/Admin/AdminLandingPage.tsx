@@ -57,7 +57,7 @@ export const AdminLandingPage = ({ navigation }) => {
     try {
       setRefreshing(true);
       const token = await AsyncStorage.getItem('token');
-      const response = await fetch('http://192.168.1.9:3002/dsalandingpage', {
+      const response = await fetch('http://10.4.36.23:3002/dsalandingpage', {
         method: 'GET',
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -137,7 +137,7 @@ const handleAddCoach = async () => {
   }
 
   try {
-    const response = await fetch('http://192.168.1.9:3002/dsasportscoachuser', {
+    const response = await fetch('http://10.4.36.23:3002/dsasportscoachuser', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -211,7 +211,7 @@ const handleAddAnnouncement = async () => {
       });
     }
 
-    const response = await fetch('http://192.168.1.9:3002/adminpost', {
+    const response = await fetch('http://10.4.36.23:3002/adminpost', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -298,7 +298,7 @@ const handleAddAnnouncement = async () => {
         // If updatedImage exists but doesn't have base64, it's the existing image (no change)
       }
   
-      const response = await fetch(`http://192.168.1.9:3002/adminpost/${selectedPost._id}`, {
+      const response = await fetch(`http://10.4.36.23:3002/adminpost/${selectedPost._id}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -377,7 +377,7 @@ const handleChangePassword = async () => {
       return;
     }
 
-    const response = await fetch('http://192.168.1.9:3002/changepasswordadmin', {
+    const response = await fetch('http://10.4.36.23:3002/changepasswordadmin', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -492,6 +492,13 @@ const handleChangePassword = async () => {
             {/* <Icon name="bullhorn" size={24} color="white" /> */}
             <Text style={styles.actionButtonText}>Manage Accounts</Text>
           </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.actionButton, styles.announcementButton]} 
+             onPress={() => navigation.navigate('RankingsYearSelection')}
+          >
+            {/* <Icon name="bullhorn" size={24} color="white" /> */}
+            <Text style={styles.actionButtonText}>Find Rankings Departments</Text>
+          </TouchableOpacity>
 
           <TouchableOpacity 
             style={[styles.actionButton, styles.passwordButton]} 
@@ -532,7 +539,7 @@ const handleChangePassword = async () => {
                   )} */}
                     {post.adminimagepost && (
                     <Image 
-                      source={{ uri: `http://192.168.1.9:3002/adminpost/image/${post._id}` }} 
+                      source={{ uri: `http://10.4.36.23:3002/adminpost/image/${post._id}` }} 
                       style={styles.postImage} 
                       resizeMode="cover"
                     />
@@ -817,7 +824,7 @@ const handleChangePassword = async () => {
           <Image source={{ uri: updatedImage.uri }} style={styles.imagePreview} />
         ) : selectedPost?.adminimagepost ? (
           <Image 
-            source={{ uri: `http://192.168.1.9:3002/adminpost/image/${selectedPost._id}` }} 
+            source={{ uri: `http://10.4.36.23:3002/adminpost/image/${selectedPost._id}` }} 
             style={styles.imagePreview} 
           />
         ) : null}

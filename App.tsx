@@ -60,6 +60,8 @@ import {DSAScheduleManagement} from './pages/Admin/DSAScheduleManagement';
 import { YearSelectionScreen } from './pages/Coach/YearSelectionScreen';
 import { PlayersPerformanceCheck } from './pages/Admin/PlayersPerformanceCheck';
 import { ManageAccounts } from './pages/Admin/ManageAccounts';
+import { FindRankingsDepartments } from './pages/Admin/FindRankingsDepartments';
+import { RankingsYearSelection } from './pages/Admin/RankingsYearSelection';
 const Stack = createNativeStackNavigator();
 
 const MyStack = () => {
@@ -364,6 +366,17 @@ const MyStack = () => {
             component={ManageAccounts}
             options={{headerShown: false}}
           />
+           <Stack.Screen
+            name="RankingsYearSelection"
+            component={RankingsYearSelection}
+            options={{headerShown: false}}
+          />
+           <Stack.Screen
+            name="FindRankingsDepartments"
+            component={FindRankingsDepartments}
+            options={{headerShown: false}}
+          />
+          
         </Stack.Navigator>
       </NavigationContainer>
     </>

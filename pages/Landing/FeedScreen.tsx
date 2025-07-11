@@ -17,7 +17,7 @@ export const FeedScreen = () => {
   const fetchPosts = async () => {
     try {
       setRefreshing(true);
-      const response = await fetch('http://192.168.1.9:3002/getadminposts');
+      const response = await fetch('http://10.4.36.23:3002/getadminposts');
       const data = await response.json();
       if (data.success) {
         setPosts(data.posts);
@@ -53,7 +53,7 @@ export const FeedScreen = () => {
   const renderPost = ({ item }) => {
     const hasImage = item.adminimagepost !== null && item.adminimagepost !== undefined;
     const imageUrl = hasImage 
-      ? `http://192.168.1.9:3002/adminpost/image/${item._id}`
+      ? `http://10.4.36.23:3002/adminpost/image/${item._id}`
       : null;
   
     return (

@@ -71,7 +71,7 @@ export const PastYearPoolsAndSchedules = () => {
       }
 
       const response = await fetch(
-        `http://192.168.1.9:3002/get-schedules?sport=${encodeURIComponent(selectedSport)}&year=${encodeURIComponent(selectedYear)}`,
+        `http://10.4.36.23:3002/get-schedules?sport=${encodeURIComponent(selectedSport)}&year=${encodeURIComponent(selectedYear)}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
